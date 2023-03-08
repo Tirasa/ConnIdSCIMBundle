@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright © 2023 ConnId (connid-dev@googlegroups.com)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+      
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>net.tirasa.connid</groupId>
+    <artifactId>connid</artifactId>
+    <version>1.5.2.0</version>
+  </parent>
+    
+  <groupId>net.tirasa.connid.bundles</groupId>
+  <artifactId>net.tirasa.connid.bundles.scim</artifactId>
+  <version>1.0.0-SNAPSHOT</version>     
+
+  <name>ConnId Bundles: SCIM</name>
+  
+  <packaging>jar</packaging>
+  
+  <url>http://connid.tirasa.net</url>
+  <inceptionYear>2018</inceptionYear>
+  
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <scm>
+    <connection>scm:git:git@github.com:Tirasa/ConnIdSCIMv11Bundle.git</connection>
+    <url>scm:git:git@github.com:Tirasa/ConnIdSCIMv11Bundle.git</url>
+    <developerConnection>scm:git:git@github.com:Tirasa/ConnIdSCIMv11Bundle.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>jira</system>
+    <url>https://connid.atlassian.net/browse/SCIM</url>
+  </issueManagement>
+
+  <ciManagement>
+    <system>GitHub Workflow</system>
+    <url>https://github.com/Tirasa/ConnIdSCIMBundle/actions</url>
+  </ciManagement>
+
+  <mailingLists>
+    <mailingList>
+      <name>connid-dev</name>
+      <post>connid-dev@googlegroups.com</post>
+      <archive>http://groups.google.com/group/connid-dev</archive>
+    </mailingList>
+    <mailingList>
+      <name>connid-users</name>
+      <post>connid-users@googlegroups.com</post>
+      <archive>http://groups.google.com/group/connid-users</archive>
+    </mailingList>
+  </mailingLists>
+
+  <properties>
+    <connid.version>1.5.2.0</connid.version>
+     
+    <java.version>1.8</java.version>
+        
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.tirasa.connid</groupId>
+      <artifactId>connector-framework</artifactId>
+      <version>${connid.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.tirasa.connid</groupId>
+      <artifactId>connector-framework-internal</artifactId>
+      <version>${connid.version}</version>
+    </dependency>
+
+    <!-- TEST -->        
+    <dependency>
+      <groupId>net.tirasa.connid</groupId>
+      <artifactId>connector-test-common</artifactId>
+      <version>${connid.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+    
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.10.1</version> 
+        <inherited>false</inherited>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <useIncrementalCompilation>false</useIncrementalCompilation>
+          <showWarnings>true</showWarnings>
+          <showDeprecation>true</showDeprecation>
+          <compilerArgument>-Xlint:unchecked</compilerArgument>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.gaul</groupId>
+        <artifactId>modernizer-maven-plugin</artifactId>
+        <version>2.5.0</version>
+        <configuration>
+          <javaVersion>${targetJdk}</javaVersion>
+        </configuration>
+        <executions>
+          <execution>
+            <id>modernizer-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>modernizer</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <inherited>false</inherited>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.15</version>
+        <configuration>
+          <excludes>
+            <exclude>**/nbactions.xml</exclude>
+            <exclude>**/nb-configuration.xml</exclude>
+            <exclude>**/META-INF/cxf/**</exclude>
+            <exclude>**/META-INF/services/**</exclude>
+            <exclude>**/META-INF/MANIFEST.MF</exclude>            
+            <exclude>**/*.csv</exclude>
+            <exclude>**/archetype-resources/**</exclude>
+            <exclude>**/AdminLTE*/**</exclude>
+            <exclude>**/goal.txt</exclude>
+            <exclude>**/rat.txt</exclude>
+            <exclude>**/build-copy-javadoc-files.xml</exclude>
+            <exclude>**/maven-eclipse.xml</exclude>
+            <exclude>**/*.iml</exclude>
+            <exclude>**/*.log</exclude>
+            <exclude>**/.externalToolBuilders/**</exclude>
+            <exclude>.git/**</exclude>
+            <exclude>.idea/**</exclude>
+            <exclude>**/.settings/**</exclude>
+            <exclude>**/.*</exclude>
+            <exclude>**/deb/control/conffiles</exclude>
+            <exclude>**/deb/control/control</exclude>
+            <exclude>**/*.lst</exclude>
+            <exclude>**/*.json</exclude>
+            <exclude>**/banner.txt</exclude>
+            <exclude>**/target/**</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>rat-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <inherited>true</inherited>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <!-- Put NOTICE and LICENSE files in all artifacts and javadocs -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.0</version>
+        <executions>
+          <execution>
+            <id>copy-artifact-legal-files</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/classes/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>.</directory>
+                  <includes>
+                    <include>LICENSE</include>
+                    <include>NOTICE</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-javadoc-legal-files</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/apidocs/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>.</directory>
+                  <includes>
+                    <include>LICENSE</include>
+                    <include>NOTICE</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <inherited>true</inherited>
+        <configuration>
+          <appendAssemblyId>true</appendAssemblyId>
+          <descriptors>
+            <descriptor>src/assemble/connector.xml</descriptor>
+          </descriptors>
+          <archive>
+            <index>true</index>
+            <manifestEntries>
+              <ConnectorBundle-FrameworkVersion>${connid.version}</ConnectorBundle-FrameworkVersion>
+              <ConnectorBundle-Name>${project.artifactId}</ConnectorBundle-Name>
+              <ConnectorBundle-Version>${project.version}</ConnectorBundle-Version>
+            </manifestEntries>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>   
+    
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>.</directory>
+        <targetPath>META-INF</targetPath>
+        <includes>
+          <include>LICENSE</include>
+          <include>NOTICE</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
+</project>
