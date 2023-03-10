@@ -68,6 +68,13 @@ public class SCIMUtils {
     public static <T extends SCIMBaseAttribute> String cleanAttributesToGet(final Set<String> attributesToGet,
                                                                             final String customAttributesJSON,
                                                                             final Class<T> attrType) {
+        return cleanAttributesToGet(attributesToGet, customAttributesJSON, attrType, false);
+    }
+
+    public static <T extends SCIMBaseAttribute> String cleanAttributesToGet(final Set<String> attributesToGet,
+                                                                            final String customAttributesJSON,
+                                                                            final Class<T> attrType,
+                                                                            final boolean addCustomAttrsToQueryParams) {
         if (attributesToGet.isEmpty()) {
             return SCIMAttributeUtils.defaultAttributesToGet();
         }
@@ -107,7 +114,7 @@ public class SCIMUtils {
             }
         }
 
-        if (customAttributesObj != null) {
+        if (customAttributesObj != null && addCustomAttrsToQueryParams) {
             for (T attribute : customAttributesObj.getAttributes()) {
                 if (!result.contains(attribute.getName() + ",")) {
                     result += attribute.getName().concat(",");
