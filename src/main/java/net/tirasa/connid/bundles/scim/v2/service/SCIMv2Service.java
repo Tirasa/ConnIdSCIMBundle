@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.service.NoSuchEntityException;
@@ -35,7 +36,6 @@ import net.tirasa.connid.bundles.scim.common.service.SCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
-import net.tirasa.connid.bundles.scim.v2.SCIMv2ConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import net.tirasa.connid.bundles.scim.v2.dto.Type;
@@ -48,13 +48,13 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
 
     private static final Log LOG = Log.getLog(SCIMv2Service.class);
 
-    protected final SCIMv2ConnectorConfiguration config;
+    protected final SCIMConnectorConfiguration config;
 
     public final static String RESPONSE_ERRORS = "Errors";
 
     public final static String RESPONSE_RESOURCES = "Resources";
 
-    public SCIMv2Service(final SCIMv2ConnectorConfiguration config) {
+    public SCIMv2Service(final SCIMConnectorConfiguration config) {
         this.config = config;
     }
 
@@ -78,6 +78,10 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
                     .accept(config.getContentType())
                     .path(path);
         }
+
+        // set content-type and accept headers
+        webClient.header(HttpHeaders.ACCEPT, "application/scim+json");
+        webClient.header(HttpHeaders.CONTENT_TYPE, "application/scim+json");
 
         if (params != null) {
             for (Entry<String, String> entry : params.entrySet()) {
@@ -403,8 +407,7 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
                         user.getReturnedCustomAttributes().put(
                                 SCIMv2Attribute.class.cast(attribute).getExtensionSchema()
                                         .concat(".")
-                                        .concat(SCIMv2Attribute.class.cast(attribute).getName()),
-                                values);
+                                        .concat(SCIMv2Attribute.class.cast(attribute).getName()), values);
                     }
                 }
             }

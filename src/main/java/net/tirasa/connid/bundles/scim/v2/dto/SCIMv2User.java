@@ -27,16 +27,16 @@ import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefault;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
-import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Meta;
-import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Service;
 import net.tirasa.connid.bundles.scim.v11.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.v11.types.PhotoCanonicalType;
+import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Service;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv2User extends SCIMBaseResource<Attribute, SCIMv2Meta> {
+public class SCIMv2User extends AbstractSCIMBaseResource<Attribute, SCIMv2Meta>
+        implements SCIMUser<Attribute, SCIMv2Meta> {
 
     public static final String RESOURCE_NAME = "User";
     public static final String SCHEMA_URI = "urn:ietf:params:scim:schemas:core:2.0:User";
@@ -248,12 +248,15 @@ public class SCIMv2User extends SCIMBaseResource<Attribute, SCIMv2Meta> {
      */
     @JsonIgnore
     public void fillSCIMCustomAttributes(final Set<Attribute> attributes, final String customAttributesJSON) {
-        SCIMSchema<SCIMv2Attribute> customAttributesObj = SCIMv11Service.extractSCIMSchemas(customAttributesJSON);
+        SCIMSchema<SCIMv2Attribute> customAttributesObj =
+                SCIMv2Service.extractSCIMSchemas(customAttributesJSON, SCIMv2Attribute.class);
         if (customAttributesObj != null) {
             for (Attribute attribute : attributes) {
                 if (!CollectionUtil.isEmpty(attribute.getValue())) {
                     for (SCIMv2Attribute customAttribute : customAttributesObj.getAttributes()) {
-                        String externalAttributeName = customAttribute.getName(); // without the prefix schema?
+                        String externalAttributeName = SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema()
+                                .concat(".")
+                                .concat(customAttribute.getName());
                         if (externalAttributeName.equals(attribute.getName())) {
                             scimCustomAttributes.put(customAttribute, attribute.getValue());
                             break;
@@ -430,17 +433,17 @@ public class SCIMv2User extends SCIMBaseResource<Attribute, SCIMv2Meta> {
                                     field.getType());
                         }
                     }
-                } else if (field.getGenericType().toString().contains(SCIMv11Meta.class.getName())) {
+                } else if (field.getGenericType().toString().contains(SCIMv2Meta.class.getName())) {
                     if (field.getType().equals(List.class)) {
-                        List<SCIMv11Meta> obj =
-                                new ArrayList<>((List<SCIMv11Meta>) objInstance);
-                        for (SCIMv11Meta sCIMMeta : obj) {
+                        List<SCIMv2Meta> obj =
+                                new ArrayList<>((List<SCIMv2Meta>) objInstance);
+                        for (SCIMv2Meta sCIMMeta : obj) {
                             addAttribute(sCIMMeta.toAttributes(),
                                     attrs,
                                     field.getType());
                         }
                     } else {
-                        addAttribute(SCIMv11Meta.class.cast(objInstance).toAttributes(),
+                        addAttribute(SCIMv2Meta.class.cast(objInstance).toAttributes(),
                                 attrs,
                                 field.getType());
                     }

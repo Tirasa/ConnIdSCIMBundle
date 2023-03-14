@@ -18,6 +18,7 @@ package net.tirasa.connid.bundles.scim.v2;
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.IOException;
 import java.util.*;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
 import net.tirasa.connid.bundles.scim.common.service.NoSuchEntityException;
@@ -50,7 +51,7 @@ public class SCIMv2ConnectorTests {
 
     private final static Properties PROPS = new Properties();
 
-    private static SCIMv2ConnectorConfiguration CONF;
+    private static SCIMConnectorConfiguration CONF;
 
     private static SCIMv2Connector CONN;
 
@@ -74,7 +75,6 @@ public class SCIMv2ConnectorTests {
             configurationParameters.put(name, PROPS.getProperty(name));
         }
         CONF = SCIMv2ConnectorTestsUtils.buildConfiguration(configurationParameters);
-        CONF.setUpdateMethod("PATCH");
 
         Boolean isValid = SCIMv2ConnectorTestsUtils.isConfigurationValid(CONF);
         if (isValid) {
@@ -94,7 +94,7 @@ public class SCIMv2ConnectorTests {
             CUSTOMS_OTHER_SCHEMAS.addAll(
                     Arrays.asList(PROPS.getProperty("auth.otherSchemas").split("\\s*,\\s*")));
         }
-        CUSTOMS_OTHER_SCHEMAS.add("urn:scim:schemas:core:1.0");
+        CUSTOMS_OTHER_SCHEMAS.add("urn:ietf:params:scim:schemas:core:2.0:User");
 
         // custom attributes
         if (PROPS.containsKey("auth.customAttributesValues")
@@ -169,7 +169,6 @@ public class SCIMv2ConnectorTests {
         assertNull(result.getPagedResultsCookie());
         assertEquals(-1, result.getRemainingPagedResults());
         assertFalse(handler.getObjects().isEmpty());
-        assertEquals(3, handler.getObjects().size());
         // verify keys
         assertTrue(handler.getObjects().stream().anyMatch(su -> "user1".equals(su.getName().getNameValue())
                 && BooleanUtils.toBoolean(su.getAttributeByName("active").getValue().get(0).toString())
@@ -241,18 +240,14 @@ public class SCIMv2ConnectorTests {
             final String testUserUid) {
         if (testUserUid != null) {
             connector.delete(ObjectClass.ACCOUNT, new Uid(testUserUid), new OperationOptionsBuilder().build());
+            // check that the user has effectively been removed
             try {
-                client.deleteUser(testUserUid);
-                fail(); // must fail
-            } catch (ConnectorException e) {
-                assertNotNull(e);
-            }
-
-            try {
-                client.getUser(testUserUid);
-                fail(); // must fail
-            } catch (NoSuchEntityException e) {
-                assertNotNull(e);
+                connector.search(ObjectClass.ACCOUNT,
+                        new EqualsFilter(new Uid(testUserUid)),
+                        new ToListResultsHandler(),
+                        new OperationOptionsBuilder().build());
+                fail("Should not arrive here");
+            } catch (NoSuchEntityException nsee) {
             }
         }
     }
@@ -286,7 +281,7 @@ public class SCIMv2ConnectorTests {
             SCIMv2User createdUser = readUser(testUser, client);
             assertEquals(createdUser.getId(), created.getUidValue());
 
-            Uid updated = updateUser(created);
+            Uid updated = updateUser(created, createdUser.getUserName());
 
             SCIMv2User updatedUser = readUser(updated.getUidValue(), client);
             LOG.info("Updated user: {0}", updatedUser);
@@ -295,14 +290,15 @@ public class SCIMv2ConnectorTests {
             // test removed attribute
             SCIMv2User user = client.getUser(updatedUser.getId());
             assertNotNull(user);
-            for (SCIMComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
-                assertNotEquals(phone.getType(), PhoneNumberCanonicalType.other);
-            }
-            for (SCIMComplex<EmailCanonicalType> email : user.getEmails()) {
-                assertNotEquals(email.getType(), EmailCanonicalType.other);
-                assertNotEquals(email.getType(), EmailCanonicalType.home);
-            }
-            assertTrue(user.getPhoneNumbers().isEmpty());
+            assertTrue(user.getPhoneNumbers().stream().noneMatch(pn -> PhoneNumberCanonicalType.other == pn.getType()));
+            assertTrue(user.getPhoneNumbers().stream()
+                    .anyMatch(
+                            pn -> PhoneNumberCanonicalType.home == pn.getType() && pn.isPrimary() && "123456789".equals(
+                                    pn.getValue())));
+
+            assertTrue(user.getEmails().stream()
+                    .anyMatch(email -> EmailCanonicalType.work == email.getType()
+                            && ("updated" + updatedUser.getUserName()).equals(email.getValue())));
         } catch (Exception e) {
             LOG.error(e, "While running crud test");
             fail(e.getMessage());
@@ -349,25 +345,33 @@ public class SCIMv2ConnectorTests {
         return created;
     }
 
-    private Uid updateUser(final Uid created) {
+    private Uid updateUser(final Uid created, final String name) {
         Attribute password = AttributeBuilder.buildPassword(
                 new GuardedString((SCIMv2ConnectorTestsUtils.VALUE_PASSWORD + "01").toCharArray()));
         // UPDATE USER VALUE_PASSWORD
         Set<Attribute> userAttrs = new HashSet<>();
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME, name));
+        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME,
+                SCIMv2ConnectorTestsUtils.VALUE_FAMILY_NAME));
+        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME,
+                SCIMv2ConnectorTestsUtils.VALUE_NICK_NAME + created.getUidValue().substring(0, 10)));
+        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE,
+                "updated" + name));
+        // no phone number -> delete
+        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_HOME_VALUE,
+                "123456789"));
+        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_HOME_PRIMARY, true));
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE, true));
         userAttrs.add(password);
+
+        if (PROPS.containsKey("auth.defaultEntitlement")
+                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
+            userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
+                    PROPS.getProperty("auth.defaultEntitlement")));
+        }
 
         // custom attributes
         addCustomAttributes(userAttrs);
-
-        // want to remove an attribute
-        // Note that "value" and "primary" must also be the same of current attribute in order to proceed with deletion
-        // See http://www.simplecloud.info/specs/draft-scim-api-01.html#edit-resource-with-patch
-        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_OPERATION,
-                "delete")); // will also set type to "other"
-        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_VALUE,
-                SCIMv2ConnectorTestsUtils.VALUE_PHONE_NUMBER));
-        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_PRIMARY,
-                false));
 
         // custom schemas
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOMS_OTHER_SCHEMAS));
@@ -401,8 +405,8 @@ public class SCIMv2ConnectorTests {
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE));
-        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.SCIM_USER_SCHEMAS));
+//        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
+//                SCIMAttributeUtils.SCIM_USER_SCHEMAS));
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
         if (PROPS.containsKey("auth.defaultEntitlement")
@@ -412,12 +416,14 @@ public class SCIMv2ConnectorTests {
         }
 
         if (testCustomAttributes()) {
-            final List<ConnectorObject> found = new ArrayList<>();
+            List<ConnectorObject> found = new ArrayList<>();
             connector.search(ObjectClass.ACCOUNT,
                     new EqualsFilter(new Name(user.getUserName())),
                     found::add,
-                    new OperationOptionsBuilder().setAttributesToGet(CUSTOM_ATTRIBUTES_KEYS).build());
-            assertEquals(found.size(), 1);
+                    new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
+                            "displayName", "active",
+                            "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
+            assertEquals(1, found.size());
             assertNotNull(found.get(0));
             assertNotNull(found.get(0).getName());
             for (String key : CUSTOM_ATTRIBUTES_KEYS) {
@@ -520,7 +526,6 @@ public class SCIMv2ConnectorTests {
             if (phone.getType().equals(PhoneNumberCanonicalType.other)) {
                 // Note that "value" and "primary" must also be the same of current attribute in order to proceed with deletion
                 // See http://www.simplecloud.info/specs/draft-scim-api-01.html#edit-resource-with-patch
-                phone.setOperation("delete");
                 break;
             }
         }

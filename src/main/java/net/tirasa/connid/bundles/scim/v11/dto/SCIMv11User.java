@@ -19,10 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.Field;
 import java.util.*;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
+import net.tirasa.connid.bundles.scim.common.dto.*;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.IMCanonicalType;
@@ -35,7 +32,8 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv11User extends SCIMBaseResource<Attribute, SCIMv11Meta> {
+public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta>
+        implements SCIMUser<Attribute, SCIMv11Meta> {
 
     @JsonProperty
     private String id;

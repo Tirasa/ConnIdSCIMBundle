@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.tirasa.connid.bundles.scim.v2;
+package net.tirasa.connid.bundles.scim.common;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -34,9 +34,9 @@ import org.identityconnectors.framework.spi.StatefulConfiguration;
  * Connector configuration class. It contains all the needed methods for
  * processing the connector configuration.
  */
-public class SCIMv2ConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
+public class SCIMConnectorConfiguration extends AbstractConfiguration implements StatefulConfiguration {
 
-    private static final Log LOG = Log.getLog(SCIMv2ConnectorConfiguration.class);
+    private static final Log LOG = Log.getLog(SCIMConnectorConfiguration.class);
 
     private String username;
 

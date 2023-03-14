@@ -68,7 +68,7 @@ public class SCIMUtils {
     public static <T extends SCIMBaseAttribute> String cleanAttributesToGet(final Set<String> attributesToGet,
                                                                             final String customAttributesJSON,
                                                                             final Class<T> attrType) {
-        return cleanAttributesToGet(attributesToGet, customAttributesJSON, attrType, false);
+        return cleanAttributesToGet(attributesToGet, customAttributesJSON, attrType, true);
     }
 
     public static <T extends SCIMBaseAttribute> String cleanAttributesToGet(final Set<String> attributesToGet,
@@ -116,8 +116,11 @@ public class SCIMUtils {
 
         if (customAttributesObj != null && addCustomAttrsToQueryParams) {
             for (T attribute : customAttributesObj.getAttributes()) {
-                if (!result.contains(attribute.getName() + ",")) {
-                    result += attribute.getName().concat(",");
+                String attributeName = attribute instanceof SCIMv2Attribute
+                        ? SCIMv2Attribute.class.cast(attribute).getExtensionSchema() + ":" + attribute.getName()
+                        : attribute.getName();
+                if (!result.contains(attributeName)) {
+                    result += attributeName.concat(",");
                 }
             }
         }

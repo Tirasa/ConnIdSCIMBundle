@@ -17,6 +17,7 @@ package net.tirasa.connid.bundles.scim.v2;
 
 import java.util.Map;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -50,15 +51,17 @@ public class SCIMv2ConnectorTestsUtils {
     public static final String USER_ATTRIBUTE_ROLES_DEFAULT_VALUE = "roles.default.value";
 
     public static final String USER_ATTRIBUTE_PHONE_OTHER_VALUE = "phoneNumbers.other.value";
+    public static final String USER_ATTRIBUTE_PHONE_HOME_VALUE = "phoneNumbers.home.value";
 
     public static final String USER_ATTRIBUTE_PHONE_OTHER_PRIMARY = "phoneNumbers.other.primary";
+    public static final String USER_ATTRIBUTE_PHONE_HOME_PRIMARY = "phoneNumbers.home.primary";
 
     public static final String USER_ATTRIBUTE_PHONE_OTHER_OPERATION = "phoneNumbers.other.operation";
 
     public static final String USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS = "addresses.work.streetAddress";
 
-    public static SCIMv2ConnectorConfiguration buildConfiguration(Map<String, String> configuration) {
-        SCIMv2ConnectorConfiguration connectorConfiguration = new SCIMv2ConnectorConfiguration();
+    public static SCIMConnectorConfiguration buildConfiguration(Map<String, String> configuration) {
+        SCIMConnectorConfiguration connectorConfiguration = new SCIMConnectorConfiguration();
 
         for (Map.Entry<String, String> entry : configuration.entrySet()) {
 
@@ -99,9 +102,6 @@ public class SCIMv2ConnectorTestsUtils {
                 case "auth.updateMethod":
                     connectorConfiguration.setUpdateMethod(entry.getValue());
                     break;
-                case "auth.defaultEntitlement":
-                    connectorConfiguration.setUpdateMethod(entry.getValue());
-                    break;
                 default:
                     LOG.info("Occurrence of an non defined parameter");
                     break;
@@ -110,7 +110,7 @@ public class SCIMv2ConnectorTestsUtils {
         return connectorConfiguration;
     }
 
-    public static boolean isConfigurationValid(final SCIMv2ConnectorConfiguration connectorConfiguration) {
+    public static boolean isConfigurationValid(final SCIMConnectorConfiguration connectorConfiguration) {
         connectorConfiguration.validate();
         return true;
     }

@@ -18,10 +18,10 @@ package net.tirasa.connid.bundles.scim.v11.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-import net.tirasa.connid.bundles.scim.common.dto.BaseEntity;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
+import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMBaseResource;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 
-public class PagedResults<T extends SCIMBaseResource> {
+public class PagedResults<T extends SCIMUser> {
 
     @JsonProperty
     private int totalResults;

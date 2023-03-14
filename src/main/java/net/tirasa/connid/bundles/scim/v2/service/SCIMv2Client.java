@@ -19,13 +19,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.*;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
-import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
-import net.tirasa.connid.bundles.scim.v2.SCIMv2ConnectorConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
@@ -34,7 +33,7 @@ public class SCIMv2Client extends SCIMv2Service {
 
     private static final Log LOG = Log.getLog(SCIMv2Client.class);
 
-    public SCIMv2Client(final SCIMv2ConnectorConfiguration config) {
+    public SCIMv2Client(final SCIMConnectorConfiguration config) {
         super(config);
     }
 
@@ -45,8 +44,10 @@ public class SCIMv2Client extends SCIMv2Service {
     public List<SCIMv2User> getAllUsers(final Set<String> attributesToGet) {
         WebClient webClient = getWebclient("Users", null);
         Map<String, String> params = new HashMap<>();
-        params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                SCIMv2Attribute.class));
+        if (!attributesToGet.isEmpty()) {
+            params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
+                    SCIMv2Attribute.class));
+        }
         return doGetAllUsers(webClient).getResources();
     }
 
@@ -58,8 +59,10 @@ public class SCIMv2Client extends SCIMv2Service {
     public List<SCIMv2User> getAllUsers(final String filterQuery, final Set<String> attributesToGet) {
         Map<String, String> params = new HashMap<>();
         params.put("filter", filterQuery);
-        params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                SCIMv2Attribute.class));
+        if (!attributesToGet.isEmpty()) {
+            params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
+                    SCIMv2Attribute.class));
+        }
         WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient).getResources();
     }
@@ -77,8 +80,10 @@ public class SCIMv2Client extends SCIMv2Service {
         if (count != null) {
             params.put("count", String.valueOf(count));
         }
-        params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                SCIMv2Attribute.class));
+        if (!attributesToGet.isEmpty()) {
+            params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
+                    SCIMv2Attribute.class));
+        }
         WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient);
     }
@@ -119,6 +124,7 @@ public class SCIMv2Client extends SCIMv2Service {
      * @param user
      * @return Created User
      */
+    @Override
     public SCIMv2User createUser(final SCIMv2User user) {
         return SCIMv2User.class.cast(doCreateUser(user));
     }
@@ -134,10 +140,9 @@ public class SCIMv2Client extends SCIMv2Service {
     /**
      * @param userId
      */
+    @Override
     public void deleteUser(final String userId) {
-        WebClient webClient = getWebclient("Users", null)
-                .path(userId);
-        doDeleteUser(userId, webClient);
+        doDeleteUser(userId, getWebclient("Users", null).path(userId));
     }
 
     /**
@@ -215,8 +220,7 @@ public class SCIMv2Client extends SCIMv2Service {
         }
 
         SCIMv2User updated = null;
-        JsonNode node = doUpdate(user, getWebclient("Users", null)
-                .path(user.getId()));
+        JsonNode node = doUpdate(user, getWebclient("Users", null).path(user.getId()));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update on service");
         }
