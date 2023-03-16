@@ -16,6 +16,8 @@
 package net.tirasa.connid.bundles.scim.v11.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import java.util.ArrayList;
 import java.util.List;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMBaseResource;
@@ -40,6 +42,16 @@ public class PagedResults<T extends SCIMUser> {
 
     public List<T> getResources() {
         return resources;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setSchemas(List<String> schemas) {
+        this.schemas = schemas;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setResources(List<T> resources) {
+        this.resources = resources;
     }
 
     public List<String> getSchemas() {

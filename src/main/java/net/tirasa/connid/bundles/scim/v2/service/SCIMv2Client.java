@@ -28,6 +28,7 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.Attribute;
 
 public class SCIMv2Client extends SCIMv2Service {
 
@@ -133,8 +134,12 @@ public class SCIMv2Client extends SCIMv2Service {
      * @param user
      * @return Update User
      */
+    public SCIMv2User updateUser(final SCIMv2User user, Set<Attribute> replaceAttributes) {
+        return SCIMv2User.class.cast(doUpdateUser(user, replaceAttributes));
+    }
+
     public SCIMv2User updateUser(final SCIMv2User user) {
-        return SCIMv2User.class.cast(doUpdateUser(user));
+        return SCIMv2User.class.cast(doUpdateUser(user, Collections.emptySet()));
     }
 
     /**
@@ -159,14 +164,14 @@ public class SCIMv2Client extends SCIMv2Service {
     }
 
     private PagedResults<SCIMv2User> doGetAllUsers(final WebClient webClient) {
-        PagedResults<SCIMv2User> resources = null;
+        PagedResults<SCIMv2User> pagedResults = null;
         JsonNode node = doGet(webClient);
         if (node == null) {
             SCIMUtils.handleGeneralError("While retrieving Users from service");
         }
 
         try {
-            resources = SCIMUtils.MAPPER.readValue(
+            pagedResults = SCIMUtils.MAPPER.readValue(
                     node.toString(),
                     new TypeReference<PagedResults<SCIMv2User>>() {
                     });
@@ -174,16 +179,16 @@ public class SCIMv2Client extends SCIMv2Service {
             LOG.error(ex, "While converting from JSON to Users");
         }
 
-        if (resources == null) {
+        if (pagedResults == null) {
             SCIMUtils.handleGeneralError("While retrieving Users from service");
         } else {
             // check custom attributes
-            if (!resources.getResources().isEmpty()) {
-                readCustomAttributes(resources, node.get(RESPONSE_RESOURCES));
+            if (!pagedResults.getResources().isEmpty()) {
+                readCustomAttributes(pagedResults, node.get(RESPONSE_RESOURCES));
             }
         }
 
-        return resources;
+        return pagedResults;
     }
 
     private SCIMv2User doGetUser(final WebClient webClient) {
@@ -214,13 +219,16 @@ public class SCIMv2Client extends SCIMv2Service {
         return user;
     }
 
-    private SCIMv2User doUpdateUser(final SCIMv2User user) {
+    private SCIMv2User doUpdateUser(final SCIMv2User user, final Set<Attribute> replaceAttributes) {
         if (StringUtil.isBlank(user.getId())) {
             SCIMUtils.handleGeneralError("Missing required user id attribute for update");
         }
 
         SCIMv2User updated = null;
-        JsonNode node = doUpdate(user, getWebclient("Users", null).path(user.getId()));
+        JsonNode node = config.getUpdateMethod().equalsIgnoreCase("PATCH")
+                && !replaceAttributes.isEmpty()
+                ? doUpdatePatch(replaceAttributes, getWebclient("Users", null).path(user.getId()))
+                : doUpdate(user, getWebclient("Users", null).path(user.getId()));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update on service");
         }

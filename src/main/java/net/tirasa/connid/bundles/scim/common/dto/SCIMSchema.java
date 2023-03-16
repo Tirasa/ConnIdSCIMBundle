@@ -16,6 +16,8 @@
 package net.tirasa.connid.bundles.scim.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -38,7 +40,7 @@ public class SCIMSchema<T extends SCIMBaseAttribute> {
     private String endpoint;
 
     @JsonProperty
-    private final List<T> attributes = new ArrayList<>();
+    private List<T> attributes = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -82,6 +84,11 @@ public class SCIMSchema<T extends SCIMBaseAttribute> {
 
     public List<T> getAttributes() {
         return attributes;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setAttributes(List<T> attributes) {
+        this.attributes = attributes;
     }
 
     @Override

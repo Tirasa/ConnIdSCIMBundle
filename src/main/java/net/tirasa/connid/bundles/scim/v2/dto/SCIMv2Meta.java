@@ -26,7 +26,7 @@ public class SCIMv2Meta extends SCIMBaseMeta {
 
     private static final long serialVersionUID = -9162917034280030708L;
 
-    String resourceType;
+    private String resourceType;
 
     public SCIMv2Meta() {
     }

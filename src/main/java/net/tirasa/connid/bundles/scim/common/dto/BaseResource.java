@@ -16,6 +16,8 @@
 
 package net.tirasa.connid.bundles.scim.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.TreeSet;
@@ -25,10 +27,9 @@ public abstract class BaseResource implements Serializable {
 
     protected static final Log LOG = Log.getLog(BaseResource.class);
 
-
     private static final long serialVersionUID = -7603956873008734403L;
 
-    protected final Set<String> schemas = new TreeSet<>();
+    protected Set<String> schemas = new TreeSet<>();
 
 
     public BaseResource(final String baseSchema) {
@@ -39,6 +40,7 @@ public abstract class BaseResource implements Serializable {
         return schemas;
     }
 
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     public void setSchemas(final Set<String> schemas) {
         this.schemas.clear();
         this.schemas.addAll(schemas);

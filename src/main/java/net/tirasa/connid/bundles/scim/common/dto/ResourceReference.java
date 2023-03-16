@@ -29,13 +29,13 @@ public class ResourceReference implements Serializable {
         direct, indirect, User, Group;
     }
 
-    String value;
+    private String value;
 
-    String ref;
+    private String ref;
 
-    String display;
+    private String display;
 
-    ReferenceType type;
+    private ReferenceType type;
 
     public String getValue() {
         return value;

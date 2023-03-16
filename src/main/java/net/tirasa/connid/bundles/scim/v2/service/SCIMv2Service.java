@@ -20,10 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -43,6 +40,7 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.SecurityUtil;
+import org.identityconnectors.framework.common.objects.Attribute;
 
 public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
 
@@ -231,6 +229,12 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
         }
 
         return result;
+    }
+
+    protected JsonNode doUpdatePatch(final Set<Attribute> replaceAttributes, final WebClient webClient) {
+        LOG.ok("UPDATE PATCH: {0}", webClient.getCurrentURI());
+        // TODO
+        return null;
     }
 
     protected void doDelete(final String userId, final WebClient webClient) {

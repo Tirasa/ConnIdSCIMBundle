@@ -31,7 +31,7 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
     protected ST client;
 
     @Override
-    public void init(Configuration configuration) {
+    public void init(final Configuration configuration) {
         LOG.ok("Init");
 
         this.configuration = (SCIMConnectorConfiguration) configuration;
@@ -51,7 +51,8 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
     }
 
     @Override
-    public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
+    public void executeQuery(final ObjectClass objectClass, final Filter query, final ResultsHandler handler,
+                             final OperationOptions options) {
         LOG.ok("Connector READ");
 
         Attribute key = null;
@@ -118,11 +119,11 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
                         SCIMUtils.wrapGeneralError("While getting User : "
                                 + key.getName() + " - " + AttributeUtil.getAsStringValue(key), e);
                     }
-                } else if (Name.NAME.equals(key.getName())) {
+                } else {
                     try {
                         List<T> users =
-                                client.getAllUsers("username eq \"" + AttributeUtil.getAsStringValue(key) + "\"",
-                                        attributesToGet);
+                                client.getAllUsers((Name.NAME.equals(key.getName()) ? "username" : key.getName()) +
+                                        " eq \"" + AttributeUtil.getAsStringValue(key) + "\"", attributesToGet);
                         if (!users.isEmpty()) {
                             result = users.get(0);
                         }
@@ -143,7 +144,8 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
     }
 
     @Override
-    public Uid create(ObjectClass objectClass, Set<Attribute> createAttributes, OperationOptions options) {
+    public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes,
+                      final OperationOptions options) {
         LOG.ok("Connector CREATE");
 
         if (createAttributes == null || createAttributes.isEmpty()) {
@@ -206,7 +208,8 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
     }
 
     @Override
-    public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
+    public Uid update(final ObjectClass objectClass, final Uid uid, final Set<Attribute> replaceAttributes,
+                      final OperationOptions options) {
         LOG.ok("Connector UPDATE object [{0}]", uid);
 
         if (replaceAttributes == null || replaceAttributes.isEmpty()) {
@@ -274,7 +277,7 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
     }
 
     @Override
-    public void delete(ObjectClass objectClass, Uid uid, OperationOptions options) {
+    public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
         LOG.ok("Connector DELETE object [{0}]", uid);
 
         if (StringUtil.isBlank(uid.getUidValue())) {

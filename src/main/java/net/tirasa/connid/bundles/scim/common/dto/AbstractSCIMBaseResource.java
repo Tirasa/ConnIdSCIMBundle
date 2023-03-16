@@ -41,7 +41,7 @@ public abstract class AbstractSCIMBaseResource<AT, MT extends SCIMBaseMeta> impl
 
     private String baseSchema;
 
-    protected final Set<String> schemas = new TreeSet<>();
+    protected Set<String> schemas = new TreeSet<>();
 
     public AbstractSCIMBaseResource() {
     }

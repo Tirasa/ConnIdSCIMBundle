@@ -34,7 +34,7 @@ public class SCIMv2Attribute extends SCIMBaseAttribute<SCIMv2Attribute> {
     private Uniqueness uniqueness;
 
     @JsonProperty
-    List<String> referenceTypes = new ArrayList<>();
+    private List<String> referenceTypes = new ArrayList<>();
 
     @JsonIgnore
     private String extensionSchema;

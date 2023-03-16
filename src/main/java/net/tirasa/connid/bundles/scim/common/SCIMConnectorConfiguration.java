@@ -21,6 +21,7 @@ import java.net.URL;
 import javax.ws.rs.core.MediaType;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -46,7 +47,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String customAttributesJSON;
 
-    private String updateMethod = "PATCH";
+    private String updateMethod = "PUT";
 
     private String accept = MediaType.APPLICATION_JSON;
 
@@ -194,11 +195,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             LOG.error(e, "While validating baseAddress");
             failValidation("Base address must be a valid URL.");
         }
-        if (StringUtil.isBlank(username)) {
-            failValidation("Username cannot be null or empty.");
+        if (StringUtil.isBlank(username)
+                && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
+            failValidation(
+                    "Username cannot be null or empty. Since clientId, clientSecret, " +
+                            "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
-        if (StringUtil.isBlank(SecurityUtil.decrypt(password))) {
-            failValidation("Password Id cannot be null or empty.");
+        if (StringUtil.isBlank(SecurityUtil.decrypt(password)) &&
+                StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
+            failValidation(
+                    "Password Id cannot be null or empty.  Since clientId, clientSecret, " +
+                            "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
         if (StringUtil.isNotBlank(customAttributesJSON)) {
             try {

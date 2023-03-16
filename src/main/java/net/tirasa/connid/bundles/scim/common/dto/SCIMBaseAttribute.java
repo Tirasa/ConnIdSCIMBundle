@@ -16,6 +16,8 @@
 package net.tirasa.connid.bundles.scim.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,10 +43,10 @@ public class SCIMBaseAttribute<SELF extends SCIMBaseAttribute> implements Serial
     protected Boolean caseExact;
 
     @JsonProperty
-    protected final List<String> canonicalValues = new ArrayList<>();
+    protected List<String> canonicalValues = new ArrayList<>();
 
     @JsonProperty
-    protected final List<SELF> subAttributes = new ArrayList<>();
+    protected List<SELF> subAttributes = new ArrayList<>();
 
     public String getType() {
         return type;
@@ -100,5 +102,15 @@ public class SCIMBaseAttribute<SELF extends SCIMBaseAttribute> implements Serial
 
     public List<SELF> getSubAttributes() {
         return subAttributes;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setCanonicalValues(List<String> canonicalValues) {
+        this.canonicalValues = canonicalValues;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setSubAttributes(List<SELF> subAttributes) {
+        this.subAttributes = subAttributes;
     }
 }

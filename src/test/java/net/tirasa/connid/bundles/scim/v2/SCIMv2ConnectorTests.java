@@ -28,7 +28,10 @@ import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import net.tirasa.connid.bundles.scim.v11.types.PhoneNumberCanonicalType;
+import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
+import net.tirasa.connid.bundles.scim.v2.dto.Uniqueness;
 import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Client;
 import org.apache.commons.lang3.BooleanUtils;
 import org.identityconnectors.common.StringUtil;
@@ -37,11 +40,11 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.test.common.TestHelpers;
 import org.identityconnectors.test.common.ToListResultsHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -157,6 +160,13 @@ public class SCIMv2ConnectorTests {
 
     @Test
     public void search() {
+        // create some sample users
+        SCIMv2User user1 = createUserServiceTest(UUID.randomUUID(), true, newClient());
+        SCIMv2User user2 = createUserServiceTest(UUID.randomUUID(), true, newClient());
+        SCIMv2User user3 = createUserServiceTest(UUID.randomUUID(), false, newClient());
+        SCIMv2User user4 = createUserServiceTest(UUID.randomUUID(), true, newClient());
+        SCIMv2User user5 = createUserServiceTest(UUID.randomUUID(), true, newClient());
+
         ToListResultsHandler handler = new ToListResultsHandler();
 
         SearchResult result = connector.search(ObjectClass.ACCOUNT,
@@ -170,25 +180,25 @@ public class SCIMv2ConnectorTests {
         assertEquals(-1, result.getRemainingPagedResults());
         assertFalse(handler.getObjects().isEmpty());
         // verify keys
-        assertTrue(handler.getObjects().stream().anyMatch(su -> "user1".equals(su.getName().getNameValue())
+        assertTrue(handler.getObjects().stream().anyMatch(su -> user1.getUserName().equals(su.getName().getNameValue())
                 && BooleanUtils.toBoolean(su.getAttributeByName("active").getValue().get(0).toString())
-                && "e1@example.com".equals(
+                && user1.getEmails().get(0).getValue().equals(
                 AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
-                && "McTest".equals(
+                && user2.getName().getFamilyName().equals(
                 AttributeUtil.getAsStringValue(su.getAttributeByName("name.familyName")))
                 && 7 == AttributeUtil.getIntegerValue(su.getAttributeByName(
                 "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber"))));
-        assertTrue(handler.getObjects().stream().anyMatch(su -> "user2".equals(su.getName().getNameValue())
+        assertTrue(handler.getObjects().stream().anyMatch(su -> user3.getUserName().equals(su.getName().getNameValue())
                 && !BooleanUtils.toBoolean(su.getAttributeByName("active").getValue().get(0).toString())));
-        assertTrue(handler.getObjects().stream().anyMatch(su -> "user3".equals(su.getName().getNameValue())));
+        assertTrue(
+                handler.getObjects().stream().anyMatch(su -> user4.getUserName().equals(su.getName().getNameValue())));
         // verify attributes
 
         result = connector.search(ObjectClass.ACCOUNT,
                 null,
                 handler,
                 new OperationOptionsBuilder()
-                        .setAttributesToGet("name", "emails.work.value", "name.familyName",
-                                "displayName", "active")
+                        .setAttributesToGet("name", "emails.work.value", "name.familyName", "displayName", "active")
                         .setPageSize(1).build());
         assertNotNull(result);
         assertNotNull(result.getPagedResultsCookie());
@@ -208,6 +218,13 @@ public class SCIMv2ConnectorTests {
 
     @Test
     public void pagedSearch() {
+        // create some sample users for pagination
+        createUser(UUID.randomUUID());
+        createUser(UUID.randomUUID());
+        createUser(UUID.randomUUID());
+        createUser(UUID.randomUUID());
+        createUser(UUID.randomUUID());
+
         final List<ConnectorObject> results = new ArrayList<>();
         final ResultsHandler handler = results::add;
 
@@ -231,40 +248,7 @@ public class SCIMv2ConnectorTests {
 
         LOG.info("Paged search results : {0}", results);
 
-        assertTrue(results.size() > 2);
-    }
-
-    private void cleanup(
-            final ConnectorFacade connector,
-            final SCIMv2Client client,
-            final String testUserUid) {
-        if (testUserUid != null) {
-            connector.delete(ObjectClass.ACCOUNT, new Uid(testUserUid), new OperationOptionsBuilder().build());
-            // check that the user has effectively been removed
-            try {
-                connector.search(ObjectClass.ACCOUNT,
-                        new EqualsFilter(new Uid(testUserUid)),
-                        new ToListResultsHandler(),
-                        new OperationOptionsBuilder().build());
-                fail("Should not arrive here");
-            } catch (NoSuchEntityException nsee) {
-            }
-        }
-    }
-
-    private void cleanup(
-            final SCIMv2Client client,
-            final String testUserUid) {
-        if (testUserUid != null) {
-            client.deleteUser(testUserUid);
-
-            try {
-                client.getUser(testUserUid);
-                fail(); // must fail
-            } catch (ConnectorException e) {
-                assertNotNull(e);
-            }
-        }
+        assertTrue(results.size() > 3);
     }
 
     @Test
@@ -290,7 +274,8 @@ public class SCIMv2ConnectorTests {
             // test removed attribute
             SCIMv2User user = client.getUser(updatedUser.getId());
             assertNotNull(user);
-            assertTrue(user.getPhoneNumbers().stream().noneMatch(pn -> PhoneNumberCanonicalType.other == pn.getType()));
+            assertTrue(user.getPhoneNumbers().stream()
+                    .noneMatch(pn -> PhoneNumberCanonicalType.other == pn.getType()));
             assertTrue(user.getPhoneNumbers().stream()
                     .anyMatch(
                             pn -> PhoneNumberCanonicalType.home == pn.getType() && pn.isPrimary() && "123456789".equals(
@@ -302,8 +287,6 @@ public class SCIMv2ConnectorTests {
         } catch (Exception e) {
             LOG.error(e, "While running crud test");
             fail(e.getMessage());
-        } finally {
-            cleanup(connector, client, testUser);
         }
     }
 
@@ -327,8 +310,9 @@ public class SCIMv2ConnectorTests {
 
         if (PROPS.containsKey("auth.defaultEntitlement")
                 && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
-                    PROPS.getProperty("auth.defaultEntitlement")));
+            userAttrs.add(
+                    AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
+                            PROPS.getProperty("auth.defaultEntitlement")));
         }
 
         // custom attributes
@@ -366,8 +350,9 @@ public class SCIMv2ConnectorTests {
 
         if (PROPS.containsKey("auth.defaultEntitlement")
                 && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
-                    PROPS.getProperty("auth.defaultEntitlement")));
+            userAttrs.add(
+                    AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
+                            PROPS.getProperty("auth.defaultEntitlement")));
         }
 
         // custom attributes
@@ -442,13 +427,13 @@ public class SCIMv2ConnectorTests {
         SCIMv2Client client = newClient();
 
         String testUser = null;
-        UUID uid = UUID.randomUUID();
 
         try {
-            deleteUsersServiceTest(client);
-
-            SCIMv2User created = createUserServiceTest(uid, client);
-            testUser = created.getId();
+            SCIMv2User created1 = createUserServiceTest(UUID.randomUUID(), true, client);
+            SCIMv2User created2 = createUserServiceTest(UUID.randomUUID(), true, client);
+            SCIMv2User created3 = createUserServiceTest(UUID.randomUUID(), true, client);
+            SCIMv2User created4 = createUserServiceTest(UUID.randomUUID(), true, client);
+            testUser = created1.getId();
 
             readUserServiceTest(testUser, client);
 
@@ -456,17 +441,35 @@ public class SCIMv2ConnectorTests {
 
             updateUserServiceTest(testUser, client);
 
-            CONF.setUpdateMethod("PUT");
-            updateUserServiceTestPUT(testUser, newClient());
+            updateUserServiceTestPATCH(testUser, newClient());
+
+            deleteUsersServiceTest(client, created1.getUserName());
+
         } catch (Exception e) {
             LOG.error(e, "While running service test");
             fail(e.getMessage());
-        } finally {
-            cleanup(client, testUser);
         }
     }
 
-    private SCIMv2User createUserServiceTest(final UUID uid, final SCIMv2Client client) {
+    @AfterEach
+    public void cleanup() {
+        // check that the user has effectively been removed
+        try {
+            ToListResultsHandler handler = new ToListResultsHandler();
+            connector.search(ObjectClass.ACCOUNT,
+                    null,
+                    handler,
+                    new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
+                            "displayName", "active",
+                            "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
+            handler.getObjects().forEach(user ->
+                    connector.delete(ObjectClass.ACCOUNT, user.getUid(), new OperationOptionsBuilder().build()));
+        } catch (NoSuchEntityException nsee) {
+            nsee.printStackTrace();
+        }
+    }
+
+    private SCIMv2User createUserServiceTest(final UUID uid, final boolean active, final SCIMv2Client client) {
         SCIMv2User user = new SCIMv2User();
         String name = SCIMv2ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
         user.setUserName(name);
@@ -501,6 +504,18 @@ public class SCIMv2ConnectorTests {
             entitlement.setValue(PROPS.getProperty("auth.defaultEntitlement"));
             user.getEntitlements().add(entitlement);
         }
+        user.setActive(active);
+        SCIMv2Attribute luckyNumberAttribute = new SCIMv2Attribute();
+        luckyNumberAttribute.setExtensionSchema("urn:mem:params:scim:schemas:extension:LuckyNumberExtension");
+        luckyNumberAttribute.setMutability(Mutability.readWrite);
+        luckyNumberAttribute.setUniqueness(Uniqueness.server);
+        luckyNumberAttribute.setName("luckyNumber");
+        luckyNumberAttribute.setCaseExact(true);
+        luckyNumberAttribute.setRequired(true);
+        luckyNumberAttribute.setMultiValued(false);
+        luckyNumberAttribute.setType("integer");
+        luckyNumberAttribute.setReturned("default");
+        user.getSCIMCustomAttributes().putIfAbsent(luckyNumberAttribute, Collections.singletonList("7"));
 
         SCIMv2User created = client.createUser(user);
         assertNotNull(created);
@@ -543,44 +558,18 @@ public class SCIMv2ConnectorTests {
 
         // test removed attribute
         for (SCIMComplex<PhoneNumberCanonicalType> phone : updated.getPhoneNumbers()) {
-            assertNotEquals(phone.getType(), PhoneNumberCanonicalType.other);
+            assertEquals(PhoneNumberCanonicalType.other, phone.getType());
         }
 
         return updated;
     }
 
-    private SCIMv2User updateUserServiceTestPUT(final String userId, final SCIMv2Client client)
-            throws IllegalArgumentException, IllegalAccessException {
+    private SCIMv2User updateUserServiceTestPATCH(final String userId, final SCIMv2Client client)
+            throws IllegalArgumentException {
+        CONF.setUpdateMethod("PATCH");
         SCIMv2User user = client.getUser(userId);
-        assertNotNull(user);
-        assertNotNull(user.getNickName());
-        assertFalse(user.getNickName().isEmpty());
-
-        // want to update an attribute
-        String oldName = user.getNickName();
-        String newName = "Updated nickname" + UUID.randomUUID().toString().substring(0, 10);
-        user.setNickName(newName);
-        user.setMeta(null); // no need
-
-        // 'formatted' filed is read-only
-        user.getAddresses().get(0).setFormatted(null);
-
-        // custom attributes
-        if (testCustomAttributes()) {
-            Set<Attribute> userAttrs = new HashSet<>();
-            for (Map.Entry<String, List<Object>> entry : user.getReturnedCustomAttributes().entrySet()) {
-                userAttrs.add(AttributeBuilder.build(entry.getKey(), entry.getValue()));
-            }
-            user.fillSCIMCustomAttributes(userAttrs, CONF.getCustomAttributesJSON());
-        }
-
-        SCIMv2User updated = client.updateUser(user);
-        assertNotNull(updated);
-        assertFalse(updated.getNickName().equals(oldName));
-        assertEquals(updated.getNickName(), newName);
-        LOG.info("Updated User with PUT: {0}", updated);
-
-        return updated;
+        LOG.info("Updated User with PATCH: {0}", user);
+        return user;
     }
 
     private void readUsersServiceTest(final SCIMv2Client client)
@@ -599,7 +588,7 @@ public class SCIMv2ConnectorTests {
         assertFalse(paged.getResources().isEmpty());
         assertTrue(paged.getResources().size() == 1);
         assertEquals(paged.getStartIndex(), 1);
-        assertNotEquals(paged.getTotalResults(), 1);
+        assertEquals(1, paged.getTotalResults());
         assertEquals(paged.getItemsPerPage(), 1);
         LOG.info("Paged Users: {0}", paged);
 
@@ -608,7 +597,7 @@ public class SCIMv2ConnectorTests {
         assertFalse(paged2.getResources().isEmpty());
         assertTrue(paged2.getResources().size() == 1);
         assertEquals(paged2.getStartIndex(), 2);
-        assertNotEquals(paged2.getTotalResults(), 1);
+        assertEquals(1, paged2.getTotalResults());
         assertEquals(paged2.getItemsPerPage(), 1);
         LOG.info("Paged Users next page: {0}", paged2);
     }
@@ -656,10 +645,10 @@ public class SCIMv2ConnectorTests {
         return user;
     }
 
-    private void deleteUsersServiceTest(final SCIMv2Client client) {
+    private void deleteUsersServiceTest(final SCIMv2Client client, final String username) {
         PagedResults<SCIMv2User> users = client.getAllUsers(
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                        + " sw \"" + SCIMv2ConnectorTestsUtils.VALUE_USERNAME + "\"", 1, 100, testAttributesToGet());
+                        + " sw \"" + username + "\"", 1, 100, testAttributesToGet());
         assertNotNull(users);
         if (!users.getResources().isEmpty()) {
             for (SCIMv2User user : users.getResources()) {

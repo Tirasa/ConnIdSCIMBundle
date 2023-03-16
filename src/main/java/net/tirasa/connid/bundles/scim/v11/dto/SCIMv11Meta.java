@@ -16,6 +16,8 @@
 package net.tirasa.connid.bundles.scim.v11.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import java.util.ArrayList;
 import java.util.List;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
@@ -28,6 +30,11 @@ public class SCIMv11Meta extends SCIMBaseMeta {
 
     public List<String> getAttributes() {
         return attributes;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setAttributes(List<String> attributes) {
+        this.attributes = attributes;
     }
 
     @Override

@@ -16,9 +16,12 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.dto.*;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
@@ -31,6 +34,7 @@ import net.tirasa.connid.bundles.scim.v11.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.v11.types.PhotoCanonicalType;
 import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Service;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -43,17 +47,17 @@ public class SCIMv2User extends AbstractSCIMBaseResource<Attribute, SCIMv2Meta>
 
     private Boolean active = true;
 
-    private List<SCIMUserAddress> addresses;
+    private List<SCIMUserAddress> addresses = new ArrayList<>();
 
     private String displayName;
 
-    private final List<SCIMComplex<EmailCanonicalType>> emails = new ArrayList<>();
+    private List<SCIMComplex<EmailCanonicalType>> emails = new ArrayList<>();
 
-    private final List<SCIMComplex<String>> entitlements = new ArrayList<>();
+    private List<SCIMComplex<String>> entitlements = new ArrayList<>();
 
-    private final List<ResourceReference> groups = new ArrayList<>();
+    private List<ResourceReference> groups = new ArrayList<>();
 
-    private final List<SCIMComplex<IMCanonicalType>> ims = new ArrayList<>();
+    private List<SCIMComplex<IMCanonicalType>> ims = new ArrayList<>();
 
     private String locale;
 
@@ -63,15 +67,15 @@ public class SCIMv2User extends AbstractSCIMBaseResource<Attribute, SCIMv2Meta>
 
     private String password;
 
-    private final List<SCIMComplex<PhoneNumberCanonicalType>> phoneNumbers = new ArrayList<>();
+    private List<SCIMComplex<PhoneNumberCanonicalType>> phoneNumbers = new ArrayList<>();
 
-    private final List<SCIMComplex<PhotoCanonicalType>> photos = new ArrayList<>();
+    private List<SCIMComplex<PhotoCanonicalType>> photos = new ArrayList<>();
 
     private String profileUrl;
 
     private String preferredLanguage;
 
-    private final List<SCIMComplex<String>> roles = new ArrayList<>();
+    private List<SCIMComplex<String>> roles = new ArrayList<>();
 
     private String timezone;
 
@@ -81,7 +85,7 @@ public class SCIMv2User extends AbstractSCIMBaseResource<Attribute, SCIMv2Meta>
 
     private String userType;
 
-    private final List<SCIMComplex<String>> x509Certificates = new ArrayList<>();
+    private List<SCIMComplex<String>> x509Certificates = new ArrayList<>();
 
     @JsonIgnore
     private final Map<SCIMv2Attribute, List<Object>> scimCustomAttributes = new HashMap<>();
@@ -239,6 +243,52 @@ public class SCIMv2User extends AbstractSCIMBaseResource<Attribute, SCIMv2Meta>
         return returnedCustomAttributes;
     }
 
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setEmails(
+            List<SCIMComplex<EmailCanonicalType>> emails) {
+        this.emails = emails;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setEntitlements(
+            List<SCIMComplex<String>> entitlements) {
+        this.entitlements = entitlements;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setGroups(List<ResourceReference> groups) {
+        this.groups = groups;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setIms(
+            List<SCIMComplex<IMCanonicalType>> ims) {
+        this.ims = ims;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setPhoneNumbers(
+            List<SCIMComplex<PhoneNumberCanonicalType>> phoneNumbers) {
+        this.phoneNumbers = phoneNumbers;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setPhotos(
+            List<SCIMComplex<PhotoCanonicalType>> photos) {
+        this.photos = photos;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setRoles(List<SCIMComplex<String>> roles) {
+        this.roles = roles;
+    }
+
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setX509Certificates(
+            List<SCIMComplex<String>> x509Certificates) {
+        this.x509Certificates = x509Certificates;
+    }
+
     /**
      * Populate 'scimAttributes' map with custom attributes (taken from Connector configuration)
      * according to related values in current ConnId attributes
@@ -287,171 +337,179 @@ public class SCIMv2User extends AbstractSCIMBaseResource<Attribute, SCIMv2Meta>
     public Set<Attribute> toAttributes() throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
 
-        Field[] fields = SCIMv2User.class.getDeclaredFields();
-        for (Field field : fields) {
-            Object objInstance = field.get(this);
-            if (!field.isAnnotationPresent(JsonIgnore.class) && !SCIMUtils.isEmptyObject(objInstance)) {
-                field.setAccessible(true);
+        List<Field> fields =
+                FieldUtils.getAllFieldsList(SCIMv2User.class).stream().filter(f -> !"LOG".equals(f.getName())
+                        && !"serialVersionUID".equals(f.getName())).collect(Collectors.toList());
 
-                if (field.getGenericType().toString().contains(SCIMComplex.class.getName())) {
-                    if (field.getGenericType().toString().contains(PhoneNumberCanonicalType.class.getName())) {
-                        if (field.getType().equals(List.class)) {
-                            for (SCIMComplex<PhoneNumberCanonicalType> sCIMComplex : new ArrayList<>(
-                                    (List<SCIMComplex<PhoneNumberCanonicalType>>) objInstance)) {
+        FieldUtils.getAllFieldsList(SCIMv2User.class).stream().filter(f -> !"LOG".equals(f.getName())
+                && !"serialVersionUID".equals(f.getName())).forEach(field -> {
+            try {
+                Object objInstance = field.get(this);
+                if (!field.isAnnotationPresent(JsonIgnore.class) && !SCIMUtils.isEmptyObject(objInstance)) {
+                    field.setAccessible(true);
+
+                    if (field.getGenericType().toString().contains(SCIMComplex.class.getName())) {
+                        if (field.getGenericType().toString().contains(PhoneNumberCanonicalType.class.getName())) {
+                            if (field.getType().equals(List.class)) {
+                                for (SCIMComplex<PhoneNumberCanonicalType> sCIMComplex : new ArrayList<>(
+                                        (List<SCIMComplex<PhoneNumberCanonicalType>>) objInstance)) {
+                                    addAttribute(sCIMComplex
+                                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
+                                            attrs,
+                                            field.getType());
+                                }
+                            } else {
+                                SCIMComplex<PhoneNumberCanonicalType> sCIMComplex =
+                                        (SCIMComplex<PhoneNumberCanonicalType>) objInstance;
                                 addAttribute(sCIMComplex
                                                 .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
                                         attrs,
                                         field.getType());
                             }
-                        } else {
-                            SCIMComplex<PhoneNumberCanonicalType> sCIMComplex =
-                                    (SCIMComplex<PhoneNumberCanonicalType>) objInstance;
-                            addAttribute(sCIMComplex
-                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
-                                    attrs,
-                                    field.getType());
-                        }
-                    } else if (field.getGenericType().toString().contains(IMCanonicalType.class.getName())) {
-                        if (field.getType().equals(List.class)) {
-                            List<SCIMComplex<IMCanonicalType>> obj =
-                                    new ArrayList<>((List<SCIMComplex<IMCanonicalType>>) objInstance);
-                            for (SCIMComplex<IMCanonicalType> sCIMComplex : obj) {
+                        } else if (field.getGenericType().toString().contains(IMCanonicalType.class.getName())) {
+                            if (field.getType().equals(List.class)) {
+                                List<SCIMComplex<IMCanonicalType>> obj =
+                                        new ArrayList<>((List<SCIMComplex<IMCanonicalType>>) objInstance);
+                                for (SCIMComplex<IMCanonicalType> sCIMComplex : obj) {
+                                    addAttribute(sCIMComplex
+                                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
+                                            attrs,
+                                            field.getType());
+                                }
+                            } else {
+                                SCIMComplex<IMCanonicalType> sCIMComplex =
+                                        (SCIMComplex<IMCanonicalType>) objInstance;
                                 addAttribute(sCIMComplex
                                                 .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
                                         attrs,
                                         field.getType());
                             }
-                        } else {
-                            SCIMComplex<IMCanonicalType> sCIMComplex =
-                                    (SCIMComplex<IMCanonicalType>) objInstance;
-                            addAttribute(sCIMComplex
-                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
-                                    attrs,
-                                    field.getType());
-                        }
-                    } else if (field.getGenericType().toString().contains(EmailCanonicalType.class.getName())) {
-                        if (field.getType().equals(List.class)) {
-                            List<SCIMComplex<EmailCanonicalType>> obj =
-                                    new ArrayList<>((List<SCIMComplex<EmailCanonicalType>>) objInstance);
-                            for (SCIMComplex<EmailCanonicalType> sCIMComplex : obj) {
+                        } else if (field.getGenericType().toString().contains(EmailCanonicalType.class.getName())) {
+                            if (field.getType().equals(List.class)) {
+                                List<SCIMComplex<EmailCanonicalType>> obj =
+                                        new ArrayList<>((List<SCIMComplex<EmailCanonicalType>>) objInstance);
+                                for (SCIMComplex<EmailCanonicalType> sCIMComplex : obj) {
+                                    addAttribute(sCIMComplex
+                                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
+                                            attrs,
+                                            field.getType());
+                                }
+                            } else {
+                                SCIMComplex<EmailCanonicalType> sCIMComplex =
+                                        (SCIMComplex<EmailCanonicalType>) objInstance;
                                 addAttribute(sCIMComplex
                                                 .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
                                         attrs,
                                         field.getType());
                             }
-                        } else {
-                            SCIMComplex<EmailCanonicalType> sCIMComplex =
-                                    (SCIMComplex<EmailCanonicalType>) objInstance;
-                            addAttribute(sCIMComplex
-                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
-                                    attrs,
-                                    field.getType());
-                        }
-                    } else if (field.getGenericType().toString().contains(PhotoCanonicalType.class.getName())) {
-                        if (field.getType().equals(List.class)) {
-                            List<SCIMComplex<PhotoCanonicalType>> obj =
-                                    new ArrayList<>((List<SCIMComplex<PhotoCanonicalType>>) objInstance);
-                            for (SCIMComplex<PhotoCanonicalType> sCIMComplex : obj) {
+                        } else if (field.getGenericType().toString().contains(PhotoCanonicalType.class.getName())) {
+                            if (field.getType().equals(List.class)) {
+                                List<SCIMComplex<PhotoCanonicalType>> obj =
+                                        new ArrayList<>((List<SCIMComplex<PhotoCanonicalType>>) objInstance);
+                                for (SCIMComplex<PhotoCanonicalType> sCIMComplex : obj) {
+                                    addAttribute(sCIMComplex
+                                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
+                                            attrs,
+                                            field.getType());
+                                }
+                            } else {
+                                SCIMComplex<PhotoCanonicalType> sCIMComplex =
+                                        (SCIMComplex<PhotoCanonicalType>) objInstance;
                                 addAttribute(sCIMComplex
                                                 .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
                                         attrs,
                                         field.getType());
                             }
+                        }
+                    } else if (field.getGenericType().toString().contains(SCIMUserName.class.getName())) {
+                        if (field.getType().equals(List.class)) {
+                            List<SCIMUserName> obj =
+                                    new ArrayList<>((List<SCIMUserName>) objInstance);
+                            for (SCIMUserName sCIMUserName : obj) {
+                                addAttribute(sCIMUserName.toAttributes(),
+                                        attrs,
+                                        field.getType());
+                            }
                         } else {
-                            SCIMComplex<PhotoCanonicalType> sCIMComplex =
-                                    (SCIMComplex<PhotoCanonicalType>) objInstance;
-                            addAttribute(sCIMComplex
-                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
+                            addAttribute(SCIMUserName.class.cast(objInstance).toAttributes(),
                                     attrs,
                                     field.getType());
                         }
-                    }
-                } else if (field.getGenericType().toString().contains(SCIMUserName.class.getName())) {
-                    if (field.getType().equals(List.class)) {
-                        List<SCIMUserName> obj =
-                                new ArrayList<>((List<SCIMUserName>) objInstance);
-                        for (SCIMUserName sCIMUserName : obj) {
-                            addAttribute(sCIMUserName.toAttributes(),
+                    } else if (field.getGenericType().toString().contains(SCIMUserAddress.class.getName())) {
+                        if (field.getType().equals(List.class)) {
+                            List<SCIMUserAddress> obj =
+                                    new ArrayList<>((List<SCIMUserAddress>) objInstance);
+                            for (SCIMUserAddress sCIMUserAddress : obj) {
+                                addAttribute(sCIMUserAddress.toAttributes(),
+                                        attrs,
+                                        field.getType());
+                            }
+                        } else {
+                            addAttribute(SCIMUserAddress.class.cast(objInstance).toAttributes(),
                                     attrs,
                                     field.getType());
                         }
-                    } else {
-                        addAttribute(SCIMUserName.class.cast(objInstance).toAttributes(),
-                                attrs,
-                                field.getType());
-                    }
-                } else if (field.getGenericType().toString().contains(SCIMUserAddress.class.getName())) {
-                    if (field.getType().equals(List.class)) {
-                        List<SCIMUserAddress> obj =
-                                new ArrayList<>((List<SCIMUserAddress>) objInstance);
-                        for (SCIMUserAddress sCIMUserAddress : obj) {
-                            addAttribute(sCIMUserAddress.toAttributes(),
-                                    attrs,
-                                    field.getType());
-                        }
-                    } else {
-                        addAttribute(SCIMUserAddress.class.cast(objInstance).toAttributes(),
-                                attrs,
-                                field.getType());
-                    }
-                } else if (field.getGenericType().toString().contains(SCIMDefault.class.getName())) {
-                    if (field.getType().equals(List.class)) {
-                        List<SCIMDefault> obj =
-                                new ArrayList<>((List<SCIMDefault>) objInstance);
-                        for (SCIMDefault sCIMDefault : obj) {
+                    } else if (field.getGenericType().toString().contains(SCIMDefault.class.getName())) {
+                        if (field.getType().equals(List.class)) {
+                            List<SCIMDefault> obj =
+                                    new ArrayList<>((List<SCIMDefault>) objInstance);
+                            for (SCIMDefault sCIMDefault : obj) {
+                                String localId = null;
+                                if (StringUtil.isNotBlank(sCIMDefault.getValue())) {
+                                    if (entitlements.contains(sCIMDefault)) {
+                                        localId = SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS;
+                                    } else if (roles.contains(sCIMDefault)) {
+                                        localId = SCIMAttributeUtils.SCIM_USER_ROLES;
+                                    } else if (groups.contains(sCIMDefault)) {
+                                        localId = SCIMAttributeUtils.SCIM_USER_GROUPS;
+                                    }
+                                }
+                                if (localId != null) {
+                                    addAttribute(sCIMDefault.toAttributes(localId),
+                                            attrs,
+                                            field.getType());
+                                }
+                            }
+                        } else {
+                            SCIMDefault obj = SCIMDefault.class.cast(objInstance);
                             String localId = null;
-                            if (StringUtil.isNotBlank(sCIMDefault.getValue())) {
-                                if (entitlements.contains(sCIMDefault)) {
+                            if (StringUtil.isNotBlank(obj.getValue())) {
+                                if (entitlements.contains(obj)) {
                                     localId = SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS;
-                                } else if (roles.contains(sCIMDefault)) {
+                                } else if (roles.contains(obj)) {
                                     localId = SCIMAttributeUtils.SCIM_USER_ROLES;
-                                } else if (groups.contains(sCIMDefault)) {
+                                } else if (groups.contains(obj)) {
                                     localId = SCIMAttributeUtils.SCIM_USER_GROUPS;
                                 }
                             }
                             if (localId != null) {
-                                addAttribute(sCIMDefault.toAttributes(localId),
+                                addAttribute(obj.toAttributes(localId),
                                         attrs,
                                         field.getType());
                             }
                         }
-                    } else {
-                        SCIMDefault obj = SCIMDefault.class.cast(objInstance);
-                        String localId = null;
-                        if (StringUtil.isNotBlank(obj.getValue())) {
-                            if (entitlements.contains(obj)) {
-                                localId = SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS;
-                            } else if (roles.contains(obj)) {
-                                localId = SCIMAttributeUtils.SCIM_USER_ROLES;
-                            } else if (groups.contains(obj)) {
-                                localId = SCIMAttributeUtils.SCIM_USER_GROUPS;
+                    } else if (field.getGenericType().toString().contains(SCIMv2Meta.class.getName())) {
+                        if (field.getType().equals(List.class)) {
+                            List<SCIMv2Meta> obj =
+                                    new ArrayList<>((List<SCIMv2Meta>) objInstance);
+                            for (SCIMv2Meta sCIMMeta : obj) {
+                                addAttribute(sCIMMeta.toAttributes(),
+                                        attrs,
+                                        field.getType());
                             }
-                        }
-                        if (localId != null) {
-                            addAttribute(obj.toAttributes(localId),
-                                    attrs,
-                                    field.getType());
-                        }
-                    }
-                } else if (field.getGenericType().toString().contains(SCIMv2Meta.class.getName())) {
-                    if (field.getType().equals(List.class)) {
-                        List<SCIMv2Meta> obj =
-                                new ArrayList<>((List<SCIMv2Meta>) objInstance);
-                        for (SCIMv2Meta sCIMMeta : obj) {
-                            addAttribute(sCIMMeta.toAttributes(),
+                        } else {
+                            addAttribute(SCIMv2Meta.class.cast(objInstance).toAttributes(),
                                     attrs,
                                     field.getType());
                         }
                     } else {
-                        addAttribute(SCIMv2Meta.class.cast(objInstance).toAttributes(),
-                                attrs,
-                                field.getType());
+                        attrs.add(SCIMAttributeUtils.buildAttributeFromClassField(field, this).build());
                     }
-                } else {
-                    attrs.add(SCIMAttributeUtils.buildAttributeFromClassField(field, this).build());
                 }
+            } catch (IllegalAccessException e) {
+                LOG.error("Unable to build user attributes by reflection", e);
             }
-        }
+        });
 
         return attrs;
     }
@@ -1097,23 +1155,6 @@ public class SCIMv2User extends AbstractSCIMBaseResource<Attribute, SCIMv2Meta>
                 break;
         }
     }
-
-//    @JsonIgnore
-//    private <T extends Serializable> SCIMComplex<T> handleSCIMDefaultObject(final String value,
-//                                                                            final List<SCIMComplex<T>> list) {
-//        SCIMComplex selected = null;
-//        for (SCIMComplex scimDefault : list) {
-//            if (scimDefault.getValue().equals(value)) {
-//                selected = scimDefault;
-//                break;
-//            }
-//        }
-//        if (selected == null) {
-//            selected = new SCIMComplex<T>();
-//            list.add(selected);
-//        }
-//        return selected;
-//    }
 
     @JsonIgnore
     private <T extends Serializable> SCIMComplex<T> handleSCIMComplexObject(final T type,

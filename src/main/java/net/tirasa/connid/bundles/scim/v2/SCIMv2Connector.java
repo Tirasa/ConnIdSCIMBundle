@@ -64,5 +64,4 @@ public class SCIMv2Connector extends AbstractSCIMConnector<SCIMv2User, SCIMv2Cli
         return new SCIMv2User();
     }
 
-
 }
