@@ -60,7 +60,7 @@ public class SCIMv2ConnectorTestsUtils {
 
     public static final String USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS = "addresses.work.streetAddress";
 
-    public static SCIMConnectorConfiguration buildConfiguration(Map<String, String> configuration) {
+    public static SCIMConnectorConfiguration buildConfiguration(Map<String, String> configuration, int serverPort) {
         SCIMConnectorConfiguration connectorConfiguration = new SCIMConnectorConfiguration();
 
         for (Map.Entry<String, String> entry : configuration.entrySet()) {
@@ -68,6 +68,7 @@ public class SCIMv2ConnectorTestsUtils {
             switch (entry.getKey()) {
                 case "auth.baseAddress":
                     connectorConfiguration.setBaseAddress(entry.getValue());
+                    connectorConfiguration.setBaseAddress("http://localhost:" + serverPort + "/v2/");
                     break;
                 case "auth.password":
                     connectorConfiguration.setPassword(SCIMUtils.createProtectedPassword(entry.getValue()));

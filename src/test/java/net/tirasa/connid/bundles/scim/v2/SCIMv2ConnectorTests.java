@@ -47,7 +47,12 @@ import org.identityconnectors.test.common.ToListResultsHandler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Testcontainers
 public class SCIMv2ConnectorTests {
 
     private static final Log LOG = Log.getLog(SCIMv2ConnectorTests.class);
@@ -68,6 +73,12 @@ public class SCIMv2ConnectorTests {
 
     private static final List<String> CUSTOM_ATTRIBUTES_UPDATE_VALUES = new ArrayList<>();
 
+    @Container
+    private static final GenericContainer<?> scimpleServerContainer =
+            new GenericContainer<>("tirasa/scimple-server:1.0.0")
+                    .withExposedPorts(8080)
+                    .waitingFor(Wait.forLogMessage(".*Started ScimpleSpringBootApplication in.*\\n", 1));
+
     @BeforeAll
     public static void setUpConf() throws IOException {
         PROPS.load(
@@ -77,7 +88,8 @@ public class SCIMv2ConnectorTests {
         for (final String name : PROPS.stringPropertyNames()) {
             configurationParameters.put(name, PROPS.getProperty(name));
         }
-        CONF = SCIMv2ConnectorTestsUtils.buildConfiguration(configurationParameters);
+        CONF = SCIMv2ConnectorTestsUtils.buildConfiguration(configurationParameters,
+                scimpleServerContainer.getFirstMappedPort());
 
         Boolean isValid = SCIMv2ConnectorTestsUtils.isConfigurationValid(CONF);
         if (isValid) {
