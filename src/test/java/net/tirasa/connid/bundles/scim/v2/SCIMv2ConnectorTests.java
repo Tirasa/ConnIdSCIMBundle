@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,9 +15,24 @@
  */
 package net.tirasa.connid.bundles.scim.v2;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
@@ -40,7 +55,19 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
-import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
+import org.identityconnectors.framework.common.objects.ResultsHandler;
+import org.identityconnectors.framework.common.objects.Schema;
+import org.identityconnectors.framework.common.objects.SearchResult;
+import org.identityconnectors.framework.common.objects.SortKey;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.test.common.TestHelpers;
 import org.identityconnectors.test.common.ToListResultsHandler;
@@ -57,13 +84,13 @@ public class SCIMv2ConnectorTests {
 
     private static final Log LOG = Log.getLog(SCIMv2ConnectorTests.class);
 
-    private final static Properties PROPS = new Properties();
+    private static final Properties PROPS = new Properties();
 
     private static SCIMConnectorConfiguration CONF;
 
     private static SCIMv2Connector CONN;
 
-    private static ConnectorFacade connector;
+    private static ConnectorFacade FACADE;
 
     private static final List<String> CUSTOMS_OTHER_SCHEMAS = new ArrayList<>();
 
@@ -74,7 +101,7 @@ public class SCIMv2ConnectorTests {
     private static final List<String> CUSTOM_ATTRIBUTES_UPDATE_VALUES = new ArrayList<>();
 
     @Container
-    private static final GenericContainer<?> scimpleServerContainer =
+    private static final GenericContainer<?> SCIMPLE_SERVER =
             new GenericContainer<>("tirasa/scimple-server:1.0.0")
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forLogMessage(".*Started ScimpleSpringBootApplication in.*\\n", 1));
@@ -89,7 +116,7 @@ public class SCIMv2ConnectorTests {
             configurationParameters.put(name, PROPS.getProperty(name));
         }
         CONF = SCIMv2ConnectorTestsUtils.buildConfiguration(configurationParameters,
-                scimpleServerContainer.getFirstMappedPort());
+                SCIMPLE_SERVER.getFirstMappedPort());
 
         Boolean isValid = SCIMv2ConnectorTestsUtils.isConfigurationValid(CONF);
         if (isValid) {
@@ -128,7 +155,7 @@ public class SCIMv2ConnectorTests {
                     Arrays.asList(PROPS.getProperty("auth.customAttributesUpdateValues").split("\\s*,\\s*")));
         }
 
-        connector = newFacade();
+        FACADE = newFacade();
 
         assertNotNull(CONF);
         assertNotNull(isValid);
@@ -153,12 +180,12 @@ public class SCIMv2ConnectorTests {
 
     @Test
     public void validate() {
-        connector.validate();
+        FACADE.validate();
     }
 
     @Test
     public void schema() {
-        Schema schema = connector.schema();
+        Schema schema = FACADE.schema();
         assertEquals(1, schema.getObjectClassInfo().size());
 
         boolean accountFound = false;
@@ -181,7 +208,7 @@ public class SCIMv2ConnectorTests {
 
         ToListResultsHandler handler = new ToListResultsHandler();
 
-        SearchResult result = connector.search(ObjectClass.ACCOUNT,
+        SearchResult result = FACADE.search(ObjectClass.ACCOUNT,
                 null,
                 handler,
                 new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
@@ -195,18 +222,18 @@ public class SCIMv2ConnectorTests {
         assertTrue(handler.getObjects().stream().anyMatch(su -> user1.getUserName().equals(su.getName().getNameValue())
                 && BooleanUtils.toBoolean(su.getAttributeByName("active").getValue().get(0).toString())
                 && user1.getEmails().get(0).getValue().equals(
-                AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
+                        AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
                 && user2.getName().getFamilyName().equals(
-                AttributeUtil.getAsStringValue(su.getAttributeByName("name.familyName")))
+                        AttributeUtil.getAsStringValue(su.getAttributeByName("name.familyName")))
                 && 7 == AttributeUtil.getIntegerValue(su.getAttributeByName(
-                "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber"))));
+                        "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber"))));
         assertTrue(handler.getObjects().stream().anyMatch(su -> user3.getUserName().equals(su.getName().getNameValue())
                 && !BooleanUtils.toBoolean(su.getAttributeByName("active").getValue().get(0).toString())));
         assertTrue(
                 handler.getObjects().stream().anyMatch(su -> user4.getUserName().equals(su.getName().getNameValue())));
         // verify attributes
 
-        result = connector.search(ObjectClass.ACCOUNT,
+        result = FACADE.search(ObjectClass.ACCOUNT,
                 null,
                 handler,
                 new OperationOptionsBuilder()
@@ -216,7 +243,7 @@ public class SCIMv2ConnectorTests {
         assertNotNull(result.getPagedResultsCookie());
         assertEquals(-1, result.getRemainingPagedResults());
 
-        result = connector.search(ObjectClass.ACCOUNT,
+        result = FACADE.search(ObjectClass.ACCOUNT,
                 null,
                 handler,
                 new OperationOptionsBuilder()
@@ -245,7 +272,7 @@ public class SCIMv2ConnectorTests {
         oob.setPageSize(2);
         oob.setSortKeys(new SortKey("userName", false));
 
-        connector.search(ObjectClass.ACCOUNT, null, handler, oob.build());
+        FACADE.search(ObjectClass.ACCOUNT, null, handler, oob.build());
 
         assertEquals(2, results.size());
 
@@ -254,7 +281,7 @@ public class SCIMv2ConnectorTests {
         String cookie = "";
         do {
             oob.setPagedResultsCookie(cookie);
-            final SearchResult searchResult = connector.search(ObjectClass.ACCOUNT, null, handler, oob.build());
+            final SearchResult searchResult = FACADE.search(ObjectClass.ACCOUNT, null, handler, oob.build());
             cookie = searchResult.getPagedResultsCookie();
         } while (cookie != null);
 
@@ -291,11 +318,11 @@ public class SCIMv2ConnectorTests {
             assertTrue(user.getPhoneNumbers().stream()
                     .anyMatch(
                             pn -> PhoneNumberCanonicalType.home == pn.getType() && pn.isPrimary() && "123456789".equals(
-                                    pn.getValue())));
+                            pn.getValue())));
 
             assertTrue(user.getEmails().stream()
                     .anyMatch(email -> EmailCanonicalType.work == email.getType()
-                            && ("updated" + updatedUser.getUserName()).equals(email.getValue())));
+                    && ("updated" + updatedUser.getUserName()).equals(email.getValue())));
         } catch (Exception e) {
             LOG.error(e, "While running crud test");
             fail(e.getMessage());
@@ -333,7 +360,7 @@ public class SCIMv2ConnectorTests {
         // custom schemas
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOMS_OTHER_SCHEMAS));
 
-        Uid created = connector.create(ObjectClass.ACCOUNT, userAttrs, new OperationOptionsBuilder().build());
+        Uid created = FACADE.create(ObjectClass.ACCOUNT, userAttrs, new OperationOptionsBuilder().build());
         assertNotNull(created);
         assertFalse(created.getUidValue().isEmpty());
         LOG.info("Created User uid: {0}", created);
@@ -373,7 +400,7 @@ public class SCIMv2ConnectorTests {
         // custom schemas
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOMS_OTHER_SCHEMAS));
 
-        Uid updated = connector.update(
+        Uid updated = FACADE.update(
                 ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
         assertNotNull(updated);
         assertFalse(updated.getUidValue().isEmpty());
@@ -414,7 +441,7 @@ public class SCIMv2ConnectorTests {
 
         if (testCustomAttributes()) {
             List<ConnectorObject> found = new ArrayList<>();
-            connector.search(ObjectClass.ACCOUNT,
+            FACADE.search(ObjectClass.ACCOUNT,
                     new EqualsFilter(new Name(user.getUserName())),
                     found::add,
                     new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
@@ -468,14 +495,14 @@ public class SCIMv2ConnectorTests {
         // check that the user has effectively been removed
         try {
             ToListResultsHandler handler = new ToListResultsHandler();
-            connector.search(ObjectClass.ACCOUNT,
+            FACADE.search(ObjectClass.ACCOUNT,
                     null,
                     handler,
                     new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
                             "displayName", "active",
                             "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
-            handler.getObjects().forEach(user ->
-                    connector.delete(ObjectClass.ACCOUNT, user.getUid(), new OperationOptionsBuilder().build()));
+            handler.getObjects().forEach(user
+                    -> FACADE.delete(ObjectClass.ACCOUNT, user.getUid(), new OperationOptionsBuilder().build()));
         } catch (NoSuchEntityException nsee) {
             nsee.printStackTrace();
         }
@@ -551,7 +578,8 @@ public class SCIMv2ConnectorTests {
         // want also to remove attributes
         for (SCIMComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
             if (phone.getType().equals(PhoneNumberCanonicalType.other)) {
-                // Note that "value" and "primary" must also be the same of current attribute in order to proceed with deletion
+                // Note that "value" and "primary" must also be the same of current attribute in order to proceed
+                // with deletion
                 // See http://www.simplecloud.info/specs/draft-scim-api-01.html#edit-resource-with-patch
                 break;
             }
@@ -648,7 +676,7 @@ public class SCIMv2ConnectorTests {
         // GET USER by userName
         List<SCIMv2User> users = client.getAllUsers(
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                        + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
+                + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
         assertNotNull(users);
         assertFalse(users.isEmpty());
         assertNotNull(users.get(0).getId());
@@ -660,7 +688,7 @@ public class SCIMv2ConnectorTests {
     private void deleteUsersServiceTest(final SCIMv2Client client, final String username) {
         PagedResults<SCIMv2User> users = client.getAllUsers(
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                        + " sw \"" + username + "\"", 1, 100, testAttributesToGet());
+                + " sw \"" + username + "\"", 1, 100, testAttributesToGet());
         assertNotNull(users);
         if (!users.getResources().isEmpty()) {
             for (SCIMv2User user : users.getResources()) {

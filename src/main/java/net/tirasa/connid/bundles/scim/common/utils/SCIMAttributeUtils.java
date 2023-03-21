@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,14 +20,20 @@ import java.util.ArrayList;
 import java.util.List;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
-import net.tirasa.connid.bundles.scim.v11.SCIMv11Connector;
-import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
-import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Service;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import org.identityconnectors.common.StringUtil;
-import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
+import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
+import org.identityconnectors.framework.common.objects.Schema;
+import org.identityconnectors.framework.common.objects.SchemaBuilder;
 
 public final class SCIMAttributeUtils {
 
@@ -69,8 +75,9 @@ public final class SCIMAttributeUtils {
 
     public static final String SCIM_SCHEMA_EXTENSION = "extension";
 
-    public static <T extends SCIMBaseAttribute> Schema buildSchema(final String customAttributes,
-                                                                   final Class<T> attrType) {
+    public static <T extends SCIMBaseAttribute<?>> Schema buildSchema(
+            final String customAttributes, final Class<T> attrType) {
+
         SchemaBuilder builder = new SchemaBuilder(AbstractSCIMConnector.class);
 
         ObjectClassInfoBuilder userBuilder = new ObjectClassInfoBuilder().setType(ObjectClass.ACCOUNT_NAME);
@@ -234,23 +241,24 @@ public final class SCIMAttributeUtils {
                     AttributeInfoBuilder attributeInfoBuilder = AttributeInfoBuilder.define(
                             attribute instanceof SCIMv11Attribute
                                     ? SCIMv11Attribute.class.cast(attribute).getSchema()
-                                    .concat(".")
-                                    .concat(attribute.getName())
+                                            .concat(".")
+                                            .concat(attribute.getName())
                                     : SCIMv2Attribute.class.cast(attribute).getExtensionSchema()
-                                    .concat(".")
-                                    .concat(attribute.getName()));
+                                            .concat(".")
+                                            .concat(attribute.getName()));
                     attributeInfoBuilder.setMultiValued(attribute.getMultiValued())
                             .setRequired(attribute.getRequired())
                             .setUpdateable(attribute instanceof SCIMv11Attribute
                                     ? !SCIMv11Attribute.class.cast(attribute).getReadOnly()
                                     : Mutability.readWrite == SCIMv2Attribute.class.cast(attribute).getMutability());
                     switch (attribute.getType()) {
-                        case "string":
-                            attributeInfoBuilder.setType(String.class);
-                            break;
                         case "boolean":
                             attributeInfoBuilder.setType(Boolean.class);
                             break;
+
+                        case "string":
+                        default:
+                            attributeInfoBuilder.setType(String.class);
                     }
                     userBuilder.addAttributeInfo(attributeInfoBuilder.build());
                 }
@@ -264,14 +272,14 @@ public final class SCIMAttributeUtils {
     }
 
     public static AttributeBuilder buildAttributeFromClassField(final Field field,
-                                                                final Object that)
+            final Object that)
             throws IllegalArgumentException, IllegalAccessException {
 
         return doBuildAttributeFromClassField(field.get(that), field.getName(), field.getType());
     }
 
     public static AttributeBuilder doBuildAttributeFromClassField(final Object value, final String name,
-                                                                  final Class<?> clazz) {
+            final Class<?> clazz) {
 
         AttributeBuilder attributeBuilder = new AttributeBuilder();
         if (value != null) {
@@ -304,4 +312,7 @@ public final class SCIMAttributeUtils {
                 .concat(SCIM_USER_NAME);
     }
 
+    private SCIMAttributeUtils() {
+        // private constructor for static utility class
+    }
 }

@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +23,8 @@ import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class SCIMv2Attribute extends SCIMBaseAttribute<SCIMv2Attribute> {
+
+    private static final long serialVersionUID = 4869263621226124404L;
 
     @JsonProperty
     private Mutability mutability;
@@ -51,7 +53,7 @@ public class SCIMv2Attribute extends SCIMBaseAttribute<SCIMv2Attribute> {
         return returned;
     }
 
-    public void setReturned(String returned) {
+    public void setReturned(final String returned) {
         this.returned = returned;
     }
 
@@ -67,7 +69,7 @@ public class SCIMv2Attribute extends SCIMBaseAttribute<SCIMv2Attribute> {
         return referenceTypes;
     }
 
-    public void setReferenceTypes(List<String> referenceTypes) {
+    public void setReferenceTypes(final List<String> referenceTypes) {
         this.referenceTypes = referenceTypes;
     }
 
@@ -75,7 +77,7 @@ public class SCIMv2Attribute extends SCIMBaseAttribute<SCIMv2Attribute> {
         return extensionSchema;
     }
 
-    public void setExtensionSchema(String extensionSchema) {
+    public void setExtensionSchema(final String extensionSchema) {
         this.extensionSchema = extensionSchema;
     }
 

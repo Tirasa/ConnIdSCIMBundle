@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,17 @@ package net.tirasa.connid.bundles.scim.v11.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.SCIMv11ConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
-import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
-import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
@@ -50,7 +54,7 @@ public class SCIMv11Client extends SCIMv11Service {
     }
 
     /**
-     * @param filterQuery     to filter results
+     * @param filterQuery to filter results
      * @param attributesToGet
      * @return Filtered list of Users
      */
@@ -70,7 +74,7 @@ public class SCIMv11Client extends SCIMv11Service {
      * @return Paged list of Users
      */
     public PagedResults<SCIMv11User> getAllUsers(final Integer startIndex, final Integer count,
-                                                 final Set<String> attributesToGet) {
+            final Set<String> attributesToGet) {
         Map<String, String> params = new HashMap<>();
         params.put("startIndex", String.valueOf(startIndex));
         if (count != null) {
@@ -90,8 +94,8 @@ public class SCIMv11Client extends SCIMv11Service {
      * @return Paged and Filtered list of Users
      */
     public PagedResults<SCIMv11User> getAllUsers(final String filterQuery, final Integer startIndex,
-                                                 final Integer count,
-                                                 final Set<String> attributesToGet) {
+            final Integer count,
+            final Set<String> attributesToGet) {
         Map<String, String> params = new HashMap<>();
         params.put("startIndex", String.valueOf(startIndex));
         if (count != null) {
@@ -163,7 +167,7 @@ public class SCIMv11Client extends SCIMv11Service {
             resources = SCIMUtils.MAPPER.readValue(
                     node.toString(),
                     new TypeReference<PagedResults<SCIMv11User>>() {
-                    });
+            });
         } catch (IOException ex) {
             LOG.error(ex, "While converting from JSON to Users");
         }

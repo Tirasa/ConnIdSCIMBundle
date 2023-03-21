@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,17 @@ package net.tirasa.connid.bundles.scim.v11.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.Field;
-import java.util.*;
-import net.tirasa.connid.bundles.scim.common.dto.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMBaseResource;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.IMCanonicalType;
@@ -34,6 +43,8 @@ import org.identityconnectors.framework.common.objects.Attribute;
 
 public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta>
         implements SCIMUser<Attribute, SCIMv11Meta> {
+
+    private static final long serialVersionUID = -6868285123690771711L;
 
     @JsonProperty
     private String id;
@@ -123,10 +134,12 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
         this.id = id;
     }
 
+    @Override
     public String getUserName() {
         return userName;
     }
 
+    @Override
     public void setUserName(final String userName) {
         this.userName = userName;
     }
@@ -207,6 +220,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
         return active;
     }
 
+    @Override
     public void setActive(final Boolean active) {
         this.active = active;
     }
@@ -215,22 +229,27 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
         return password;
     }
 
+    @Override
     public void setPassword(final String password) {
         this.password = password;
     }
 
+    @Override
     public String getExternalId() {
         return externalId;
     }
 
+    @Override
     public void setExternalId(final String externalId) {
         this.externalId = externalId;
     }
 
+    @Override
     public SCIMv11Meta getMeta() {
         return meta;
     }
 
+    @Override
     public void setMeta(final SCIMv11Meta meta) {
         this.meta = meta;
     }
@@ -277,6 +296,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
     }
 
     @JsonIgnore
+    @Override
     public Map<String, List<Object>> getReturnedCustomAttributes() {
         return returnedCustomAttributes;
     }
@@ -289,6 +309,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
      * @param customAttributesJSON
      */
     @JsonIgnore
+    @Override
     public void fillSCIMCustomAttributes(final Set<Attribute> attributes, final String customAttributesJSON) {
         SCIMSchema<SCIMv11Attribute> customAttributesObj = SCIMv11Service.extractSCIMSchemas(customAttributesJSON);
         if (customAttributesObj != null) {
@@ -326,7 +347,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
                             for (SCIMComplex<PhoneNumberCanonicalType> sCIMComplex : new ArrayList<>(
                                     (List<SCIMComplex<PhoneNumberCanonicalType>>) objInstance)) {
                                 addAttribute(sCIMComplex
-                                                .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
+                                        .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
                                         attrs,
                                         field.getType());
                             }
@@ -334,7 +355,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
                             SCIMComplex<PhoneNumberCanonicalType> sCIMComplex =
                                     (SCIMComplex<PhoneNumberCanonicalType>) objInstance;
                             addAttribute(sCIMComplex
-                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
+                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
                                     attrs,
                                     field.getType());
                         }
@@ -344,7 +365,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
                                     new ArrayList<>((List<SCIMComplex<IMCanonicalType>>) objInstance);
                             for (SCIMComplex<IMCanonicalType> sCIMComplex : obj) {
                                 addAttribute(sCIMComplex
-                                                .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
+                                        .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
                                         attrs,
                                         field.getType());
                             }
@@ -352,7 +373,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
                             SCIMComplex<IMCanonicalType> sCIMComplex =
                                     (SCIMComplex<IMCanonicalType>) objInstance;
                             addAttribute(sCIMComplex
-                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
+                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
                                     attrs,
                                     field.getType());
                         }
@@ -362,7 +383,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
                                     new ArrayList<>((List<SCIMComplex<EmailCanonicalType>>) objInstance);
                             for (SCIMComplex<EmailCanonicalType> sCIMComplex : obj) {
                                 addAttribute(sCIMComplex
-                                                .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
+                                        .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
                                         attrs,
                                         field.getType());
                             }
@@ -370,7 +391,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
                             SCIMComplex<EmailCanonicalType> sCIMComplex =
                                     (SCIMComplex<EmailCanonicalType>) objInstance;
                             addAttribute(sCIMComplex
-                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
+                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
                                     attrs,
                                     field.getType());
                         }
@@ -380,7 +401,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
                                     new ArrayList<>((List<SCIMComplex<PhotoCanonicalType>>) objInstance);
                             for (SCIMComplex<PhotoCanonicalType> sCIMComplex : obj) {
                                 addAttribute(sCIMComplex
-                                                .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
+                                        .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
                                         attrs,
                                         field.getType());
                             }
@@ -388,7 +409,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
                             SCIMComplex<PhotoCanonicalType> sCIMComplex =
                                     (SCIMComplex<PhotoCanonicalType>) objInstance;
                             addAttribute(sCIMComplex
-                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
+                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
                                     attrs,
                                     field.getType());
                         }
@@ -485,8 +506,8 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
 
     @JsonIgnore
     private void addAttribute(final Set<Attribute> toAttrs,
-                              final Set<Attribute> attrs,
-                              final Class<?> type) {
+            final Set<Attribute> attrs,
+            final Class<?> type) {
         for (Attribute toAttribute : toAttrs) {
             attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
                     toAttribute.getValue(),
@@ -1162,7 +1183,7 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
 
     @JsonIgnore
     private <T extends Enum<?>> SCIMComplex<T> handleSCIMComplexObject(final T type,
-                                                                       final List<SCIMComplex<T>> list) {
+            final List<SCIMComplex<T>> list) {
         SCIMComplex<T> selected = null;
         for (SCIMComplex<T> complex : list) {
             if (complex.getType().equals(type)) {

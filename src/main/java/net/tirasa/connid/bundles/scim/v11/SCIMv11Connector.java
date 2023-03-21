@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,11 @@
  */
 package net.tirasa.connid.bundles.scim.v11;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
@@ -27,7 +31,19 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
-import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.AttributesAccessor;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
+import org.identityconnectors.framework.common.objects.ResultsHandler;
+import org.identityconnectors.framework.common.objects.Schema;
+import org.identityconnectors.framework.common.objects.SearchResult;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
@@ -35,7 +51,12 @@ import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
-import org.identityconnectors.framework.spi.operations.*;
+import org.identityconnectors.framework.spi.operations.CreateOp;
+import org.identityconnectors.framework.spi.operations.DeleteOp;
+import org.identityconnectors.framework.spi.operations.SchemaOp;
+import org.identityconnectors.framework.spi.operations.SearchOp;
+import org.identityconnectors.framework.spi.operations.TestOp;
+import org.identityconnectors.framework.spi.operations.UpdateOp;
 
 @ConnectorClass(displayNameKey = "SCIMv11Connector.connector.display",
         configurationClass = SCIMv11ConnectorConfiguration.class)
@@ -56,7 +77,7 @@ public class SCIMv11Connector implements
     }
 
     @Override
-    public void init(Configuration configuration) {
+    public void init(final Configuration configuration) {
         LOG.ok("Init");
 
         this.configuration = (SCIMv11ConnectorConfiguration) configuration;
@@ -114,7 +135,12 @@ public class SCIMv11Connector implements
     }
 
     @Override
-    public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
+    public void executeQuery(
+            final ObjectClass objectClass,
+            final Filter query,
+            final ResultsHandler handler,
+            final OperationOptions options) {
+
         LOG.ok("Connector READ");
 
         Attribute key = null;
@@ -206,7 +232,11 @@ public class SCIMv11Connector implements
     }
 
     @Override
-    public Uid create(ObjectClass objectClass, Set<Attribute> createAttributes, OperationOptions options) {
+    public Uid create(
+            final ObjectClass objectClass,
+            final Set<Attribute> createAttributes,
+            final OperationOptions options) {
+
         LOG.ok("Connector CREATE");
 
         if (createAttributes == null || createAttributes.isEmpty()) {
@@ -242,7 +272,7 @@ public class SCIMv11Connector implements
                     LOG.warn("{0} attribute value not correct or not found, won't handle User status",
                             OperationalAttributes.ENABLE_NAME);
                 } else {
-                    user.setActive(Boolean.parseBoolean(status.getValue().get(0).toString()));
+                    user.setActive(Boolean.valueOf(status.getValue().get(0).toString()));
                 }
 
                 user.fromAttributes(createAttributes);
@@ -267,7 +297,7 @@ public class SCIMv11Connector implements
     }
 
     @Override
-    public void delete(ObjectClass objectClass, Uid uid, OperationOptions options) {
+    public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
         LOG.ok("Connector DELETE");
 
         if (StringUtil.isBlank(uid.getUidValue())) {
@@ -295,7 +325,12 @@ public class SCIMv11Connector implements
     }
 
     @Override
-    public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
+    public Uid update(
+            final ObjectClass objectClass,
+            final Uid uid,
+            final Set<Attribute> replaceAttributes,
+            final OperationOptions options) {
+
         LOG.ok("Connector UPDATE");
 
         if (replaceAttributes == null || replaceAttributes.isEmpty()) {
@@ -323,7 +358,7 @@ public class SCIMv11Connector implements
                 LOG.warn("{0} attribute value not correct, can't handle User  status update",
                         OperationalAttributes.ENABLE_NAME);
             } else {
-                user.setActive(Boolean.parseBoolean(status.getValue().get(0).toString()));
+                user.setActive(Boolean.valueOf(status.getValue().get(0).toString()));
             }
 
             // custom attributes

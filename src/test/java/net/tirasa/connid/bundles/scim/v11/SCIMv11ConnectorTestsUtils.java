@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,7 @@ import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv11ConnectorTestsUtils {
+public final class SCIMv11ConnectorTestsUtils {
 
     private static final Log LOG = Log.getLog(SCIMv11ConnectorTestsUtils.class);
 
@@ -57,7 +57,7 @@ public class SCIMv11ConnectorTestsUtils {
 
     public static final String USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS = "addresses.work.streetAddress";
 
-    public static SCIMv11ConnectorConfiguration buildConfiguration(Map<String, String> configuration) {
+    public static SCIMv11ConnectorConfiguration buildConfiguration(final Map<String, String> configuration) {
         SCIMv11ConnectorConfiguration connectorConfiguration = new SCIMv11ConnectorConfiguration();
 
         for (Map.Entry<String, String> entry : configuration.entrySet()) {
@@ -131,5 +131,9 @@ public class SCIMv11ConnectorTestsUtils {
             }
         }
         return false;
+    }
+
+    private SCIMv11ConnectorTestsUtils() {
+        // private constructor for static utility class
     }
 }

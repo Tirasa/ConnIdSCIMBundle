@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv2ConnectorTestsUtils {
+public final class SCIMv2ConnectorTestsUtils {
 
     private static final Log LOG = Log.getLog(SCIMv2ConnectorTestsUtils.class);
 
@@ -52,16 +52,20 @@ public class SCIMv2ConnectorTestsUtils {
     public static final String USER_ATTRIBUTE_ROLES_DEFAULT_VALUE = "roles.default.value";
 
     public static final String USER_ATTRIBUTE_PHONE_OTHER_VALUE = "phoneNumbers.other.value";
+
     public static final String USER_ATTRIBUTE_PHONE_HOME_VALUE = "phoneNumbers.home.value";
 
     public static final String USER_ATTRIBUTE_PHONE_OTHER_PRIMARY = "phoneNumbers.other.primary";
+
     public static final String USER_ATTRIBUTE_PHONE_HOME_PRIMARY = "phoneNumbers.home.primary";
 
     public static final String USER_ATTRIBUTE_PHONE_OTHER_OPERATION = "phoneNumbers.other.operation";
 
     public static final String USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS = "addresses.work.streetAddress";
 
-    public static SCIMConnectorConfiguration buildConfiguration(Map<String, String> configuration, int serverPort) {
+    public static SCIMConnectorConfiguration buildConfiguration(
+            final Map<String, String> configuration, final int serverPort) {
+
         SCIMConnectorConfiguration connectorConfiguration = new SCIMConnectorConfiguration();
 
         for (Map.Entry<String, String> entry : configuration.entrySet()) {
@@ -134,5 +138,9 @@ public class SCIMv2ConnectorTestsUtils {
             }
         }
         return false;
+    }
+
+    private SCIMv2ConnectorTestsUtils() {
+        // private constructor for static utility class
     }
 }

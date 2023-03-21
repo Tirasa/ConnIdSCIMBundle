@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -113,7 +113,6 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.password = password;
     }
 
-
     @ConfigurationProperty(displayMessageKey = "clientId.display",
             helpMessageKey = "clientId.help", order = 6)
     public String getCliendId() {
@@ -198,14 +197,14 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         if (StringUtil.isBlank(username)
                 && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
             failValidation(
-                    "Username cannot be null or empty. Since clientId, clientSecret, " +
-                            "accessTokenNodeId and accessTokenBaseAddress are blank");
+                    "Username cannot be null or empty. Since clientId, clientSecret, "
+                    + "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
-        if (StringUtil.isBlank(SecurityUtil.decrypt(password)) &&
-                StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
+        if (StringUtil.isBlank(SecurityUtil.decrypt(password))
+                && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
             failValidation(
-                    "Password Id cannot be null or empty.  Since clientId, clientSecret, " +
-                            "accessTokenNodeId and accessTokenBaseAddress are blank");
+                    "Password Id cannot be null or empty.  Since clientId, clientSecret, "
+                    + "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
         if (StringUtil.isNotBlank(customAttributesJSON)) {
             try {
@@ -227,9 +226,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     public void release() {
     }
 
-    private void failValidation(String key, Object... args) {
+    private void failValidation(final String key, final Object... args) {
         String message = getConnectorMessages().format(key, null, args);
         throw new ConfigurationException(message);
     }
-
 }

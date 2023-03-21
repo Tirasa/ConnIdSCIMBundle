@@ -1,11 +1,11 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,13 +17,16 @@ package net.tirasa.connid.bundles.scim.v11.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMUserName {
+public class SCIMUserName implements Serializable {
+
+    private static final long serialVersionUID = 7434577740752211574L;
 
     @JsonProperty
     private String formatted;

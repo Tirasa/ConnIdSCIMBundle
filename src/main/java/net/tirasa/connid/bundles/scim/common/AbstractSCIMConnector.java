@@ -1,22 +1,25 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.tirasa.connid.bundles.scim.common;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 import net.tirasa.connid.bundles.scim.common.service.SCIMService;
@@ -28,16 +31,33 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
-import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.AttributesAccessor;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
+import org.identityconnectors.framework.common.objects.ResultsHandler;
+import org.identityconnectors.framework.common.objects.SearchResult;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
-import org.identityconnectors.framework.spi.operations.*;
+import org.identityconnectors.framework.spi.operations.CreateOp;
+import org.identityconnectors.framework.spi.operations.DeleteOp;
+import org.identityconnectors.framework.spi.operations.SchemaOp;
+import org.identityconnectors.framework.spi.operations.SearchOp;
+import org.identityconnectors.framework.spi.operations.TestOp;
+import org.identityconnectors.framework.spi.operations.UpdateOp;
 
-public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? extends SCIMBaseMeta>, ST extends SCIMService>
+public abstract class AbstractSCIMConnector<
+        T extends SCIMUser<Attribute, ? extends SCIMBaseMeta>, ST extends SCIMService<T>>
         implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp {
 
     private static final Log LOG = Log.getLog(AbstractSCIMConnector.class);
@@ -68,7 +88,7 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
 
     @Override
     public void executeQuery(final ObjectClass objectClass, final Filter query, final ResultsHandler handler,
-                             final OperationOptions options) {
+            final OperationOptions options) {
         LOG.ok("Connector READ");
 
         Attribute key = null;
@@ -138,8 +158,8 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
                 } else {
                     try {
                         List<T> users =
-                                client.getAllUsers((Name.NAME.equals(key.getName()) ? "username" : key.getName()) +
-                                        " eq \"" + AttributeUtil.getAsStringValue(key) + "\"", attributesToGet);
+                                client.getAllUsers((Name.NAME.equals(key.getName()) ? "username" : key.getName())
+                                        + " eq \"" + AttributeUtil.getAsStringValue(key) + "\"", attributesToGet);
                         if (!users.isEmpty()) {
                             result = users.get(0);
                         }
@@ -161,7 +181,7 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
 
     @Override
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes,
-                      final OperationOptions options) {
+            final OperationOptions options) {
         LOG.ok("Connector CREATE");
 
         if (createAttributes == null || createAttributes.isEmpty()) {
@@ -225,7 +245,7 @@ public abstract class AbstractSCIMConnector<T extends SCIMUser<Attribute, ? exte
 
     @Override
     public Uid update(final ObjectClass objectClass, final Uid uid, final Set<Attribute> replaceAttributes,
-                      final OperationOptions options) {
+            final OperationOptions options) {
         LOG.ok("Connector UPDATE object [{0}]", uid);
 
         if (replaceAttributes == null || replaceAttributes.isEmpty()) {

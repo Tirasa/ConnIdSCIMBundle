@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,12 @@ package net.tirasa.connid.bundles.scim.v2.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
@@ -42,27 +47,30 @@ public class SCIMv2Client extends SCIMv2Service {
      * @param attributesToGet
      * @return List of Users
      */
+    @Override
     public List<SCIMv2User> getAllUsers(final Set<String> attributesToGet) {
-        WebClient webClient = getWebclient("Users", null);
         Map<String, String> params = new HashMap<>();
         if (!attributesToGet.isEmpty()) {
-            params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                    SCIMv2Attribute.class));
+            params.put("attributes",
+                    SCIMUtils.cleanAttributesToGet(
+                            attributesToGet, config.getCustomAttributesJSON(), SCIMv2Attribute.class));
         }
+        WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient).getResources();
     }
 
     /**
-     * @param filterQuery     to filter results
+     * @param filterQuery to filter results
      * @param attributesToGet
      * @return Filtered list of Users
      */
+    @Override
     public List<SCIMv2User> getAllUsers(final String filterQuery, final Set<String> attributesToGet) {
         Map<String, String> params = new HashMap<>();
         params.put("filter", filterQuery);
         if (!attributesToGet.isEmpty()) {
-            params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                    SCIMv2Attribute.class));
+            params.put("attributes", SCIMUtils.cleanAttributesToGet(
+                    attributesToGet, config.getCustomAttributesJSON(), SCIMv2Attribute.class));
         }
         WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient).getResources();
@@ -74,16 +82,17 @@ public class SCIMv2Client extends SCIMv2Service {
      * @param attributesToGet
      * @return Paged list of Users
      */
+    @Override
     public PagedResults<SCIMv2User> getAllUsers(final Integer startIndex, final Integer count,
-                                                final Set<String> attributesToGet) {
+            final Set<String> attributesToGet) {
         Map<String, String> params = new HashMap<>();
         params.put("startIndex", String.valueOf(startIndex));
         if (count != null) {
             params.put("count", String.valueOf(count));
         }
         if (!attributesToGet.isEmpty()) {
-            params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                    SCIMv2Attribute.class));
+            params.put("attributes", SCIMUtils.cleanAttributesToGet(
+                    attributesToGet, config.getCustomAttributesJSON(), SCIMv2Attribute.class));
         }
         WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient);
@@ -96,17 +105,20 @@ public class SCIMv2Client extends SCIMv2Service {
      * @param attributesToGet
      * @return Paged and Filtered list of Users
      */
-    public PagedResults<SCIMv2User> getAllUsers(final String filterQuery, final Integer startIndex,
-                                                final Integer count,
-                                                final Set<String> attributesToGet) {
+    public PagedResults<SCIMv2User> getAllUsers(
+            final String filterQuery,
+            final Integer startIndex,
+            final Integer count,
+            final Set<String> attributesToGet) {
+
         Map<String, String> params = new HashMap<>();
         params.put("startIndex", String.valueOf(startIndex));
         if (count != null) {
             params.put("count", String.valueOf(count));
         }
         params.put("filter", filterQuery);
-        params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                SCIMv2Attribute.class));
+        params.put("attributes", SCIMUtils.cleanAttributesToGet(
+                attributesToGet, config.getCustomAttributesJSON(), SCIMv2Attribute.class));
         WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient);
     }
@@ -115,9 +127,9 @@ public class SCIMv2Client extends SCIMv2Service {
      * @param userId
      * @return User with userId id
      */
+    @Override
     public SCIMv2User getUser(final String userId) {
-        WebClient webClient = getWebclient("Users", null)
-                .path(userId);
+        WebClient webClient = getWebclient("Users", null).path(userId);
         return doGetUser(webClient);
     }
 
@@ -132,12 +144,14 @@ public class SCIMv2Client extends SCIMv2Service {
 
     /**
      * @param user
+     * @param replaceAttributes
      * @return Update User
      */
-    public SCIMv2User updateUser(final SCIMv2User user, Set<Attribute> replaceAttributes) {
+    public SCIMv2User updateUser(final SCIMv2User user, final Set<Attribute> replaceAttributes) {
         return SCIMv2User.class.cast(doUpdateUser(user, replaceAttributes));
     }
 
+    @Override
     public SCIMv2User updateUser(final SCIMv2User user) {
         return SCIMv2User.class.cast(doUpdateUser(user, Collections.emptySet()));
     }
@@ -157,6 +171,7 @@ public class SCIMv2Client extends SCIMv2Service {
         doActivateUser(userId);
     }
 
+    @Override
     public boolean testService() {
         Set<String> attributesToGet = new HashSet<>();
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
@@ -174,7 +189,7 @@ public class SCIMv2Client extends SCIMv2Service {
             pagedResults = SCIMUtils.MAPPER.readValue(
                     node.toString(),
                     new TypeReference<PagedResults<SCIMv2User>>() {
-                    });
+            });
         } catch (IOException ex) {
             LOG.error(ex, "While converting from JSON to Users");
         }
@@ -254,8 +269,6 @@ public class SCIMv2Client extends SCIMv2Service {
     }
 
     private void doActivateUser(final String userId) {
-        doActivate(userId, getWebclient("activation", null)
-                .path("tokens"));
+        doActivate(userId, getWebclient("activation", null).path("tokens"));
     }
-
 }

@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,8 +20,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -48,9 +52,9 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
 
     protected final SCIMConnectorConfiguration config;
 
-    public final static String RESPONSE_ERRORS = "Errors";
+    public static final String RESPONSE_ERRORS = "Errors";
 
-    public final static String RESPONSE_RESOURCES = "Resources";
+    public static final String RESPONSE_RESOURCES = "Resources";
 
     public SCIMv2Service(final SCIMConnectorConfiguration config) {
         this.config = config;
@@ -69,9 +73,9 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
             webClient.header(HttpHeaders.AUTHORIZATION, "Bearer " + generateToken());
         } else {
             webClient = WebClient.create(config.getBaseAddress(),
-                            config.getUsername(),
-                            config.getPassword() == null ? null : SecurityUtil.decrypt(config.getPassword()),
-                            null)
+                    config.getUsername(),
+                    config.getPassword() == null ? null : SecurityUtil.decrypt(config.getPassword()),
+                    null)
                     .type(config.getAccept())
                     .accept(config.getContentType())
                     .path(path);
@@ -304,8 +308,8 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
     }
 
     private void buildCustomSimpleAttributeNode(final JsonNode rootNode,
-                                                final SCIMv2Attribute scimAttribute,
-                                                final SCIMv2User user) {
+            final SCIMv2Attribute scimAttribute,
+            final SCIMv2User user) {
         ObjectNode newNode = SCIMUtils.MAPPER.createObjectNode();
         List<Object> values = user.getSCIMCustomAttributes().get(scimAttribute);
         Object value = null;
@@ -372,13 +376,14 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
         return mainNode;
     }
 
-    public static <T extends SCIMBaseAttribute> SCIMSchema extractSCIMSchemas(final String json,
-                                                                              final Class<T> attrType) {
+    public static <T extends SCIMBaseAttribute<?>> SCIMSchema<T> extractSCIMSchemas(
+            final String json, final Class<T> attrType) {
         try {
             SCIMSchema<T> scimSchema = SCIMUtils.MAPPER.readValue(json,
                     SCIMUtils.MAPPER.getTypeFactory().constructParametricType(SCIMSchema.class, attrType));
             // if SCIMv2Attribute populate transient field extensionSchema of the attribute since from SCIM 2.0 schema
-            // has been removed from attribute fields, refer to https://datatracker.ietf.org/doc/html/rfc7643#section-8.7.1
+            // has been removed from attribute fields
+            // refer to https://datatracker.ietf.org/doc/html/rfc7643#section-8.7.1
             if (SCIMv2Attribute.class.equals(attrType)) {
                 scimSchema.getAttributes()
                         .forEach(attr -> SCIMv2Attribute.class.cast(attr).setExtensionSchema(scimSchema.getId()));
@@ -390,8 +395,8 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
         return null;
     }
 
-    protected <T extends SCIMBaseAttribute> void readCustomAttributes(final SCIMv2User user, final JsonNode node,
-                                                                      final Class<T> attrType) {
+    protected <T extends SCIMBaseAttribute<?>> void readCustomAttributes(
+            final SCIMv2User user, final JsonNode node, final Class<T> attrType) {
         if (StringUtil.isNotBlank(config.getCustomAttributesJSON())) {
             SCIMSchema<T> scimSchema = extractSCIMSchemas(config.getCustomAttributesJSON(), attrType);
 
@@ -407,7 +412,7 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
                                 : Type.BOOLEAN.name().toLowerCase().equals(attribute.getType())
                                 ? foundWithSchemaAsKey.get(0).get(attribute.getName()).booleanValue()
                                 : foundWithSchemaAsKey.get(0).get(attribute.getName())
-                                .textValue());
+                                        .textValue());
                         user.getReturnedCustomAttributes().put(
                                 SCIMv2Attribute.class.cast(attribute).getExtensionSchema()
                                         .concat(".")

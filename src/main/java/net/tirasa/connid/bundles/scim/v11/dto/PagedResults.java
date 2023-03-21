@@ -1,11 +1,11 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,10 +20,9 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import java.util.ArrayList;
 import java.util.List;
-import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 
-public class PagedResults<T extends SCIMUser> {
+public class PagedResults<T extends SCIMUser<?, ?>> {
 
     @JsonProperty
     private int totalResults;
@@ -45,12 +44,12 @@ public class PagedResults<T extends SCIMUser> {
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setSchemas(List<String> schemas) {
+    public void setSchemas(final List<String> schemas) {
         this.schemas = schemas;
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setResources(List<T> resources) {
+    public void setResources(final List<T> resources) {
         this.resources = resources;
     }
 

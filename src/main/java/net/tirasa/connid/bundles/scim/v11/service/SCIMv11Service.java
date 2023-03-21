@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 package net.tirasa.connid.bundles.scim.v11.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -47,11 +48,11 @@ public class SCIMv11Service {
 
     private static final Log LOG = Log.getLog(SCIMv11Service.class);
 
+    public static final String RESPONSE_ERRORS = "Errors";
+
+    public static final String RESPONSE_RESOURCES = "Resources";
+
     protected final SCIMv11ConnectorConfiguration config;
-
-    public final static String RESPONSE_ERRORS = "Errors";
-
-    public final static String RESPONSE_RESOURCES = "Resources";
 
     public SCIMv11Service(final SCIMv11ConnectorConfiguration config) {
         this.config = config;
@@ -70,9 +71,9 @@ public class SCIMv11Service {
             webClient.header(HttpHeaders.AUTHORIZATION, "Bearer " + generateToken());
         } else {
             webClient = WebClient.create(config.getBaseAddress(),
-                            config.getUsername(),
-                            config.getPassword() == null ? null : SecurityUtil.decrypt(config.getPassword()),
-                            null)
+                    config.getUsername(),
+                    config.getPassword() == null ? null : SecurityUtil.decrypt(config.getPassword()),
+                    null)
                     .type(config.getAccept())
                     .accept(config.getContentType())
                     .path(path);
@@ -295,8 +296,8 @@ public class SCIMv11Service {
     }
 
     private void buildCustomSimpleAttributeNode(final JsonNode rootNode,
-                                                final SCIMv11Attribute scimAttribute,
-                                                final SCIMv11User user) {
+            final SCIMv11Attribute scimAttribute,
+            final SCIMv11User user) {
         ObjectNode newNode = SCIMUtils.MAPPER.createObjectNode();
         List<Object> values = user.getSCIMCustomAttributes().get(scimAttribute);
         Object value = null;
@@ -363,12 +364,13 @@ public class SCIMv11Service {
         return mainNode;
     }
 
-    public static <T extends SCIMBaseAttribute> SCIMSchema extractSCIMSchemas(final String json) {
+    public static <T extends SCIMBaseAttribute<?>> SCIMSchema<T> extractSCIMSchemas(final String json) {
         SCIMSchema<T> customAttributesObj = null;
         try {
             customAttributesObj = SCIMUtils.MAPPER.readValue(
                     json,
-                    SCIMSchema.class);
+                    new TypeReference<SCIMSchema<T>>() {
+            });
         } catch (IOException ex) {
             LOG.error(ex, "While parsing custom attributes JSON object, taken from connector configuration");
         }
@@ -376,7 +378,7 @@ public class SCIMv11Service {
         return customAttributesObj;
     }
 
-    protected <T extends SCIMBaseAttribute> void readCustomAttributes(final SCIMv11User user, final JsonNode node) {
+    protected <T extends SCIMBaseAttribute<?>> void readCustomAttributes(final SCIMv11User user, final JsonNode node) {
         if (StringUtil.isNotBlank(config.getCustomAttributesJSON())) {
             SCIMSchema<T> scimSchema = extractSCIMSchemas(config.getCustomAttributesJSON());
 
@@ -393,8 +395,8 @@ public class SCIMv11Service {
                                 ? foundWithSchemaAsKey.get(0).get(attribute.getName()).booleanValue()
                                 : foundWithSchemaAsKey.get(0).get(attribute.getName()).textValue());
                         user.getReturnedCustomAttributes().put(SCIMv11Attribute.class.cast(attribute).getSchema()
-                                        .concat(".")
-                                        .concat(SCIMv11Attribute.class.cast(attribute).getName()),
+                                .concat(".")
+                                .concat(SCIMv11Attribute.class.cast(attribute).getName()),
                                 values);
                     }
                 }

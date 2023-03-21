@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class SCIMv11Attribute extends SCIMBaseAttribute<SCIMv11Attribute> {
 
+    private static final long serialVersionUID = -3794205038896534173L;
+
     @JsonProperty
     private String multiValuedAttributeChildName;
 
@@ -31,26 +33,32 @@ public class SCIMv11Attribute extends SCIMBaseAttribute<SCIMv11Attribute> {
     @JsonProperty
     private Boolean readOnly;
 
+    @Override
     public String getType() {
         return type;
     }
 
+    @Override
     public void setType(final String type) {
         this.type = type;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(final String name) {
         this.name = name;
     }
 
+    @Override
     public Boolean getMultiValued() {
         return multiValued;
     }
 
+    @Override
     public void setMultiValued(final Boolean multiValued) {
         this.multiValued = multiValued;
     }
@@ -63,10 +71,12 @@ public class SCIMv11Attribute extends SCIMBaseAttribute<SCIMv11Attribute> {
         this.multiValuedAttributeChildName = multiValuedAttributeChildName;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     public void setDescription(final String description) {
         this.description = description;
     }
@@ -87,22 +97,27 @@ public class SCIMv11Attribute extends SCIMBaseAttribute<SCIMv11Attribute> {
         this.readOnly = readOnly;
     }
 
+    @Override
     public Boolean getRequired() {
         return required;
     }
 
+    @Override
     public void setRequired(final Boolean required) {
         this.required = required;
     }
 
+    @Override
     public Boolean getCaseExact() {
         return caseExact;
     }
 
+    @Override
     public void setCaseExact(final Boolean caseExact) {
         this.caseExact = caseExact;
     }
 
+    @Override
     public List<String> getCanonicalValues() {
         return canonicalValues;
     }

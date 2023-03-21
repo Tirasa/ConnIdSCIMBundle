@@ -1,22 +1,18 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
-
- * http://www.apache.org/licenses/LICENSE-2.0
-
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+/**
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package net.tirasa.connid.bundles.scim.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,52 +37,60 @@ public abstract class AbstractSCIMBaseResource<AT, MT extends SCIMBaseMeta> impl
 
     private String baseSchema;
 
-    protected Set<String> schemas = new TreeSet<>();
+    protected final Set<String> schemas = new TreeSet<>();
 
     public AbstractSCIMBaseResource() {
     }
 
-    public AbstractSCIMBaseResource(String baseSchema, String resourceType, MT meta) {
+    public AbstractSCIMBaseResource(final String baseSchema, final String resourceType, final MT meta) {
         schemas.add(baseSchema);
         this.baseSchema = baseSchema;
         this.meta = meta;
     }
 
+    @Override
     public Set<String> getSchemas() {
         return schemas;
     }
 
+    @Override
     public void setSchemas(final Set<String> schemas) {
         this.schemas.clear();
         this.schemas.addAll(schemas);
     }
 
+    @Override
     public MT getMeta() {
         return meta;
     }
 
-    public void setMeta(MT meta) {
+    @Override
+    public void setMeta(final MT meta) {
         this.meta = meta;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    @Override
+    public void setId(final String id) {
         this.id = id;
     }
 
+    @Override
     public String getExternalId() {
         return externalId;
     }
 
-    public void setExternalId(String externalId) {
+    @Override
+    public void setExternalId(final String externalId) {
         this.externalId = externalId;
     }
 
+    @Override
     public String getBaseSchema() {
         return baseSchema;
     }
-
 }

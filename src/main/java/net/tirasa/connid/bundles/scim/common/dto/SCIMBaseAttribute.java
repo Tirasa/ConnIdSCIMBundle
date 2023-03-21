@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SCIMBaseAttribute<SELF extends SCIMBaseAttribute> implements Serializable {
+public class SCIMBaseAttribute<SELF extends SCIMBaseAttribute<?>> implements Serializable {
+
+    private static final long serialVersionUID = -1413978317589560512L;
 
     @JsonProperty
     protected String type;
@@ -92,7 +94,7 @@ public class SCIMBaseAttribute<SELF extends SCIMBaseAttribute> implements Serial
         return caseExact;
     }
 
-    public void setCaseExact(Boolean caseExact) {
+    public void setCaseExact(final Boolean caseExact) {
         this.caseExact = caseExact;
     }
 
@@ -105,12 +107,12 @@ public class SCIMBaseAttribute<SELF extends SCIMBaseAttribute> implements Serial
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setCanonicalValues(List<String> canonicalValues) {
+    public void setCanonicalValues(final List<String> canonicalValues) {
         this.canonicalValues = canonicalValues;
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setSubAttributes(List<SELF> subAttributes) {
+    public void setSubAttributes(final List<SELF> subAttributes) {
         this.subAttributes = subAttributes;
     }
 }

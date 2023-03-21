@@ -1,12 +1,12 @@
 /**
- * Copyright © 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 package net.tirasa.connid.bundles.scim.common.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -31,11 +32,11 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 
-public class SCIMUtils {
+public final class SCIMUtils {
 
     private static final Log LOG = Log.getLog(SCIMUtils.class);
 
-    public final static ObjectMapper MAPPER = new ObjectMapper()
+    public static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
@@ -65,16 +66,20 @@ public class SCIMUtils {
                 || (obj instanceof String ? StringUtil.isBlank(String.class.cast(obj)) : false);
     }
 
-    public static <T extends SCIMBaseAttribute> String cleanAttributesToGet(final Set<String> attributesToGet,
-                                                                            final String customAttributesJSON,
-                                                                            final Class<T> attrType) {
+    public static <T extends SCIMBaseAttribute<?>> String cleanAttributesToGet(
+            final Set<String> attributesToGet,
+            final String customAttributesJSON,
+            final Class<T> attrType) {
+
         return cleanAttributesToGet(attributesToGet, customAttributesJSON, attrType, true);
     }
 
-    public static <T extends SCIMBaseAttribute> String cleanAttributesToGet(final Set<String> attributesToGet,
-                                                                            final String customAttributesJSON,
-                                                                            final Class<T> attrType,
-                                                                            final boolean addCustomAttrsToQueryParams) {
+    public static <T extends SCIMBaseAttribute<?>> String cleanAttributesToGet(
+            final Set<String> attributesToGet,
+            final String customAttributesJSON,
+            final Class<T> attrType,
+            final boolean addCustomAttrsToQueryParams) {
+
         if (attributesToGet.isEmpty()) {
             return SCIMAttributeUtils.defaultAttributesToGet();
         }
@@ -89,6 +94,7 @@ public class SCIMUtils {
                     || attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + ".")
                     || attributeToGet.toLowerCase().contains("password")) {
 
+                // nothing to do
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_NAME + ".")) {
                 result += SCIMAttributeUtils.SCIM_USER_NAME.concat(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_ADDRESSES + ".")) {
@@ -135,21 +141,22 @@ public class SCIMUtils {
             result += SCIMAttributeUtils.SCIM_USER_NAME.concat(",");
         }
 
-        return StringUtil.isBlank(result) ? SCIMAttributeUtils.defaultAttributesToGet()
+        return StringUtil.isBlank(result)
+                ? SCIMAttributeUtils.defaultAttributesToGet()
                 : result.substring(0, result.length() - 1);
     }
 
-    private static <T extends SCIMBaseAttribute> boolean isCustomAttribute(
+    private static <T extends SCIMBaseAttribute<?>> boolean isCustomAttribute(
             final SCIMSchema<T> customAttributes,
             final String attribute) {
         for (T customAttribute : customAttributes.getAttributes()) {
             String externalAttributeName = customAttribute instanceof SCIMv11Attribute
                     ? SCIMv11Attribute.class.cast(customAttribute).getSchema()
-                    .concat(".")
-                    .concat(customAttribute.getName())
+                            .concat(".")
+                            .concat(customAttribute.getName())
                     : SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema()
-                    .concat(".")
-                    .concat(customAttribute.getName());
+                            .concat(".")
+                            .concat(customAttribute.getName());
             if (externalAttributeName.equals(attribute)) {
                 return true;
             }
@@ -157,12 +164,15 @@ public class SCIMUtils {
         return false;
     }
 
-    public static <T extends SCIMBaseAttribute> SCIMSchema extractSCIMSchemas(final String json, Class<T> attrType) {
+    public static <T extends SCIMBaseAttribute<?>> SCIMSchema<T> extractSCIMSchemas(
+            final String json, final Class<T> attrType) {
+
         try {
-            final SCIMSchema<T> scimSchema =
-                    MAPPER.readValue(json, MAPPER.getTypeFactory().constructParametricType(SCIMSchema.class, attrType));
+            SCIMSchema<T> scimSchema = MAPPER.readValue(json, new TypeReference<SCIMSchema<T>>() {
+            });
             // if SCIMv2Attribute populate transient field extensionSchema of the attribute since from SCIM 2.0 schema
-            // has been removed from attribute fields, refer to https://datatracker.ietf.org/doc/html/rfc7643#section-8.7.1
+            // has been removed from attribute fields,
+            // refer to https://datatracker.ietf.org/doc/html/rfc7643#section-8.7.1
             if (SCIMv2Attribute.class.equals(attrType)) {
                 scimSchema.getAttributes()
                         .forEach(attr -> SCIMv2Attribute.class.cast(attr).setExtensionSchema(scimSchema.getId()));
@@ -174,4 +184,7 @@ public class SCIMUtils {
         return null;
     }
 
+    private SCIMUtils() {
+        // private constructor for static utility class
+    }
 }
