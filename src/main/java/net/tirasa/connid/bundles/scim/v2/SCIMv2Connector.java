@@ -23,7 +23,6 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Client;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Schema;
-import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.ConnectorClass;
 
 @ConnectorClass(displayNameKey = "SCIMv2Connector.connector.display",
@@ -33,11 +32,6 @@ public class SCIMv2Connector extends AbstractSCIMConnector<SCIMv2User, SCIMv2Cli
     private static final Log LOG = Log.getLog(SCIMv2Connector.class);
 
     private Schema schema;
-
-    @Override
-    public Configuration getConfiguration() {
-        return configuration;
-    }
 
     @Override
     protected SCIMv2Client buildSCIMClient(final SCIMConnectorConfiguration configuration) {

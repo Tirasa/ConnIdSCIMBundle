@@ -23,9 +23,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import net.tirasa.connid.bundles.scim.v11.SCIMv11ConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
@@ -37,7 +37,7 @@ public class SCIMv11Client extends SCIMv11Service {
 
     private static final Log LOG = Log.getLog(SCIMv11Client.class);
 
-    public SCIMv11Client(final SCIMv11ConnectorConfiguration config) {
+    public SCIMv11Client(final SCIMConnectorConfiguration config) {
         super(config);
     }
 

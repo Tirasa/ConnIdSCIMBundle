@@ -29,12 +29,13 @@ import java.util.Map.Entry;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.service.NoSuchEntityException;
+import net.tirasa.connid.bundles.scim.common.service.SCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import net.tirasa.connid.bundles.scim.v11.SCIMv11ConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
@@ -44,7 +45,7 @@ import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.SecurityUtil;
 
-public class SCIMv11Service {
+public abstract class SCIMv11Service implements SCIMService<SCIMv11User>  {
 
     private static final Log LOG = Log.getLog(SCIMv11Service.class);
 
@@ -52,9 +53,9 @@ public class SCIMv11Service {
 
     public static final String RESPONSE_RESOURCES = "Resources";
 
-    protected final SCIMv11ConnectorConfiguration config;
+    protected final SCIMConnectorConfiguration config;
 
-    public SCIMv11Service(final SCIMv11ConnectorConfiguration config) {
+    public SCIMv11Service(final SCIMConnectorConfiguration config) {
         this.config = config;
     }
 

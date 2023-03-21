@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
 import net.tirasa.connid.bundles.scim.common.service.NoSuchEntityException;
@@ -76,7 +77,7 @@ public class SCIMv11ConnectorTests {
 
     private static final Properties PROPS = new Properties();
 
-    private static SCIMv11ConnectorConfiguration CONF;
+    private static SCIMConnectorConfiguration CONF;
 
     private static SCIMv11Connector CONN;
 

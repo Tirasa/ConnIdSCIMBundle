@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,6 +44,7 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
+import org.identityconnectors.framework.common.objects.filter.EqualsIgnoreCaseFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
@@ -88,12 +89,14 @@ public abstract class AbstractSCIMConnector<
 
     @Override
     public void executeQuery(final ObjectClass objectClass, final Filter query, final ResultsHandler handler,
-            final OperationOptions options) {
+                             final OperationOptions options) {
         LOG.ok("Connector READ");
 
         Attribute key = null;
-        if (query instanceof EqualsFilter) {
-            Attribute filterAttr = ((EqualsFilter) query).getAttribute();
+        if (query instanceof EqualsFilter || query instanceof EqualsIgnoreCaseFilter) {
+            Attribute filterAttr = query instanceof EqualsFilter
+                    ? ((EqualsFilter) query).getAttribute()
+                    : ((EqualsIgnoreCaseFilter) query).getAttribute();
             if (filterAttr instanceof Uid
                     || ObjectClass.ACCOUNT.equals(objectClass)
                     || ObjectClass.GROUP.equals(objectClass)) {
@@ -181,7 +184,7 @@ public abstract class AbstractSCIMConnector<
 
     @Override
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes,
-            final OperationOptions options) {
+                      final OperationOptions options) {
         LOG.ok("Connector CREATE");
 
         if (createAttributes == null || createAttributes.isEmpty()) {
@@ -245,7 +248,7 @@ public abstract class AbstractSCIMConnector<
 
     @Override
     public Uid update(final ObjectClass objectClass, final Uid uid, final Set<Attribute> replaceAttributes,
-            final OperationOptions options) {
+                      final OperationOptions options) {
         LOG.ok("Connector UPDATE object [{0}]", uid);
 
         if (replaceAttributes == null || replaceAttributes.isEmpty()) {
@@ -393,6 +396,12 @@ public abstract class AbstractSCIMConnector<
         }
 
         return builder.build();
+    }
+
+
+    @Override
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
     protected abstract T buildNewUserEntity();

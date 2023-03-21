@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@ package net.tirasa.connid.bundles.scim.v11;
 
 import java.util.Map;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -57,8 +58,8 @@ public final class SCIMv11ConnectorTestsUtils {
 
     public static final String USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS = "addresses.work.streetAddress";
 
-    public static SCIMv11ConnectorConfiguration buildConfiguration(final Map<String, String> configuration) {
-        SCIMv11ConnectorConfiguration connectorConfiguration = new SCIMv11ConnectorConfiguration();
+    public static SCIMConnectorConfiguration buildConfiguration(final Map<String, String> configuration) {
+        SCIMConnectorConfiguration connectorConfiguration = new SCIMConnectorConfiguration();
 
         for (Map.Entry<String, String> entry : configuration.entrySet()) {
 
@@ -110,7 +111,7 @@ public final class SCIMv11ConnectorTestsUtils {
         return connectorConfiguration;
     }
 
-    public static boolean isConfigurationValid(final SCIMv11ConnectorConfiguration connectorConfiguration) {
+    public static boolean isConfigurationValid(final SCIMConnectorConfiguration connectorConfiguration) {
         connectorConfiguration.validate();
         return true;
     }
