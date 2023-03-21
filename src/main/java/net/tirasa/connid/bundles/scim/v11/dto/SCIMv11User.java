@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
@@ -37,6 +38,7 @@ import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Service;
 import net.tirasa.connid.bundles.scim.v11.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.v11.types.PhotoCanonicalType;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -610,551 +612,544 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
                 this.active = Boolean.class.cast(value);
                 break;
 
-            case "emails.work.value": {
-                SCIMComplex<EmailCanonicalType> selected = handleSCIMComplexObject(
+            case "emails.work.value":
+                handleSCIMComplexObject(
                         EmailCanonicalType.work,
-                        this.emails);
-                selected.setValue(String.class.cast(value));
+                        this.emails,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "emails.work.primary": {
-                SCIMComplex<EmailCanonicalType> selected = handleSCIMComplexObject(
-                        EmailCanonicalType.work,
-                        this.emails);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "emails.work.operation": {
-                SCIMComplex<EmailCanonicalType> selected = handleSCIMComplexObject(
-                        EmailCanonicalType.work,
-                        this.emails);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "emails.home.value": {
-                SCIMComplex<EmailCanonicalType> selected = handleSCIMComplexObject(
-                        EmailCanonicalType.home,
-                        this.emails);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "emails.home.primary": {
-                SCIMComplex<EmailCanonicalType> selected = handleSCIMComplexObject(
-                        EmailCanonicalType.home,
-                        this.emails);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "emails.home.operation": {
-                SCIMComplex<EmailCanonicalType> selected = handleSCIMComplexObject(
-                        EmailCanonicalType.home,
-                        this.emails);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "emails.other.value": {
-                SCIMComplex<EmailCanonicalType> selected = handleSCIMComplexObject(
-                        EmailCanonicalType.other,
-                        this.emails);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "emails.other.primary": {
-                SCIMComplex<EmailCanonicalType> selected = handleSCIMComplexObject(
-                        EmailCanonicalType.other,
-                        this.emails);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "emails.other.operation": {
-                SCIMComplex<EmailCanonicalType> selected = handleSCIMComplexObject(
-                        EmailCanonicalType.other,
-                        this.emails);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
 
-            case "phoneNumbers.work.value": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+            case "emails.work.primary":
+                handleSCIMComplexObject(
+                        EmailCanonicalType.work,
+                        this.emails,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "emails.work.operation":
+                handleSCIMComplexObject(
+                        EmailCanonicalType.work,
+                        this.emails,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "emails.home.value":
+                handleSCIMComplexObject(
+                        EmailCanonicalType.home,
+                        this.emails,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "emails.home.primary":
+                handleSCIMComplexObject(
+                        EmailCanonicalType.home,
+                        this.emails,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "emails.home.operation":
+                handleSCIMComplexObject(
+                        EmailCanonicalType.home,
+                        this.emails,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "emails.other.value":
+                handleSCIMComplexObject(
+                        EmailCanonicalType.other,
+                        this.emails,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "emails.other.primary":
+                handleSCIMComplexObject(
+                        EmailCanonicalType.other,
+                        this.emails,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "emails.other.operation":
+                handleSCIMComplexObject(
+                        EmailCanonicalType.other,
+                        this.emails,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "phoneNumbers.work.value":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.work,
-                        this.phoneNumbers);
-                selected.setValue(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.work.primary": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.work.primary":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.work,
-                        this.phoneNumbers);
-                selected.setPrimary(Boolean.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.work.operation": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.work.operation":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.work,
-                        this.phoneNumbers);
-                selected.setOperation(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setOperation(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.home.value": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.home.value":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.home,
-                        this.phoneNumbers);
-                selected.setValue(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.home.primary": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.home.primary":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.home,
-                        this.phoneNumbers);
-                selected.setPrimary(Boolean.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.home.operation": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.home.operation":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.home,
-                        this.phoneNumbers);
-                selected.setOperation(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setOperation(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.other.value": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.other.value":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.other,
-                        this.phoneNumbers);
-                selected.setValue(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.other.primary": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.other.primary":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.other,
-                        this.phoneNumbers);
-                selected.setPrimary(Boolean.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.other.operation": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.other.operation":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.other,
-                        this.phoneNumbers);
-                selected.setOperation(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setOperation(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.pager.value": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.pager.value":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.pager,
-                        this.phoneNumbers);
-                selected.setValue(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.pager.primary": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.pager.primary":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.pager,
-                        this.phoneNumbers);
-                selected.setPrimary(Boolean.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.pager.operation": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.pager.operation":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.pager,
-                        this.phoneNumbers);
-                selected.setOperation(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setOperation(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.fax.value": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.fax.value":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.fax,
-                        this.phoneNumbers);
-                selected.setValue(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.fax.primary": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.fax.primary":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.fax,
-                        this.phoneNumbers);
-                selected.setPrimary(Boolean.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.fax.operation": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.fax.operation":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.fax,
-                        this.phoneNumbers);
-                selected.setOperation(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setOperation(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.mobile.value": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.mobile.value":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.mobile,
-                        this.phoneNumbers);
-                selected.setValue(String.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.mobile.primary": {
-                SCIMComplex<PhoneNumberCanonicalType> selected = handleSCIMComplexObject(
+
+            case "phoneNumbers.mobile.primary":
+                handleSCIMComplexObject(
                         PhoneNumberCanonicalType.mobile,
-                        this.phoneNumbers);
-                selected.setPrimary(Boolean.class.cast(value));
+                        this.phoneNumbers,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
-            }
-            case "phoneNumbers.mobile.operation": {
-                SCIMComplex<PhoneNumberCanonicalType> selected =
-                        handleSCIMComplexObject(PhoneNumberCanonicalType.mobile,
-                                this.phoneNumbers);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
 
-            case "ims.aim.value": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
+            case "phoneNumbers.mobile.operation":
+                handleSCIMComplexObject(
+                        PhoneNumberCanonicalType.mobile,
+                        this.phoneNumbers,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "ims.aim.value":
+                handleSCIMComplexObject(
                         IMCanonicalType.aim,
-                        this.ims);
-                selected.setValue(String.class.cast(value));
+                        this.ims,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "ims.aim.primary": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
+
+            case "ims.aim.primary":
+                handleSCIMComplexObject(
                         IMCanonicalType.aim,
-                        this.ims);
-                selected.setPrimary(Boolean.class.cast(value));
+                        this.ims,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
-            }
-            case "ims.aim.operation": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
+
+            case "ims.aim.operation":
+                handleSCIMComplexObject(
                         IMCanonicalType.aim,
-                        this.ims);
-                selected.setOperation(String.class.cast(value));
+                        this.ims,
+                        s -> s.setOperation(String.class.cast(value)));
                 break;
-            }
-            case "ims.xmpp.value": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.xmpp,
-                        this.ims);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "ims.xmpp.primary": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.xmpp,
-                        this.ims);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "ims.xmpp.operation": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.xmpp,
-                        this.ims);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "ims.skype.value": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.skype,
-                        this.ims);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "ims.skype.primary": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.skype,
-                        this.ims);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "ims.skype.operation": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.skype,
-                        this.ims);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "ims.qq.value": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.qq,
-                        this.ims);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "ims.qq.primary": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.qq,
-                        this.ims);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "ims.qq.operation": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.qq,
-                        this.ims);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "ims.yahoo.value": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.yahoo,
-                        this.ims);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "ims.yahoo.primary": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.yahoo,
-                        this.ims);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "ims.yahoo.operation": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.yahoo,
-                        this.ims);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "ims.msn.value": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.msn,
-                        this.ims);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "ims.msn.primary": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.msn,
-                        this.ims);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "ims.msn.operation": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.msn,
-                        this.ims);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "ims.icq.value": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.icq,
-                        this.ims);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "ims.icq.primary": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.icq,
-                        this.ims);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "ims.icq.operation": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.icq,
-                        this.ims);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "ims.gtalk.value": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.gtalk,
-                        this.ims);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "ims.gtalk.primary": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.gtalk,
-                        this.ims);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "ims.gtalk.operation": {
-                SCIMComplex<IMCanonicalType> selected = handleSCIMComplexObject(
-                        IMCanonicalType.gtalk,
-                        this.ims);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
 
-            case "photos.photo.value": {
-                SCIMComplex<PhotoCanonicalType> selected = handleSCIMComplexObject(
-                        PhotoCanonicalType.photo,
-                        this.photos);
-                selected.setValue(String.class.cast(value));
+            case "ims.xmpp.value":
+                handleSCIMComplexObject(
+                        IMCanonicalType.xmpp,
+                        this.ims,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "photos.photo.primary": {
-                SCIMComplex<PhotoCanonicalType> selected = handleSCIMComplexObject(
-                        PhotoCanonicalType.photo,
-                        this.photos);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "photos.photo.operation": {
-                SCIMComplex<PhotoCanonicalType> selected = handleSCIMComplexObject(
-                        PhotoCanonicalType.photo,
-                        this.photos);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "photos.thumbnail.value": {
-                SCIMComplex<PhotoCanonicalType> selected = handleSCIMComplexObject(
-                        PhotoCanonicalType.thumbnail,
-                        this.photos);
-                selected.setValue(String.class.cast(value));
-                break;
-            }
-            case "photos.thumbnail.primary": {
-                SCIMComplex<PhotoCanonicalType> selected = handleSCIMComplexObject(
-                        PhotoCanonicalType.thumbnail,
-                        this.photos);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "photos.thumbnail.operation": {
-                SCIMComplex<PhotoCanonicalType> selected = handleSCIMComplexObject(
-                        PhotoCanonicalType.thumbnail,
-                        this.photos);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
 
-            case "addresses.work.streetAddress": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.work);
-                selected.setStreetAddress(String.class.cast(value));
+            case "ims.xmpp.primary":
+                handleSCIMComplexObject(
+                        IMCanonicalType.xmpp,
+                        this.ims,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
-            }
-            case "addresses.work.locality": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.work);
-                selected.setLocality(String.class.cast(value));
-                break;
-            }
-            case "addresses.work.formatted": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.work);
-                selected.setFormatted(String.class.cast(value));
-                break;
-            }
-            case "addresses.work.region": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.work);
-                selected.setRegion(String.class.cast(value));
-                break;
-            }
-            case "addresses.work.postalCode": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.work);
-                selected.setPostalCode(String.class.cast(value));
-                break;
-            }
-            case "addresses.work.country": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.work);
-                selected.setCountry(String.class.cast(value));
-                break;
-            }
-            case "addresses.work.primary": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.work);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "addresses.work.operation": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.work);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "addresses.home.streetAddress": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.home);
-                selected.setStreetAddress(String.class.cast(value));
-                break;
-            }
-            case "addresses.home.locality": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.home);
-                selected.setLocality(String.class.cast(value));
-                break;
-            }
-            case "addresses.home.formatted": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.home);
-                selected.setFormatted(String.class.cast(value));
-                break;
-            }
-            case "addresses.home.region": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.home);
-                selected.setRegion(String.class.cast(value));
-                break;
-            }
-            case "addresses.home.postalCode": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.home);
-                selected.setPostalCode(String.class.cast(value));
-                break;
-            }
-            case "addresses.home.country": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.home);
-                selected.setCountry(String.class.cast(value));
-                break;
-            }
-            case "addresses.home.primary": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.home);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "addresses.home.operation": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.home);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
-            case "addresses.other.streetAddress": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.other);
-                selected.setStreetAddress(String.class.cast(value));
-                break;
-            }
-            case "addresses.other.locality": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.other);
-                selected.setLocality(String.class.cast(value));
-                break;
-            }
-            case "addresses.other.formatted": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.other);
-                selected.setFormatted(String.class.cast(value));
-                break;
-            }
-            case "addresses.other.region": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.other);
-                selected.setRegion(String.class.cast(value));
-                break;
-            }
-            case "addresses.other.postalCode": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.other);
-                selected.setPostalCode(String.class.cast(value));
-                break;
-            }
-            case "addresses.other.country": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.other);
-                selected.setCountry(String.class.cast(value));
-                break;
-            }
-            case "addresses.other.primary": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.other);
-                selected.setPrimary(Boolean.class.cast(value));
-                break;
-            }
-            case "addresses.other.operation": {
-                SCIMUserAddress selected = handleSCIMUserAddressObject(AddressCanonicalType.other);
-                selected.setOperation(String.class.cast(value));
-                break;
-            }
 
-            case "roles.default.value": {
-                SCIMDefault selected = handleSCIMDefaultObject(
-                        String.class.cast(value),
-                        this.roles);
-                selected.setValue(String.class.cast(value));
+            case "ims.xmpp.operation":
+                handleSCIMComplexObject(
+                        IMCanonicalType.xmpp,
+                        this.ims,
+                        s -> s.setOperation(String.class.cast(value)));
                 break;
-            }
-            case "entitlements.default.value": {
-                SCIMDefault selected = handleSCIMDefaultObject(
-                        String.class.cast(value),
-                        this.entitlements);
-                selected.setValue(String.class.cast(value));
+
+            case "ims.skype.value":
+                handleSCIMComplexObject(
+                        IMCanonicalType.skype,
+                        this.ims,
+                        s -> s.setValue(String.class.cast(value)));
                 break;
-            }
-            case "x509Certificates.default.value": {
-                SCIMDefault selected = handleSCIMDefaultObject(
-                        String.class.cast(value),
-                        this.x509Certificates);
-                selected.setValue(String.class.cast(value));
+
+            case "ims.skype.primary":
+                handleSCIMComplexObject(
+                        IMCanonicalType.skype,
+                        this.ims,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
-            }
+
+            case "ims.skype.operation":
+                handleSCIMComplexObject(
+                        IMCanonicalType.skype,
+                        this.ims,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "ims.qq.value":
+                handleSCIMComplexObject(
+                        IMCanonicalType.qq,
+                        this.ims,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "ims.qq.primary":
+                handleSCIMComplexObject(
+                        IMCanonicalType.qq,
+                        this.ims,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "ims.qq.operation":
+                handleSCIMComplexObject(
+                        IMCanonicalType.qq,
+                        this.ims,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "ims.yahoo.value":
+                handleSCIMComplexObject(
+                        IMCanonicalType.yahoo,
+                        this.ims,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "ims.yahoo.primary":
+                handleSCIMComplexObject(
+                        IMCanonicalType.yahoo,
+                        this.ims,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "ims.yahoo.operation":
+                handleSCIMComplexObject(
+                        IMCanonicalType.yahoo,
+                        this.ims,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "ims.msn.value":
+                handleSCIMComplexObject(
+                        IMCanonicalType.msn,
+                        this.ims,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "ims.msn.primary":
+                handleSCIMComplexObject(
+                        IMCanonicalType.msn,
+                        this.ims,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "ims.msn.operation":
+                handleSCIMComplexObject(
+                        IMCanonicalType.msn,
+                        this.ims,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "ims.icq.value":
+                handleSCIMComplexObject(
+                        IMCanonicalType.icq,
+                        this.ims,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "ims.icq.primary":
+                handleSCIMComplexObject(
+                        IMCanonicalType.icq,
+                        this.ims,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "ims.icq.operation":
+                handleSCIMComplexObject(
+                        IMCanonicalType.icq,
+                        this.ims,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+            case "ims.gtalk.value":
+                handleSCIMComplexObject(
+                        IMCanonicalType.gtalk,
+                        this.ims,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "ims.gtalk.primary":
+                handleSCIMComplexObject(
+                        IMCanonicalType.gtalk,
+                        this.ims,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "ims.gtalk.operation":
+                handleSCIMComplexObject(
+                        IMCanonicalType.gtalk,
+                        this.ims,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "photos.photo.value":
+                handleSCIMComplexObject(
+                        PhotoCanonicalType.photo,
+                        this.photos,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "photos.photo.primary":
+                handleSCIMComplexObject(
+                        PhotoCanonicalType.photo,
+                        this.photos,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "photos.photo.operation":
+                handleSCIMComplexObject(
+                        PhotoCanonicalType.photo,
+                        this.photos,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "photos.thumbnail.value":
+                handleSCIMComplexObject(
+                        PhotoCanonicalType.thumbnail,
+                        this.photos,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "photos.thumbnail.primary":
+                handleSCIMComplexObject(
+                        PhotoCanonicalType.thumbnail,
+                        this.photos,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "photos.thumbnail.operation":
+                handleSCIMComplexObject(
+                        PhotoCanonicalType.thumbnail,
+                        this.photos,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "addresses.work.streetAddress":
+                handleSCIMUserAddressObject(AddressCanonicalType.work,
+                        s -> s.setStreetAddress(String.class.cast(value)));
+                break;
+
+            case "addresses.work.locality":
+                handleSCIMUserAddressObject(AddressCanonicalType.work,
+                        s -> s.setLocality(String.class.cast(value)));
+                break;
+
+            case "addresses.work.formatted":
+                handleSCIMUserAddressObject(AddressCanonicalType.work,
+                        s -> s.setFormatted(String.class.cast(value)));
+                break;
+
+            case "addresses.work.region":
+                handleSCIMUserAddressObject(AddressCanonicalType.work,
+                        s -> s.setRegion(String.class.cast(value)));
+                break;
+
+            case "addresses.work.postalCode":
+                handleSCIMUserAddressObject(AddressCanonicalType.work,
+                        s -> s.setPostalCode(String.class.cast(value)));
+                break;
+
+            case "addresses.work.country":
+                handleSCIMUserAddressObject(AddressCanonicalType.work,
+                        s -> s.setCountry(String.class.cast(value)));
+                break;
+
+            case "addresses.work.primary":
+                handleSCIMUserAddressObject(AddressCanonicalType.work,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "addresses.work.operation":
+                handleSCIMUserAddressObject(AddressCanonicalType.work,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "addresses.home.streetAddress":
+                handleSCIMUserAddressObject(AddressCanonicalType.home,
+                        s -> s.setStreetAddress(String.class.cast(value)));
+                break;
+
+            case "addresses.home.locality":
+                handleSCIMUserAddressObject(AddressCanonicalType.home,
+                        s -> s.setLocality(String.class.cast(value)));
+                break;
+
+            case "addresses.home.formatted":
+                handleSCIMUserAddressObject(AddressCanonicalType.home,
+                        s -> s.setFormatted(String.class.cast(value)));
+                break;
+
+            case "addresses.home.region":
+                handleSCIMUserAddressObject(AddressCanonicalType.home,
+                        s -> s.setRegion(String.class.cast(value)));
+                break;
+
+            case "addresses.home.postalCode":
+                handleSCIMUserAddressObject(AddressCanonicalType.home,
+                        s -> s.setPostalCode(String.class.cast(value)));
+                break;
+
+            case "addresses.home.country":
+                handleSCIMUserAddressObject(AddressCanonicalType.home,
+                        s -> s.setCountry(String.class.cast(value)));
+                break;
+
+            case "addresses.home.primary":
+                handleSCIMUserAddressObject(AddressCanonicalType.home,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "addresses.home.operation":
+                handleSCIMUserAddressObject(AddressCanonicalType.home,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "addresses.other.streetAddress":
+                handleSCIMUserAddressObject(AddressCanonicalType.other,
+                        s -> s.setStreetAddress(String.class.cast(value)));
+                break;
+
+            case "addresses.other.locality":
+                handleSCIMUserAddressObject(AddressCanonicalType.other,
+                        s -> s.setLocality(String.class.cast(value)));
+                break;
+
+            case "addresses.other.formatted":
+                handleSCIMUserAddressObject(AddressCanonicalType.other,
+                        s -> s.setFormatted(String.class.cast(value)));
+                break;
+
+            case "addresses.other.region":
+                handleSCIMUserAddressObject(AddressCanonicalType.other,
+                        s -> s.setRegion(String.class.cast(value)));
+                break;
+
+            case "addresses.other.postalCode":
+                handleSCIMUserAddressObject(AddressCanonicalType.other,
+                        s -> s.setPostalCode(String.class.cast(value)));
+                break;
+
+            case "addresses.other.country":
+                handleSCIMUserAddressObject(AddressCanonicalType.other,
+                        s -> s.setCountry(String.class.cast(value)));
+                break;
+
+            case "addresses.other.primary":
+                handleSCIMUserAddressObject(AddressCanonicalType.other,
+                        s -> s.setPrimary(Boolean.class.cast(value)));
+                break;
+
+            case "addresses.other.operation":
+                handleSCIMUserAddressObject(AddressCanonicalType.other,
+                        s -> s.setOperation(String.class.cast(value)));
+                break;
+
+            case "roles.default.value":
+                handleSCIMDefaultObject(
+                        String.class.cast(value),
+                        this.roles,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "entitlements.default.value":
+                handleSCIMDefaultObject(
+                        String.class.cast(value),
+                        this.entitlements,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
+
+            case "x509Certificates.default.value":
+                handleSCIMDefaultObject(
+                        String.class.cast(value),
+                        this.x509Certificates,
+                        s -> s.setValue(String.class.cast(value)));
+                break;
 
             case "schemas":
                 this.schemas.addAll(new ArrayList<>((List<String>) (Object) values));
@@ -1166,7 +1161,9 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
     }
 
     @JsonIgnore
-    private SCIMDefault handleSCIMDefaultObject(final String value, final List<SCIMDefault> list) {
+    private void handleSCIMDefaultObject(
+            final String value, final List<SCIMDefault> list, final Consumer<SCIMDefault> setter) {
+
         SCIMDefault selected = null;
         for (SCIMDefault scimDefault : list) {
             if (scimDefault.getValue().equals(value)) {
@@ -1178,12 +1175,14 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
             selected = new SCIMDefault();
             list.add(selected);
         }
-        return selected;
+
+        setter.accept(selected);
     }
 
     @JsonIgnore
-    private <T extends Enum<?>> SCIMComplex<T> handleSCIMComplexObject(final T type,
-            final List<SCIMComplex<T>> list) {
+    private <T extends Enum<?>> void handleSCIMComplexObject(
+            final T type, final List<SCIMComplex<T>> list, final Consumer<SCIMComplex<T>> setter) {
+
         SCIMComplex<T> selected = null;
         for (SCIMComplex<T> complex : list) {
             if (complex.getType().equals(type)) {
@@ -1196,11 +1195,12 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
             selected.setType(type);
             list.add(selected);
         }
-        return selected;
+
+        setter.accept(selected);
     }
 
     @JsonIgnore
-    private SCIMUserAddress handleSCIMUserAddressObject(final AddressCanonicalType type) {
+    private void handleSCIMUserAddressObject(final AddressCanonicalType type, final Consumer<SCIMUserAddress> setter) {
         SCIMUserAddress selected = null;
         for (SCIMUserAddress complex : this.addresses) {
             if (complex.getType().equals(type)) {
@@ -1213,20 +1213,34 @@ public class SCIMv11User extends AbstractSCIMBaseResource<Attribute, SCIMv11Meta
             selected.setType(type);
             this.addresses.add(selected);
         }
-        return selected;
+
+        setter.accept(selected);
     }
 
     @Override
     public String toString() {
-        return "User{" + "id=" + id + ", externalId=" + externalId + ", meta=" + meta + ", userName=" + userName
-                + ", name=" + name + ", password=" + password + ", displayName=" + displayName + ", nickName="
-                + nickName + ", profileUrl=" + profileUrl + ", title=" + title + ", userType=" + userType
-                + ", preferredLanguage=" + preferredLanguage + ", locale=" + locale + ", timezone=" + timezone
-                + ", active=" + active + ", emails=" + emails + ", phoneNumbers=" + phoneNumbers + ", ims=" + ims
-                + ", photos=" + photos + ", groups=" + groups + ", roles=" + roles + ", addresses=" + addresses
-                + ", x509Certificates=" + x509Certificates + ", schemas=" + schemas + ", entitlements=" + entitlements
-                + ", scimCustomAttributes=" + scimCustomAttributes + ", returnedCustomAttributes="
-                + returnedCustomAttributes + '}';
+        return new ToStringBuilder(this)
+                .append("active", active)
+                .append("addresses", addresses)
+                .append("displayName", displayName)
+                .append("emails", emails)
+                .append("entitlements", entitlements)
+                .append("groups", groups)
+                .append("ims", ims)
+                .append("locale", locale)
+                .append("name", name)
+                .append("nickName", nickName)
+                .append("phoneNumbers", phoneNumbers)
+                .append("photos", photos)
+                .append("profileUrl", profileUrl)
+                .append("preferredLanguage", preferredLanguage)
+                .append("roles", roles)
+                .append("timezone", timezone)
+                .append("title", title)
+                .append("userName", userName)
+                .append("userType", userType)
+                .append("x509Certificates", x509Certificates)
+                .append("scimCustomAttributes", scimCustomAttributes)
+                .toString();
     }
-
 }
