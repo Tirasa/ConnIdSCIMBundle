@@ -39,13 +39,13 @@ import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
 import net.tirasa.connid.bundles.scim.common.service.NoSuchEntityException;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
+import net.tirasa.connid.bundles.scim.common.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefault;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;
-import net.tirasa.connid.bundles.scim.v11.types.PhoneNumberCanonicalType;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -398,7 +398,7 @@ public class SCIMv11ConnectorTests {
         LOG.info("Found User: {0}", user);
 
         // USER TO ATTRIBUTES
-        Set<Attribute> toAttributes = user.toAttributes();
+        Set<Attribute> toAttributes = user.toAttributes(user.getClass());
         LOG.info("User to attributes: {0}", toAttributes);
         assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));
@@ -625,7 +625,7 @@ public class SCIMv11ConnectorTests {
         LOG.info("Found User: {0}", user);
 
         // USER TO ATTRIBUTES
-        Set<Attribute> toAttributes = user.toAttributes();
+        Set<Attribute> toAttributes = user.toAttributes(user.getClass());
         LOG.info("User to attributes: {0}", toAttributes);
         assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));

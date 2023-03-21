@@ -22,7 +22,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SCIMBaseAttribute<SELF extends SCIMBaseAttribute<?>> implements Serializable {
+public class SCIMBaseAttribute<SELF extends SCIMBaseAttribute<SELF>> implements Serializable {
 
     private static final long serialVersionUID = -1413978317589560512L;
 

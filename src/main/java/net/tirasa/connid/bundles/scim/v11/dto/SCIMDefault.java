@@ -17,16 +17,17 @@ package net.tirasa.connid.bundles.scim.v11.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMDefault {
+public class SCIMDefault implements Serializable {
 
     @JsonProperty
-    private String value;
+    protected String value;
 
     public void setValue(final String value) {
         this.value = value;

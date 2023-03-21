@@ -23,14 +23,12 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefault;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMComplex<E extends Serializable> implements Serializable {
+public class SCIMComplex<E extends Serializable> extends SCIMDefault {
 
     private static final long serialVersionUID = -5982485563252126677L;
-
-    @JsonProperty
-    private String value;
 
     @JsonProperty(access = Access.READ_ONLY)
     private String display;
@@ -43,14 +41,6 @@ public class SCIMComplex<E extends Serializable> implements Serializable {
 
     @JsonProperty
     private String operation;
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(final String value) {
-        this.value = value;
-    }
 
     public String getDisplay() {
         return display;
@@ -84,23 +74,23 @@ public class SCIMComplex<E extends Serializable> implements Serializable {
         this.operation = operation;
     }
 
-    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
-        Set<Attribute> attrs = new HashSet<>();
-        Field[] fields = this.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            if (!field.isAnnotationPresent(JsonIgnore.class)) {
-                field.setAccessible(true);
-                attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
-                        field.get(this),
-                        id.concat(".")
-                                .concat(type.toString())
-                                .concat(".")
-                                .concat(field.getName()),
-                        field.getType()).build());
-            }
-        }
-        return attrs;
-    }
+//    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
+//        Set<Attribute> attrs = new HashSet<>();
+//        Field[] fields = this.getClass().getDeclaredFields();
+//        for (Field field : fields) {
+//            if (!field.isAnnotationPresent(JsonIgnore.class)) {
+//                field.setAccessible(true);
+//                attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
+//                        field.get(this),
+//                        id.concat(".")
+//                                .concat(type.toString())
+//                                .concat(".")
+//                                .concat(field.getName()),
+//                        field.getType()).build());
+//            }
+//        }
+//        return attrs;
+//    }
 
     @Override
     public String toString() {

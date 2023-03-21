@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -65,7 +65,7 @@ public final class SCIMUtils {
                 || (obj instanceof String ? StringUtil.isBlank(String.class.cast(obj)) : false);
     }
 
-    public static <T extends SCIMBaseAttribute<?>> String cleanAttributesToGet(
+    public static <T extends SCIMBaseAttribute<T>> String cleanAttributesToGet(
             final Set<String> attributesToGet,
             final String customAttributesJSON,
             final Class<T> attrType) {
@@ -73,7 +73,7 @@ public final class SCIMUtils {
         return cleanAttributesToGet(attributesToGet, customAttributesJSON, attrType, true);
     }
 
-    public static <T extends SCIMBaseAttribute<?>> String cleanAttributesToGet(
+    public static <T extends SCIMBaseAttribute<T>> String cleanAttributesToGet(
             final Set<String> attributesToGet,
             final String customAttributesJSON,
             final Class<T> attrType,
@@ -145,7 +145,7 @@ public final class SCIMUtils {
                 : result.substring(0, result.length() - 1);
     }
 
-    private static <T extends SCIMBaseAttribute<?>> boolean isCustomAttribute(
+    private static <T extends SCIMBaseAttribute<T>> boolean isCustomAttribute(
             final SCIMSchema<T> customAttributes,
             final String attribute) {
         for (T customAttribute : customAttributes.getAttributes()) {
@@ -163,7 +163,7 @@ public final class SCIMUtils {
         return false;
     }
 
-    public static <T extends SCIMBaseAttribute<?>> SCIMSchema<T> extractSCIMSchemas(
+    public static <T extends SCIMBaseAttribute<T>> SCIMSchema<T> extractSCIMSchemas(
             final String json, final Class<T> attrType) {
 
         try {

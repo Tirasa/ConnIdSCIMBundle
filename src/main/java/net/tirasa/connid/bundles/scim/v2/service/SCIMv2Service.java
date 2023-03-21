@@ -376,7 +376,7 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
         return mainNode;
     }
 
-    public static <T extends SCIMBaseAttribute<?>> SCIMSchema<T> extractSCIMSchemas(
+    public static <T extends SCIMBaseAttribute<T>> SCIMSchema<T> extractSCIMSchemas(
             final String json, final Class<T> attrType) {
         try {
             SCIMSchema<T> scimSchema = SCIMUtils.MAPPER.readValue(json,
@@ -395,7 +395,7 @@ public abstract class SCIMv2Service implements SCIMService<SCIMv2User> {
         return null;
     }
 
-    protected <T extends SCIMBaseAttribute<?>> void readCustomAttributes(
+    protected <T extends SCIMBaseAttribute<T>> void readCustomAttributes(
             final SCIMv2User user, final JsonNode node, final Class<T> attrType) {
         if (StringUtil.isNotBlank(config.getCustomAttributesJSON())) {
             SCIMSchema<T> scimSchema = extractSCIMSchemas(config.getCustomAttributesJSON(), attrType);

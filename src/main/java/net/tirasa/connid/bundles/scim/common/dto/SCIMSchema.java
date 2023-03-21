@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class SCIMSchema<T extends SCIMBaseAttribute<?>> {
+public class SCIMSchema<T extends SCIMBaseAttribute<T>> {
 
     @JsonProperty
     private String id;

@@ -38,7 +38,7 @@ public interface SCIMBaseResource<AT, MT extends SCIMBaseMeta> extends Serializa
 
     String getBaseSchema();
 
-    Set<AT> toAttributes() throws IllegalArgumentException, IllegalAccessException;
+    Set<AT> toAttributes(Class<?> type) throws IllegalArgumentException, IllegalAccessException;
 
     void fromAttributes(Set<AT> attributes);
 
