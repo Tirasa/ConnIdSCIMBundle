@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
@@ -88,8 +89,12 @@ public abstract class AbstractSCIMConnector<
     }
 
     @Override
-    public void executeQuery(final ObjectClass objectClass, final Filter query, final ResultsHandler handler,
-                             final OperationOptions options) {
+    public void executeQuery(
+            final ObjectClass objectClass,
+            final Filter query,
+            final ResultsHandler handler,
+            final OperationOptions options) {
+
         LOG.ok("Connector READ");
 
         Attribute key = null;
@@ -113,7 +118,7 @@ public abstract class AbstractSCIMConnector<
             if (key == null) {
                 List<T> users = null;
                 int remainingResults = -1;
-                int pagesSize = options.getPageSize() == null ? -1 : options.getPageSize();
+                int pagesSize = Optional.ofNullable(options.getPageSize()).orElse(-1);
                 String cookie = options.getPagedResultsCookie();
 
                 try {
@@ -153,7 +158,7 @@ public abstract class AbstractSCIMConnector<
                 if (Uid.NAME.equals(key.getName()) || SCIMAttributeUtils.USER_ATTRIBUTE_ID.equals(key.getName())) {
                     result = null;
                     try {
-                        result = (T) client.getUser(AttributeUtil.getAsStringValue(key));
+                        result = client.getUser(AttributeUtil.getAsStringValue(key));
                     } catch (Exception e) {
                         SCIMUtils.wrapGeneralError("While getting User : "
                                 + key.getName() + " - " + AttributeUtil.getAsStringValue(key), e);
@@ -183,8 +188,11 @@ public abstract class AbstractSCIMConnector<
     }
 
     @Override
-    public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes,
-                      final OperationOptions options) {
+    public Uid create(
+            final ObjectClass objectClass,
+            final Set<Attribute> createAttributes,
+            final OperationOptions options) {
+
         LOG.ok("Connector CREATE");
 
         if (createAttributes == null || createAttributes.isEmpty()) {
@@ -220,7 +228,7 @@ public abstract class AbstractSCIMConnector<
                     LOG.warn("{0} attribute value not correct or not found, won't handle User status",
                             OperationalAttributes.ENABLE_NAME);
                 } else {
-                    user.setActive(Boolean.parseBoolean(status.getValue().get(0).toString()));
+                    user.setActive(Boolean.valueOf(status.getValue().get(0).toString()));
                 }
 
                 user.fromAttributes(createAttributes);
@@ -247,8 +255,12 @@ public abstract class AbstractSCIMConnector<
     }
 
     @Override
-    public Uid update(final ObjectClass objectClass, final Uid uid, final Set<Attribute> replaceAttributes,
-                      final OperationOptions options) {
+    public Uid update(
+            final ObjectClass objectClass,
+            final Uid uid,
+            final Set<Attribute> replaceAttributes,
+            final OperationOptions options) {
+
         LOG.ok("Connector UPDATE object [{0}]", uid);
 
         if (replaceAttributes == null || replaceAttributes.isEmpty()) {
@@ -276,7 +288,7 @@ public abstract class AbstractSCIMConnector<
                 LOG.warn("{0} attribute value not correct, can't handle User  status update",
                         OperationalAttributes.ENABLE_NAME);
             } else {
-                user.setActive(Boolean.parseBoolean(status.getValue().get(0).toString()));
+                user.setActive(Boolean.valueOf(status.getValue().get(0).toString()));
             }
 
             // custom attributes
@@ -397,7 +409,6 @@ public abstract class AbstractSCIMConnector<
 
         return builder.build();
     }
-
 
     @Override
     public Configuration getConfiguration() {
