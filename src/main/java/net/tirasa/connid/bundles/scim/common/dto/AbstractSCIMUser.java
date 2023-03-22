@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,9 +40,11 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT extends Serializable,
-        CT extends SCIMDefault,
-        MT extends SCIMBaseMeta> extends AbstractSCIMBaseResource<Attribute, MT> implements SCIMUser<Attribute, MT> {
+public abstract class AbstractSCIMUser<
+        SAT extends SCIMBaseAttribute<SAT>, GT extends Serializable, CT extends SCIMDefault, MT extends SCIMBaseMeta>
+        extends AbstractSCIMBaseResource<Attribute, MT> implements SCIMUser<Attribute, MT> {
+
+    private static final long serialVersionUID = 9147517308573800805L;
 
     protected Boolean active = true;
 
@@ -941,7 +943,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
 
     @JsonIgnore
     protected void handleSCIMUserAddressObject(final AddressCanonicalType type,
-                                               final Consumer<SCIMUserAddress> setter) {
+            final Consumer<SCIMUserAddress> setter) {
         SCIMUserAddress selected = null;
         for (SCIMUserAddress complex : this.addresses) {
             if (complex.getType().equals(type)) {
@@ -960,8 +962,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
 
     @JsonIgnore
     protected void addAttribute(final Set<Attribute> toAttrs,
-                                final Set<Attribute> attrs,
-                                final Class<?> type) {
+            final Set<Attribute> attrs,
+            final Class<?> type) {
         for (Attribute toAttribute : toAttrs) {
             attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
                     toAttribute.getValue(),
@@ -973,7 +975,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
     @JsonIgnore
     @Override
     @SuppressWarnings("unchecked")
-    public Set<Attribute> toAttributes(Class<?> type) throws IllegalArgumentException, IllegalAccessException {
+    public Set<Attribute> toAttributes(final Class<?> type) throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
 
         FieldUtils.getAllFieldsList(type).stream().filter(f -> !"LOG".equals(f.getName())
@@ -989,7 +991,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                 for (SCIMComplex<PhoneNumberCanonicalType> sCIMComplex : new ArrayList<>(
                                         (List<SCIMComplex<PhoneNumberCanonicalType>>) objInstance)) {
                                     addAttribute(sCIMComplex
-                                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
+                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
                                             attrs,
                                             field.getType());
                                 }
@@ -997,7 +999,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                 SCIMComplex<PhoneNumberCanonicalType> sCIMComplex =
                                         (SCIMComplex<PhoneNumberCanonicalType>) objInstance;
                                 addAttribute(sCIMComplex
-                                                .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
+                                        .toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
                                         attrs,
                                         field.getType());
                             }
@@ -1007,7 +1009,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                         new ArrayList<>((List<SCIMComplex<IMCanonicalType>>) objInstance);
                                 for (SCIMComplex<IMCanonicalType> sCIMComplex : obj) {
                                     addAttribute(sCIMComplex
-                                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
+                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
                                             attrs,
                                             field.getType());
                                 }
@@ -1015,7 +1017,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                 SCIMComplex<IMCanonicalType> sCIMComplex =
                                         (SCIMComplex<IMCanonicalType>) objInstance;
                                 addAttribute(sCIMComplex
-                                                .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
+                                        .toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
                                         attrs,
                                         field.getType());
                             }
@@ -1025,7 +1027,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                         new ArrayList<>((List<SCIMComplex<EmailCanonicalType>>) objInstance);
                                 for (SCIMComplex<EmailCanonicalType> sCIMComplex : obj) {
                                     addAttribute(sCIMComplex
-                                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
+                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
                                             attrs,
                                             field.getType());
                                 }
@@ -1033,7 +1035,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                 SCIMComplex<EmailCanonicalType> sCIMComplex =
                                         (SCIMComplex<EmailCanonicalType>) objInstance;
                                 addAttribute(sCIMComplex
-                                                .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
+                                        .toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
                                         attrs,
                                         field.getType());
                             }
@@ -1043,7 +1045,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                         new ArrayList<>((List<SCIMComplex<PhotoCanonicalType>>) objInstance);
                                 for (SCIMComplex<PhotoCanonicalType> sCIMComplex : obj) {
                                     addAttribute(sCIMComplex
-                                                    .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
+                                            .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
                                             attrs,
                                             field.getType());
                                 }
@@ -1051,7 +1053,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                 SCIMComplex<PhotoCanonicalType> sCIMComplex =
                                         (SCIMComplex<PhotoCanonicalType>) objInstance;
                                 addAttribute(sCIMComplex
-                                                .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
+                                        .toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
                                         attrs,
                                         field.getType());
                             }
@@ -1150,8 +1152,5 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
         return attrs;
     }
 
-    public abstract void fillSCIMCustomAttributes(Set<Attribute> attributes, String customAttributesJSON);
-
     protected abstract void handleSCIMDefaultObject(String value, List<SCIMDefault> list, Consumer<SCIMDefault> setter);
-
 }

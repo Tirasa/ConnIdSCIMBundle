@@ -15,16 +15,10 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
-import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefault;
-import org.identityconnectors.framework.common.objects.Attribute;
 
 public class SCIMComplex<E extends Serializable> extends SCIMDefault {
 
