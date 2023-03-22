@@ -69,8 +69,10 @@ import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.test.common.TestHelpers;
 import org.identityconnectors.test.common.ToListResultsHandler;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@Disabled
 public class SCIMv11ConnectorTests {
 
     private static final Log LOG = Log.getLog(SCIMv11ConnectorTests.class);

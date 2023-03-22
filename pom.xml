@@ -285,15 +285,6 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <inherited>true</inherited>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-
       <!-- Put NOTICE and LICENSE files in all artifacts and javadocs -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
