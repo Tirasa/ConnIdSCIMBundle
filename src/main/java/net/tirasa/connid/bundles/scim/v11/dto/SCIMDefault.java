@@ -21,10 +21,11 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMComplexValue;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMDefault implements Serializable {
+public class SCIMDefault implements SCIMComplexValue {
 
     private static final long serialVersionUID = 4302319332020863582L;
 

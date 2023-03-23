@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,12 +15,18 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import java.io.Serializable;
-import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefault;
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
+import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMComplex<E extends Serializable> extends SCIMDefault {
+//public class SCIMComplex<E extends Serializable> extends SCIMDefault {
+public class SCIMComplex<E extends Serializable> implements SCIMComplexValue {
 
     private static final long serialVersionUID = -5982485563252126677L;
 
@@ -35,6 +41,17 @@ public class SCIMComplex<E extends Serializable> extends SCIMDefault {
 
     @JsonProperty
     private String operation;
+
+    @JsonProperty
+    protected String value;
+
+    public void setValue(final String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
 
     public String getDisplay() {
         return display;
@@ -66,6 +83,24 @@ public class SCIMComplex<E extends Serializable> extends SCIMDefault {
 
     public void setOperation(final String operation) {
         this.operation = operation;
+    }
+
+    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
+        Set<Attribute> attrs = new HashSet<>();
+        Field[] fields = this.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            if (!field.isAnnotationPresent(JsonIgnore.class)) {
+                field.setAccessible(true);
+                attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
+                        field.get(this),
+                        id.concat(".")
+                                .concat("default")
+                                .concat(".")
+                                .concat(field.getName()),
+                        field.getType()).build());
+            }
+        }
+        return attrs;
     }
 
     @Override
