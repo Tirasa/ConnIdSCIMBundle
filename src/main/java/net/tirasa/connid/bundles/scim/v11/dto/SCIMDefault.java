@@ -26,6 +26,8 @@ import org.identityconnectors.framework.common.objects.Attribute;
 
 public class SCIMDefault implements Serializable {
 
+    private static final long serialVersionUID = 4302319332020863582L;
+
     @JsonProperty
     protected String value;
 

@@ -68,28 +68,14 @@ public class SCIMComplex<E extends Serializable> extends SCIMDefault {
         this.operation = operation;
     }
 
-//    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
-//        Set<Attribute> attrs = new HashSet<>();
-//        Field[] fields = this.getClass().getDeclaredFields();
-//        for (Field field : fields) {
-//            if (!field.isAnnotationPresent(JsonIgnore.class)) {
-//                field.setAccessible(true);
-//                attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
-//                        field.get(this),
-//                        id.concat(".")
-//                                .concat(type.toString())
-//                                .concat(".")
-//                                .concat(field.getName()),
-//                        field.getType()).build());
-//            }
-//        }
-//        return attrs;
-//    }
-
     @Override
     public String toString() {
-        return "SCIMComplex{" + "value=" + value + ", display=" + display + ", type=" + type + ", primary=" + primary
-                + ", operation=" + operation + '}';
+        return "SCIMComplex{"
+                + "value=" + value
+                + ", display=" + display
+                + ", type=" + type
+                + ", primary=" + primary
+                + ", operation=" + operation
+                + '}';
     }
-
 }

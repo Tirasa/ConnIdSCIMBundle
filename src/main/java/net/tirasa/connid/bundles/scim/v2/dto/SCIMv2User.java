@@ -16,9 +16,7 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.ResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
@@ -94,34 +92,7 @@ public class SCIMv2User extends AbstractSCIMUser<SCIMv2Attribute, ResourceRefere
     }
 
     @Override
-    protected void handleSCIMDefaultObject(final String value, final List list, final Consumer setter) {
-        // DO NOTHING
-    }
-
-    @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("active", active)
-                .append("addresses", addresses)
-                .append("displayName", displayName)
-                .append("emails", emails)
-                .append("entitlements", entitlements)
-                .append("groups", groups)
-                .append("ims", ims)
-                .append("locale", locale)
-                .append("name", name)
-                .append("nickName", nickName)
-                .append("phoneNumbers", phoneNumbers)
-                .append("photos", photos)
-                .append("profileUrl", profileUrl)
-                .append("preferredLanguage", preferredLanguage)
-                .append("roles", roles)
-                .append("timezone", timezone)
-                .append("title", title)
-                .append("userName", userName)
-                .append("userType", userType)
-                .append("x509Certificates", x509Certificates)
-                .append("scimCustomAttributes", scimCustomAttributes)
-                .toString();
+        return new ToStringBuilder(this).appendSuper(super.toString()).build();
     }
 }

@@ -87,7 +87,7 @@ public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefault,
     }
 
     @JsonIgnore
-    protected void handleSCIMDefaultObject(
+    private void handleSCIMDefaultObject(
             final String value, final List<SCIMDefault> list, final Consumer<SCIMDefault> setter) {
 
         SCIMDefault selected = null;
@@ -107,28 +107,6 @@ public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefault,
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("active", active)
-                .append("addresses", addresses)
-                .append("displayName", displayName)
-                .append("emails", emails)
-                .append("entitlements", entitlements)
-                .append("groups", groups)
-                .append("ims", ims)
-                .append("locale", locale)
-                .append("name", name)
-                .append("nickName", nickName)
-                .append("phoneNumbers", phoneNumbers)
-                .append("photos", photos)
-                .append("profileUrl", profileUrl)
-                .append("preferredLanguage", preferredLanguage)
-                .append("roles", roles)
-                .append("timezone", timezone)
-                .append("title", title)
-                .append("userName", userName)
-                .append("userType", userType)
-                .append("x509Certificates", x509Certificates)
-                .append("scimCustomAttributes", scimCustomAttributes)
-                .toString();
+        return new ToStringBuilder(this).appendSuper(super.toString()).build();
     }
 }

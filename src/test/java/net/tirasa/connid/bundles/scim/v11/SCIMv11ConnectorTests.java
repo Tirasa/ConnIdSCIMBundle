@@ -161,8 +161,398 @@ public class SCIMv11ConnectorTests {
         return factory.newInstance(impl);
     }
 
-    private SCIMv11Client newClient() {
+    private static SCIMv11Client newClient() {
         return CONN.getClient();
+    }
+
+    private static void cleanup(
+            final ConnectorFacade connector,
+            final SCIMv11Client client,
+            final String testUserUid) {
+
+        if (testUserUid != null) {
+            connector.delete(ObjectClass.ACCOUNT, new Uid(testUserUid), new OperationOptionsBuilder().build());
+            try {
+                client.deleteUser(testUserUid);
+                fail(); // must fail
+            } catch (ConnectorException e) {
+                assertNotNull(e);
+            }
+
+            try {
+                client.getUser(testUserUid);
+                fail(); // must fail
+            } catch (NoSuchEntityException e) {
+                assertNotNull(e);
+            }
+        }
+    }
+
+    private static void cleanup(
+            final SCIMv11Client client,
+            final String testUserUid) {
+
+        if (testUserUid != null) {
+            client.deleteUser(testUserUid);
+
+            try {
+                client.getUser(testUserUid);
+                fail(); // must fail
+            } catch (ConnectorException e) {
+                assertNotNull(e);
+            }
+        }
+    }
+
+    private static SCIMv11User createUserServiceTest(final UUID uid, final SCIMv11Client client) {
+        SCIMv11User user = new SCIMv11User();
+        String name = SCIMv11ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
+        user.setUserName(name);
+        user.setPassword(SCIMv11ConnectorTestsUtils.VALUE_PASSWORD);
+        user.getSchemas().addAll(CUSTOMS_OTHER_SCHEMAS);
+        user.setNickName(SCIMv11ConnectorTestsUtils.VALUE_NICK_NAME + uid.toString().substring(0, 10));
+        user.setName(new SCIMUserName());
+        user.getName().setFamilyName(SCIMv11ConnectorTestsUtils.VALUE_FAMILY_NAME);
+        user.getName().setGivenName(SCIMv11ConnectorTestsUtils.VALUE_GIVEN_NAME);
+        SCIMComplex<EmailCanonicalType> email = new SCIMComplex<>();
+        email.setPrimary(true);
+        email.setType(EmailCanonicalType.work);
+        email.setValue(name);
+        user.getEmails().add(email);
+        SCIMComplex<PhoneNumberCanonicalType> phone = new SCIMComplex<>();
+        phone.setPrimary(false);
+        phone.setType(PhoneNumberCanonicalType.other);
+        phone.setValue(SCIMv11ConnectorTestsUtils.VALUE_PHONE_NUMBER);
+        user.getPhoneNumbers().add(phone);
+        SCIMUserAddress userAddress = new SCIMUserAddress();
+        userAddress.setStreetAddress("100 Universal City Plaza");
+        userAddress.setLocality("Hollywood");
+        userAddress.setRegion("CA");
+        userAddress.setPostalCode("91608");
+        userAddress.setCountry("US");
+        userAddress.setPrimary(false);
+        userAddress.setType(AddressCanonicalType.work);
+        user.getAddresses().add(userAddress);
+        if (PROPS.containsKey("auth.defaultEntitlement")
+                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
+            SCIMDefault entitlement = new SCIMDefault();
+            entitlement.setValue(PROPS.getProperty("auth.defaultEntitlement"));
+            user.getEntitlements().add(entitlement);
+        }
+
+        SCIMv11User created = client.createUser(user);
+        assertNotNull(created);
+        assertNotNull(created.getId());
+        LOG.info("Created user: {0}", created);
+
+        return created;
+    }
+
+    private static SCIMv11User updateUserServiceTest(final String userId, final SCIMv11Client client) {
+        SCIMv11User user = client.getUser(userId);
+        assertNotNull(user);
+        assertNotNull(user.getName().getGivenName());
+        assertFalse(user.getName().getGivenName().isEmpty());
+
+        // want to update an attribute
+        String oldGivenName = user.getName().getGivenName();
+        String newGivenName = "Updated givenName";
+        user.getName().setGivenName(newGivenName);
+
+        // want also to remove attributes
+        for (SCIMComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
+            if (phone.getType().equals(PhoneNumberCanonicalType.other)) {
+                // Note that "value" and "primary" must also be the same of current attribute in order to proceed with
+                // deletion
+                // See http://www.simplecloud.info/specs/draft-scim-api-01.html#edit-resource-with-patch
+                phone.setOperation("delete");
+                break;
+            }
+        }
+
+        // don't want to update addresses and emails
+        user.getAddresses().clear();
+        user.getEmails().clear();
+
+        LOG.warn("Update user: {0}", user);
+        SCIMv11User updated = client.updateUser(user);
+        assertNotNull(updated);
+        assertFalse(updated.getName().getGivenName().equals(oldGivenName));
+        assertEquals(updated.getName().getGivenName(), newGivenName);
+        LOG.info("Updated User with PATCH: {0}", updated);
+
+        // test removed attribute
+        for (SCIMComplex<PhoneNumberCanonicalType> phone : updated.getPhoneNumbers()) {
+            assertNotEquals(phone.getType(), PhoneNumberCanonicalType.other);
+        }
+
+        return updated;
+    }
+
+    private static SCIMv11User updateUserServiceTestPUT(final String userId, final SCIMv11Client client)
+            throws IllegalArgumentException, IllegalAccessException {
+        SCIMv11User user = client.getUser(userId);
+        assertNotNull(user);
+        assertNotNull(user.getNickName());
+        assertFalse(user.getNickName().isEmpty());
+
+        // want to update an attribute
+        String oldName = user.getNickName();
+        String newName = "Updated nickname" + UUID.randomUUID().toString().substring(0, 10);
+        user.setNickName(newName);
+        user.setMeta(null); // no need
+
+        // 'formatted' filed is read-only
+        user.getAddresses().get(0).setFormatted(null);
+
+        // custom attributes
+        if (testCustomAttributes()) {
+            Set<Attribute> userAttrs = new HashSet<>();
+            for (Map.Entry<String, List<Object>> entry : user.getReturnedCustomAttributes().entrySet()) {
+                userAttrs.add(AttributeBuilder.build(entry.getKey(), entry.getValue()));
+            }
+            user.fillSCIMCustomAttributes(userAttrs, CONF.getCustomAttributesJSON());
+        }
+
+        SCIMv11User updated = client.updateUser(user);
+        assertNotNull(updated);
+        assertFalse(updated.getNickName().equals(oldName));
+        assertEquals(updated.getNickName(), newName);
+        LOG.info("Updated User with PUT: {0}", updated);
+
+        return updated;
+    }
+
+    private static void readUsersServiceTest(final SCIMv11Client client)
+            throws IllegalArgumentException, IllegalAccessException {
+        Set<String> attributesToGet = testAttributesToGet();
+
+        // GET USER
+        List<SCIMv11User> users = client.getAllUsers(attributesToGet);
+        assertNotNull(users);
+        assertFalse(users.isEmpty());
+        LOG.info("Found Users: {0}", users);
+
+        // GET USERS
+        PagedResults<SCIMv11User> paged = client.getAllUsers(1, 1, attributesToGet);
+        assertNotNull(paged);
+        assertFalse(paged.getResources().isEmpty());
+        assertTrue(paged.getResources().size() == 1);
+        assertEquals(paged.getStartIndex(), 1);
+        assertNotEquals(paged.getTotalResults(), 1);
+        assertEquals(paged.getItemsPerPage(), 1);
+        LOG.info("Paged Users: {0}", paged);
+
+        PagedResults<SCIMv11User> paged2 = client.getAllUsers(2, 1, attributesToGet);
+        assertNotNull(paged2);
+        assertFalse(paged2.getResources().isEmpty());
+        assertTrue(paged2.getResources().size() == 1);
+        assertEquals(paged2.getStartIndex(), 2);
+        assertNotEquals(paged2.getTotalResults(), 1);
+        assertEquals(paged2.getItemsPerPage(), 1);
+        LOG.info("Paged Users next page: {0}", paged2);
+    }
+
+    private static SCIMv11User readUserServiceTest(final String id, final SCIMv11Client client)
+            throws IllegalArgumentException, IllegalAccessException {
+        // GET USER
+        SCIMv11User user = client.getUser(id);
+        assertNotNull(user);
+        assertNotNull(user.getId());
+        LOG.info("Found User: {0}", user);
+
+        // USER TO ATTRIBUTES
+        Set<Attribute> toAttributes = user.toAttributes(user.getClass());
+        LOG.info("User to attributes: {0}", toAttributes);
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMAttributeUtils.SCIM_USER_SCHEMAS));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
+        if (PROPS.containsKey("auth.defaultEntitlement")
+                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
+            assertTrue(SCIMv11ConnectorTestsUtils.containsAttribute(toAttributes,
+                    SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + "."));
+        }
+
+        // GET USER by userName
+        List<SCIMv11User> users = client.getAllUsers(
+                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
+                + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
+        assertNotNull(users);
+        assertFalse(users.isEmpty());
+        assertNotNull(users.get(0).getId());
+        LOG.info("Found User by userName: {0}", users.get(0));
+
+        return user;
+    }
+
+    private static void deleteUsersServiceTest(final SCIMv11Client client) {
+        PagedResults<SCIMv11User> users = client.getAllUsers(
+                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
+                + " sw \"" + SCIMv11ConnectorTestsUtils.VALUE_USERNAME + "\"", 1, 100, testAttributesToGet());
+        assertNotNull(users);
+        if (!users.getResources().isEmpty()) {
+            for (SCIMv11User user : users.getResources()) {
+                client.deleteUser(user.getId());
+            }
+        }
+    }
+
+    private static void addCustomAttributes(final Set<Attribute> userAttrs) {
+        if (testCustomAttributes()) {
+            for (int i = 0; i < CUSTOM_ATTRIBUTES_VALUES.size(); i++) {
+                userAttrs.add(AttributeBuilder.build(
+                        CUSTOM_ATTRIBUTES_KEYS.get(i),
+                        CUSTOM_ATTRIBUTES_VALUES.get(i)));
+            }
+        }
+    }
+
+    private static boolean testCustomAttributes() {
+        return StringUtil.isNotBlank(CONF.getCustomAttributesJSON())
+                && !CUSTOM_ATTRIBUTES_KEYS.isEmpty()
+                && !CUSTOM_ATTRIBUTES_VALUES.isEmpty()
+                && !CUSTOM_ATTRIBUTES_UPDATE_VALUES.isEmpty();
+    }
+
+    private static Set<String> testAttributesToGet() {
+        Set<String> attributesToGet = new HashSet<>();
+        attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_ID);
+        attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
+        attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_PASSWORD);
+        attributesToGet.add(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME);
+        attributesToGet.add(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE);
+        return attributesToGet;
+    }
+
+    private static Uid updateUser(final Uid created) {
+        Attribute password = AttributeBuilder.buildPassword(
+                new GuardedString((SCIMv11ConnectorTestsUtils.VALUE_PASSWORD + "01").toCharArray()));
+        // UPDATE USER VALUE_PASSWORD
+        Set<Attribute> userAttrs = new HashSet<>();
+        userAttrs.add(password);
+
+        // custom attributes
+        addCustomAttributes(userAttrs);
+
+        // want to remove an attribute
+        // Note that "value" and "primary" must also be the same of current attribute in order to proceed with deletion
+        // See http://www.simplecloud.info/specs/draft-scim-api-01.html#edit-resource-with-patch
+        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_OPERATION,
+                "delete")); // will also set type to "other"
+        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_VALUE,
+                SCIMv11ConnectorTestsUtils.VALUE_PHONE_NUMBER));
+        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_PRIMARY,
+                false));
+
+        // custom schemas
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOMS_OTHER_SCHEMAS));
+
+        Uid updated = FACADE.update(
+                ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
+        assertNotNull(updated);
+        assertFalse(updated.getUidValue().isEmpty());
+        LOG.info("Updated User uid: {0}", updated);
+
+        return updated;
+    }
+
+    private static SCIMv11User readUser(final String id, final SCIMv11Client client)
+            throws IllegalArgumentException, IllegalAccessException {
+        SCIMv11User user = client.getUser(id);
+        assertNotNull(user);
+        assertNotNull(user.getId());
+        assertEquals(user.getName().getFamilyName(), SCIMv11ConnectorTestsUtils.VALUE_FAMILY_NAME);
+        assertFalse(user.getEmails().isEmpty());
+        LOG.info("Found User: {0}", user);
+
+        // USER TO ATTRIBUTES
+        Set<Attribute> toAttributes = user.toAttributes(user.getClass());
+        LOG.info("User to attributes: {0}", toAttributes);
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMAttributeUtils.SCIM_USER_SCHEMAS));
+        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
+        if (PROPS.containsKey("auth.defaultEntitlement")
+                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
+            assertTrue(SCIMv11ConnectorTestsUtils.containsAttribute(toAttributes,
+                    SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + "."));
+        }
+
+        if (testCustomAttributes()) {
+            final List<ConnectorObject> found = new ArrayList<>();
+            FACADE.search(ObjectClass.ACCOUNT,
+                    new EqualsFilter(new Name(user.getUserName())),
+                    found::add,
+                    new OperationOptionsBuilder().setAttributesToGet(CUSTOM_ATTRIBUTES_KEYS).build());
+            assertEquals(found.size(), 1);
+            assertNotNull(found.get(0));
+            assertNotNull(found.get(0).getName());
+            for (String key : CUSTOM_ATTRIBUTES_KEYS) {
+                assertNotNull(found.get(0).getAttributeByName(key));
+                assertNotNull(found.get(0).getAttributeByName(key).getValue());
+                assertFalse(found.get(0).getAttributeByName(key).getValue().isEmpty());
+            }
+            LOG.info("Found User using Connector search: {0}", found.get(0));
+        }
+
+        return user;
+    }
+
+    private static Uid createUser(final UUID uid) {
+        Attribute password = AttributeBuilder.buildPassword(
+                new GuardedString(SCIMv11ConnectorTestsUtils.VALUE_PASSWORD.toCharArray()));
+        String name = SCIMv11ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
+
+        Set<Attribute> userAttrs = new HashSet<>();
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME, name));
+        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME,
+                SCIMv11ConnectorTestsUtils.VALUE_FAMILY_NAME));
+        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME,
+                SCIMv11ConnectorTestsUtils.VALUE_NICK_NAME + uid.toString().substring(0, 10)));
+        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE, name));
+        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_VALUE,
+                SCIMv11ConnectorTestsUtils.VALUE_PHONE_NUMBER));
+        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_PRIMARY, false));
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE, true));
+        userAttrs.add(password);
+
+        if (PROPS.containsKey("auth.defaultEntitlement")
+                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
+            userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
+                    PROPS.getProperty("auth.defaultEntitlement")));
+        }
+
+        // custom attributes
+        addCustomAttributes(userAttrs);
+
+        // custom schemas
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOMS_OTHER_SCHEMAS));
+
+        Uid created = FACADE.create(ObjectClass.ACCOUNT, userAttrs, new OperationOptionsBuilder().build());
+        assertNotNull(created);
+        assertFalse(created.getUidValue().isEmpty());
+        LOG.info("Created User uid: {0}", created);
+
+        return created;
     }
 
     @Test
@@ -242,43 +632,6 @@ public class SCIMv11ConnectorTests {
         assertTrue(results.size() > 2);
     }
 
-    private void cleanup(
-            final ConnectorFacade connector,
-            final SCIMv11Client client,
-            final String testUserUid) {
-        if (testUserUid != null) {
-            connector.delete(ObjectClass.ACCOUNT, new Uid(testUserUid), new OperationOptionsBuilder().build());
-            try {
-                client.deleteUser(testUserUid);
-                fail(); // must fail
-            } catch (ConnectorException e) {
-                assertNotNull(e);
-            }
-
-            try {
-                client.getUser(testUserUid);
-                fail(); // must fail
-            } catch (NoSuchEntityException e) {
-                assertNotNull(e);
-            }
-        }
-    }
-
-    private void cleanup(
-            final SCIMv11Client client,
-            final String testUserUid) {
-        if (testUserUid != null) {
-            client.deleteUser(testUserUid);
-
-            try {
-                client.getUser(testUserUid);
-                fail(); // must fail
-            } catch (ConnectorException e) {
-                assertNotNull(e);
-            }
-        }
-    }
-
     @Test
     public void crud() {
         SCIMv11Client client = newClient();
@@ -318,126 +671,6 @@ public class SCIMv11ConnectorTests {
         }
     }
 
-    private Uid createUser(final UUID uid) {
-        Attribute password = AttributeBuilder.buildPassword(
-                new GuardedString(SCIMv11ConnectorTestsUtils.VALUE_PASSWORD.toCharArray()));
-        String name = SCIMv11ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
-
-        Set<Attribute> userAttrs = new HashSet<>();
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME, name));
-        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME,
-                SCIMv11ConnectorTestsUtils.VALUE_FAMILY_NAME));
-        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME,
-                SCIMv11ConnectorTestsUtils.VALUE_NICK_NAME + uid.toString().substring(0, 10)));
-        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE, name));
-        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_VALUE,
-                SCIMv11ConnectorTestsUtils.VALUE_PHONE_NUMBER));
-        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_PRIMARY, false));
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE, true));
-        userAttrs.add(password);
-
-        if (PROPS.containsKey("auth.defaultEntitlement")
-                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
-                    PROPS.getProperty("auth.defaultEntitlement")));
-        }
-
-        // custom attributes
-        addCustomAttributes(userAttrs);
-
-        // custom schemas
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOMS_OTHER_SCHEMAS));
-
-        Uid created = FACADE.create(ObjectClass.ACCOUNT, userAttrs, new OperationOptionsBuilder().build());
-        assertNotNull(created);
-        assertFalse(created.getUidValue().isEmpty());
-        LOG.info("Created User uid: {0}", created);
-
-        return created;
-    }
-
-    private Uid updateUser(final Uid created) {
-        Attribute password = AttributeBuilder.buildPassword(
-                new GuardedString((SCIMv11ConnectorTestsUtils.VALUE_PASSWORD + "01").toCharArray()));
-        // UPDATE USER VALUE_PASSWORD
-        Set<Attribute> userAttrs = new HashSet<>();
-        userAttrs.add(password);
-
-        // custom attributes
-        addCustomAttributes(userAttrs);
-
-        // want to remove an attribute
-        // Note that "value" and "primary" must also be the same of current attribute in order to proceed with deletion
-        // See http://www.simplecloud.info/specs/draft-scim-api-01.html#edit-resource-with-patch
-        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_OPERATION,
-                "delete")); // will also set type to "other"
-        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_VALUE,
-                SCIMv11ConnectorTestsUtils.VALUE_PHONE_NUMBER));
-        userAttrs.add(AttributeBuilder.build(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_PRIMARY,
-                false));
-
-        // custom schemas
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOMS_OTHER_SCHEMAS));
-
-        Uid updated = FACADE.update(
-                ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
-        assertNotNull(updated);
-        assertFalse(updated.getUidValue().isEmpty());
-        LOG.info("Updated User uid: {0}", updated);
-
-        return updated;
-    }
-
-    private SCIMv11User readUser(final String id, final SCIMv11Client client)
-            throws IllegalArgumentException, IllegalAccessException {
-        SCIMv11User user = client.getUser(id);
-        assertNotNull(user);
-        assertNotNull(user.getId());
-        assertEquals(user.getName().getFamilyName(), SCIMv11ConnectorTestsUtils.VALUE_FAMILY_NAME);
-        assertFalse(user.getEmails().isEmpty());
-        LOG.info("Found User: {0}", user);
-
-        // USER TO ATTRIBUTES
-        Set<Attribute> toAttributes = user.toAttributes(user.getClass());
-        LOG.info("User to attributes: {0}", toAttributes);
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.SCIM_USER_SCHEMAS));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
-        if (PROPS.containsKey("auth.defaultEntitlement")
-                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            assertTrue(SCIMv11ConnectorTestsUtils.containsAttribute(toAttributes,
-                    SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + "."));
-        }
-
-        if (testCustomAttributes()) {
-            final List<ConnectorObject> found = new ArrayList<>();
-            FACADE.search(ObjectClass.ACCOUNT,
-                    new EqualsFilter(new Name(user.getUserName())),
-                    found::add,
-                    new OperationOptionsBuilder().setAttributesToGet(CUSTOM_ATTRIBUTES_KEYS).build());
-            assertEquals(found.size(), 1);
-            assertNotNull(found.get(0));
-            assertNotNull(found.get(0).getName());
-            for (String key : CUSTOM_ATTRIBUTES_KEYS) {
-                assertNotNull(found.get(0).getAttributeByName(key));
-                assertNotNull(found.get(0).getAttributeByName(key).getValue());
-                assertFalse(found.get(0).getAttributeByName(key).getValue().isEmpty());
-            }
-            LOG.info("Found User using Connector search: {0}", found.get(0));
-        }
-
-        return user;
-    }
-
     @Test
     public void serviceTest() {
         SCIMv11Client client = newClient();
@@ -466,236 +699,4 @@ public class SCIMv11ConnectorTests {
             cleanup(client, testUser);
         }
     }
-
-    private SCIMv11User createUserServiceTest(final UUID uid, final SCIMv11Client client) {
-        SCIMv11User user = new SCIMv11User();
-        String name = SCIMv11ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
-        user.setUserName(name);
-        user.setPassword(SCIMv11ConnectorTestsUtils.VALUE_PASSWORD);
-        user.getSchemas().addAll(CUSTOMS_OTHER_SCHEMAS);
-        user.setNickName(SCIMv11ConnectorTestsUtils.VALUE_NICK_NAME + uid.toString().substring(0, 10));
-        user.setName(new SCIMUserName());
-        user.getName().setFamilyName(SCIMv11ConnectorTestsUtils.VALUE_FAMILY_NAME);
-        user.getName().setGivenName(SCIMv11ConnectorTestsUtils.VALUE_GIVEN_NAME);
-        SCIMComplex<EmailCanonicalType> email = new SCIMComplex<>();
-        email.setPrimary(true);
-        email.setType(EmailCanonicalType.work);
-        email.setValue(name);
-        user.getEmails().add(email);
-        SCIMComplex<PhoneNumberCanonicalType> phone = new SCIMComplex<>();
-        phone.setPrimary(false);
-        phone.setType(PhoneNumberCanonicalType.other);
-        phone.setValue(SCIMv11ConnectorTestsUtils.VALUE_PHONE_NUMBER);
-        user.getPhoneNumbers().add(phone);
-        SCIMUserAddress userAddress = new SCIMUserAddress();
-        userAddress.setStreetAddress("100 Universal City Plaza");
-        userAddress.setLocality("Hollywood");
-        userAddress.setRegion("CA");
-        userAddress.setPostalCode("91608");
-        userAddress.setCountry("US");
-        userAddress.setPrimary(false);
-        userAddress.setType(AddressCanonicalType.work);
-        user.getAddresses().add(userAddress);
-        if (PROPS.containsKey("auth.defaultEntitlement")
-                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            SCIMDefault entitlement = new SCIMDefault();
-            entitlement.setValue(PROPS.getProperty("auth.defaultEntitlement"));
-            user.getEntitlements().add(entitlement);
-        }
-
-        SCIMv11User created = client.createUser(user);
-        assertNotNull(created);
-        assertNotNull(created.getId());
-        LOG.info("Created user: {0}", created);
-
-        return created;
-    }
-
-    private SCIMv11User updateUserServiceTest(final String userId, final SCIMv11Client client) {
-        SCIMv11User user = client.getUser(userId);
-        assertNotNull(user);
-        assertNotNull(user.getName().getGivenName());
-        assertFalse(user.getName().getGivenName().isEmpty());
-
-        // want to update an attribute
-        String oldGivenName = user.getName().getGivenName();
-        String newGivenName = "Updated givenName";
-        user.getName().setGivenName(newGivenName);
-
-        // want also to remove attributes
-        for (SCIMComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
-            if (phone.getType().equals(PhoneNumberCanonicalType.other)) {
-                // Note that "value" and "primary" must also be the same of current attribute in order to proceed with
-                // deletion
-                // See http://www.simplecloud.info/specs/draft-scim-api-01.html#edit-resource-with-patch
-                phone.setOperation("delete");
-                break;
-            }
-        }
-
-        // don't want to update addresses and emails
-        user.getAddresses().clear();
-        user.getEmails().clear();
-
-        LOG.warn("Update user: {0}", user);
-        SCIMv11User updated = client.updateUser(user);
-        assertNotNull(updated);
-        assertFalse(updated.getName().getGivenName().equals(oldGivenName));
-        assertEquals(updated.getName().getGivenName(), newGivenName);
-        LOG.info("Updated User with PATCH: {0}", updated);
-
-        // test removed attribute
-        for (SCIMComplex<PhoneNumberCanonicalType> phone : updated.getPhoneNumbers()) {
-            assertNotEquals(phone.getType(), PhoneNumberCanonicalType.other);
-        }
-
-        return updated;
-    }
-
-    private SCIMv11User updateUserServiceTestPUT(final String userId, final SCIMv11Client client)
-            throws IllegalArgumentException, IllegalAccessException {
-        SCIMv11User user = client.getUser(userId);
-        assertNotNull(user);
-        assertNotNull(user.getNickName());
-        assertFalse(user.getNickName().isEmpty());
-
-        // want to update an attribute
-        String oldName = user.getNickName();
-        String newName = "Updated nickname" + UUID.randomUUID().toString().substring(0, 10);
-        user.setNickName(newName);
-        user.setMeta(null); // no need
-
-        // 'formatted' filed is read-only
-        user.getAddresses().get(0).setFormatted(null);
-
-        // custom attributes
-        if (testCustomAttributes()) {
-            Set<Attribute> userAttrs = new HashSet<>();
-            for (Map.Entry<String, List<Object>> entry : user.getReturnedCustomAttributes().entrySet()) {
-                userAttrs.add(AttributeBuilder.build(entry.getKey(), entry.getValue()));
-            }
-            user.fillSCIMCustomAttributes(userAttrs, CONF.getCustomAttributesJSON());
-        }
-
-        SCIMv11User updated = client.updateUser(user);
-        assertNotNull(updated);
-        assertFalse(updated.getNickName().equals(oldName));
-        assertEquals(updated.getNickName(), newName);
-        LOG.info("Updated User with PUT: {0}", updated);
-
-        return updated;
-    }
-
-    private void readUsersServiceTest(final SCIMv11Client client)
-            throws IllegalArgumentException, IllegalAccessException {
-        Set<String> attributesToGet = testAttributesToGet();
-
-        // GET USER
-        List<SCIMv11User> users = client.getAllUsers(attributesToGet);
-        assertNotNull(users);
-        assertFalse(users.isEmpty());
-        LOG.info("Found Users: {0}", users);
-
-        // GET USERS
-        PagedResults<SCIMv11User> paged = client.getAllUsers(1, 1, attributesToGet);
-        assertNotNull(paged);
-        assertFalse(paged.getResources().isEmpty());
-        assertTrue(paged.getResources().size() == 1);
-        assertEquals(paged.getStartIndex(), 1);
-        assertNotEquals(paged.getTotalResults(), 1);
-        assertEquals(paged.getItemsPerPage(), 1);
-        LOG.info("Paged Users: {0}", paged);
-
-        PagedResults<SCIMv11User> paged2 = client.getAllUsers(2, 1, attributesToGet);
-        assertNotNull(paged2);
-        assertFalse(paged2.getResources().isEmpty());
-        assertTrue(paged2.getResources().size() == 1);
-        assertEquals(paged2.getStartIndex(), 2);
-        assertNotEquals(paged2.getTotalResults(), 1);
-        assertEquals(paged2.getItemsPerPage(), 1);
-        LOG.info("Paged Users next page: {0}", paged2);
-    }
-
-    private SCIMv11User readUserServiceTest(final String id, final SCIMv11Client client)
-            throws IllegalArgumentException, IllegalAccessException {
-        // GET USER
-        SCIMv11User user = client.getUser(id);
-        assertNotNull(user);
-        assertNotNull(user.getId());
-        LOG.info("Found User: {0}", user);
-
-        // USER TO ATTRIBUTES
-        Set<Attribute> toAttributes = user.toAttributes(user.getClass());
-        LOG.info("User to attributes: {0}", toAttributes);
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.SCIM_USER_SCHEMAS));
-        assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
-        if (PROPS.containsKey("auth.defaultEntitlement")
-                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            assertTrue(SCIMv11ConnectorTestsUtils.containsAttribute(toAttributes,
-                    SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + "."));
-        }
-
-        // GET USER by userName
-        List<SCIMv11User> users = client.getAllUsers(
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
-        assertNotNull(users);
-        assertFalse(users.isEmpty());
-        assertNotNull(users.get(0).getId());
-        LOG.info("Found User by userName: {0}", users.get(0));
-
-        return user;
-    }
-
-    private void deleteUsersServiceTest(final SCIMv11Client client) {
-        PagedResults<SCIMv11User> users = client.getAllUsers(
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                + " sw \"" + SCIMv11ConnectorTestsUtils.VALUE_USERNAME + "\"", 1, 100, testAttributesToGet());
-        assertNotNull(users);
-        if (!users.getResources().isEmpty()) {
-            for (SCIMv11User user : users.getResources()) {
-                client.deleteUser(user.getId());
-            }
-        }
-    }
-
-    private void addCustomAttributes(final Set<Attribute> userAttrs) {
-        if (testCustomAttributes()) {
-            for (int i = 0; i < CUSTOM_ATTRIBUTES_VALUES.size(); i++) {
-                userAttrs.add(AttributeBuilder.build(
-                        CUSTOM_ATTRIBUTES_KEYS.get(i),
-                        CUSTOM_ATTRIBUTES_VALUES.get(i)));
-            }
-        }
-    }
-
-    private boolean testCustomAttributes() {
-        return StringUtil.isNotBlank(CONF.getCustomAttributesJSON())
-                && !CUSTOM_ATTRIBUTES_KEYS.isEmpty()
-                && !CUSTOM_ATTRIBUTES_VALUES.isEmpty()
-                && !CUSTOM_ATTRIBUTES_UPDATE_VALUES.isEmpty();
-    }
-
-    private Set<String> testAttributesToGet() {
-        Set<String> attributesToGet = new HashSet<>();
-        attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_ID);
-        attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
-        attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_PASSWORD);
-        attributesToGet.add(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME);
-        attributesToGet.add(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE);
-        return attributesToGet;
-    }
-
 }
