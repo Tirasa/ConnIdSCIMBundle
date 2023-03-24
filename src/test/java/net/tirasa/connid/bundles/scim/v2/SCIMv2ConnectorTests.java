@@ -34,7 +34,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
 import net.tirasa.connid.bundles.scim.common.service.NoSuchEntityException;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
@@ -320,12 +320,12 @@ public class SCIMv2ConnectorTests {
         user.setName(new SCIMUserName());
         user.getName().setFamilyName(SCIMv2ConnectorTestsUtils.VALUE_FAMILY_NAME);
         user.getName().setGivenName(SCIMv2ConnectorTestsUtils.VALUE_GIVEN_NAME);
-        SCIMComplex<EmailCanonicalType> email = new SCIMComplex<>();
+        SCIMGenericComplex<EmailCanonicalType> email = new SCIMGenericComplex<>();
         email.setPrimary(true);
         email.setType(EmailCanonicalType.work);
         email.setValue(name);
         user.getEmails().add(email);
-        SCIMComplex<PhoneNumberCanonicalType> phone = new SCIMComplex<>();
+        SCIMGenericComplex<PhoneNumberCanonicalType> phone = new SCIMGenericComplex<>();
         phone.setPrimary(false);
         phone.setType(PhoneNumberCanonicalType.other);
         phone.setValue(SCIMv2ConnectorTestsUtils.VALUE_PHONE_NUMBER);
@@ -341,7 +341,7 @@ public class SCIMv2ConnectorTests {
         user.getAddresses().add(userAddress);
         if (PROPS.containsKey("auth.defaultEntitlement")
                 && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            SCIMComplex<String> entitlement = new SCIMComplex<>();
+            SCIMGenericComplex<String> entitlement = new SCIMGenericComplex<>();
             entitlement.setValue(PROPS.getProperty("auth.defaultEntitlement"));
             user.getEntitlements().add(entitlement);
         }
@@ -378,7 +378,7 @@ public class SCIMv2ConnectorTests {
         user.getName().setGivenName(newGivenName);
 
         // want also to remove attributes
-        for (SCIMComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
+        for (SCIMGenericComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
             if (phone.getType().equals(PhoneNumberCanonicalType.other)) {
                 // Note that "value" and "primary" must also be the same of current attribute in order to proceed
                 // with deletion
@@ -399,7 +399,7 @@ public class SCIMv2ConnectorTests {
         LOG.info("Updated User with PATCH: {0}", updated);
 
         // test removed attribute
-        for (SCIMComplex<PhoneNumberCanonicalType> phone : updated.getPhoneNumbers()) {
+        for (SCIMGenericComplex<PhoneNumberCanonicalType> phone : updated.getPhoneNumbers()) {
             assertEquals(PhoneNumberCanonicalType.other, phone.getType());
         }
 

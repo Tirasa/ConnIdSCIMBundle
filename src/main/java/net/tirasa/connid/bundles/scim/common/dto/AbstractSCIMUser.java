@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +33,7 @@ import net.tirasa.connid.bundles.scim.common.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.PhotoCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefault;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -41,9 +41,9 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public abstract class AbstractSCIMUser<
-        SAT extends SCIMBaseAttribute<SAT>, GT extends Serializable, CT extends SCIMComplexValue, MT extends SCIMBaseMeta>
-        extends AbstractSCIMBaseResource<Attribute, MT> implements SCIMUser<Attribute, MT> {
+public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT extends Serializable,
+        CT extends SCIMComplexAttribute, MT extends SCIMBaseMeta> extends AbstractSCIMBaseResource<Attribute, MT>
+        implements SCIMUser<Attribute, MT> {
 
     private static final long serialVersionUID = 9147517308573800805L;
 
@@ -53,13 +53,13 @@ public abstract class AbstractSCIMUser<
 
     protected String displayName;
 
-    protected List<SCIMComplex<EmailCanonicalType>> emails = new ArrayList<>();
+    protected List<SCIMGenericComplex<EmailCanonicalType>> emails = new ArrayList<>();
 
     protected List<CT> entitlements = new ArrayList<>();
 
     protected List<GT> groups = new ArrayList<>();
 
-    protected List<SCIMComplex<IMCanonicalType>> ims = new ArrayList<>();
+    protected List<SCIMGenericComplex<IMCanonicalType>> ims = new ArrayList<>();
 
     protected String locale;
 
@@ -69,9 +69,9 @@ public abstract class AbstractSCIMUser<
 
     protected String password;
 
-    protected List<SCIMComplex<PhoneNumberCanonicalType>> phoneNumbers = new ArrayList<>();
+    protected List<SCIMGenericComplex<PhoneNumberCanonicalType>> phoneNumbers = new ArrayList<>();
 
-    protected List<SCIMComplex<PhotoCanonicalType>> photos = new ArrayList<>();
+    protected List<SCIMGenericComplex<PhotoCanonicalType>> photos = new ArrayList<>();
 
     protected String profileUrl;
 
@@ -127,7 +127,7 @@ public abstract class AbstractSCIMUser<
         this.displayName = displayName;
     }
 
-    public List<SCIMComplex<EmailCanonicalType>> getEmails() {
+    public List<SCIMGenericComplex<EmailCanonicalType>> getEmails() {
         return emails;
     }
 
@@ -139,7 +139,7 @@ public abstract class AbstractSCIMUser<
         return groups;
     }
 
-    public List<SCIMComplex<IMCanonicalType>> getIms() {
+    public List<SCIMGenericComplex<IMCanonicalType>> getIms() {
         return ims;
     }
 
@@ -176,11 +176,11 @@ public abstract class AbstractSCIMUser<
         this.password = password;
     }
 
-    public List<SCIMComplex<PhoneNumberCanonicalType>> getPhoneNumbers() {
+    public List<SCIMGenericComplex<PhoneNumberCanonicalType>> getPhoneNumbers() {
         return phoneNumbers;
     }
 
-    public List<SCIMComplex<PhotoCanonicalType>> getPhotos() {
+    public List<SCIMGenericComplex<PhotoCanonicalType>> getPhotos() {
         return photos;
     }
 
@@ -250,7 +250,7 @@ public abstract class AbstractSCIMUser<
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setEmails(final List<SCIMComplex<EmailCanonicalType>> emails) {
+    public void setEmails(final List<SCIMGenericComplex<EmailCanonicalType>> emails) {
         this.emails = emails;
     }
 
@@ -265,17 +265,17 @@ public abstract class AbstractSCIMUser<
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setIms(final List<SCIMComplex<IMCanonicalType>> ims) {
+    public void setIms(final List<SCIMGenericComplex<IMCanonicalType>> ims) {
         this.ims = ims;
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setPhoneNumbers(final List<SCIMComplex<PhoneNumberCanonicalType>> phoneNumbers) {
+    public void setPhoneNumbers(final List<SCIMGenericComplex<PhoneNumberCanonicalType>> phoneNumbers) {
         this.phoneNumbers = phoneNumbers;
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setPhotos(final List<SCIMComplex<PhotoCanonicalType>> photos) {
+    public void setPhotos(final List<SCIMGenericComplex<PhotoCanonicalType>> photos) {
         this.photos = photos;
     }
 
@@ -922,17 +922,17 @@ public abstract class AbstractSCIMUser<
 
     @JsonIgnore
     protected <T extends Serializable> void handleSCIMComplexObject(
-            final T type, final List<SCIMComplex<T>> list, final Consumer<SCIMComplex<T>> setter) {
+            final T type, final List<SCIMGenericComplex<T>> list, final Consumer<SCIMGenericComplex<T>> setter) {
 
-        SCIMComplex<T> selected = null;
-        for (SCIMComplex<T> complex : list) {
+        SCIMGenericComplex<T> selected = null;
+        for (SCIMGenericComplex<T> complex : list) {
             if (complex.getType().equals(type)) {
                 selected = complex;
                 break;
             }
         }
         if (selected == null) {
-            selected = new SCIMComplex<>();
+            selected = new SCIMGenericComplex<>();
             selected.setType(type);
             list.add(selected);
         }
@@ -983,73 +983,78 @@ public abstract class AbstractSCIMUser<
                         if (!field.isAnnotationPresent(JsonIgnore.class) && !SCIMUtils.isEmptyObject(objInstance)) {
                             field.setAccessible(true);
 
-                            if (field.getGenericType().toString().contains(SCIMComplex.class.getName())) {
-                                if (field.getGenericType().toString().contains(PhoneNumberCanonicalType.class.getName())) {
+                            if (field.getGenericType().toString().contains(SCIMGenericComplex.class.getName())) {
+                                if (field.getGenericType().toString()
+                                        .contains(PhoneNumberCanonicalType.class.getName())) {
                                     if (field.getType().equals(List.class)) {
-                                        List<SCIMComplex<PhoneNumberCanonicalType>> list =
-                                                (List<SCIMComplex<PhoneNumberCanonicalType>>) objInstance;
-                                        for (SCIMComplex<PhoneNumberCanonicalType> complex : list) {
+                                        List<SCIMGenericComplex<PhoneNumberCanonicalType>> list =
+                                                (List<SCIMGenericComplex<PhoneNumberCanonicalType>>) objInstance;
+                                        for (SCIMGenericComplex<PhoneNumberCanonicalType> complex : list) {
                                             addAttribute(
                                                     complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
                                                     attrs,
                                                     field.getType());
                                         }
                                     } else {
-                                        SCIMComplex<PhoneNumberCanonicalType> complex =
-                                                (SCIMComplex<PhoneNumberCanonicalType>) objInstance;
+                                        SCIMGenericComplex<PhoneNumberCanonicalType> complex =
+                                                (SCIMGenericComplex<PhoneNumberCanonicalType>) objInstance;
                                         addAttribute(
                                                 complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS),
                                                 attrs,
                                                 field.getType());
                                     }
-                                } else if (field.getGenericType().toString().contains(IMCanonicalType.class.getName())) {
+                                } else if (field.getGenericType().toString()
+                                        .contains(IMCanonicalType.class.getName())) {
                                     if (field.getType().equals(List.class)) {
-                                        List<SCIMComplex<IMCanonicalType>> list =
-                                                (List<SCIMComplex<IMCanonicalType>>) objInstance;
-                                        for (SCIMComplex<IMCanonicalType> complex : list) {
+                                        List<SCIMGenericComplex<IMCanonicalType>> list =
+                                                (List<SCIMGenericComplex<IMCanonicalType>>) objInstance;
+                                        for (SCIMGenericComplex<IMCanonicalType> complex : list) {
                                             addAttribute(
                                                     complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
                                                     attrs,
                                                     field.getType());
                                         }
                                     } else {
-                                        SCIMComplex<IMCanonicalType> complex = (SCIMComplex<IMCanonicalType>) objInstance;
+                                        SCIMGenericComplex<IMCanonicalType>
+                                                complex = (SCIMGenericComplex<IMCanonicalType>) objInstance;
                                         addAttribute(
                                                 complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS),
                                                 attrs,
                                                 field.getType());
                                     }
-                                } else if (field.getGenericType().toString().contains(EmailCanonicalType.class.getName())) {
+                                } else if (field.getGenericType().toString()
+                                        .contains(EmailCanonicalType.class.getName())) {
                                     if (field.getType().equals(List.class)) {
-                                        List<SCIMComplex<EmailCanonicalType>> list =
-                                                (List<SCIMComplex<EmailCanonicalType>>) objInstance;
-                                        for (SCIMComplex<EmailCanonicalType> complex : list) {
+                                        List<SCIMGenericComplex<EmailCanonicalType>> list =
+                                                (List<SCIMGenericComplex<EmailCanonicalType>>) objInstance;
+                                        for (SCIMGenericComplex<EmailCanonicalType> complex : list) {
                                             addAttribute(
                                                     complex.toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
                                                     attrs,
                                                     field.getType());
                                         }
                                     } else {
-                                        SCIMComplex<EmailCanonicalType> complex =
-                                                (SCIMComplex<EmailCanonicalType>) objInstance;
+                                        SCIMGenericComplex<EmailCanonicalType> complex =
+                                                (SCIMGenericComplex<EmailCanonicalType>) objInstance;
                                         addAttribute(
                                                 complex.toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS),
                                                 attrs,
                                                 field.getType());
                                     }
-                                } else if (field.getGenericType().toString().contains(PhotoCanonicalType.class.getName())) {
+                                } else if (field.getGenericType().toString()
+                                        .contains(PhotoCanonicalType.class.getName())) {
                                     if (field.getType().equals(List.class)) {
-                                        List<SCIMComplex<PhotoCanonicalType>> list =
-                                                (List<SCIMComplex<PhotoCanonicalType>>) objInstance;
-                                        for (SCIMComplex<PhotoCanonicalType> complex : list) {
+                                        List<SCIMGenericComplex<PhotoCanonicalType>> list =
+                                                (List<SCIMGenericComplex<PhotoCanonicalType>>) objInstance;
+                                        for (SCIMGenericComplex<PhotoCanonicalType> complex : list) {
                                             addAttribute(
                                                     complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
                                                     attrs,
                                                     field.getType());
                                         }
                                     } else {
-                                        SCIMComplex<PhotoCanonicalType> complex =
-                                                (SCIMComplex<PhotoCanonicalType>) objInstance;
+                                        SCIMGenericComplex<PhotoCanonicalType> complex =
+                                                (SCIMGenericComplex<PhotoCanonicalType>) objInstance;
                                         addAttribute(
                                                 complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS),
                                                 attrs,
@@ -1080,7 +1085,7 @@ public abstract class AbstractSCIMUser<
                                             attrs,
                                             field.getType());
                                 }
-                            } else if (field.getGenericType().toString().contains(SCIMDefault.class.getName())) {
+                            } else if (field.getGenericType().toString().contains(SCIMDefaultComplex.class.getName())) {
                                 if (field.getType().equals(List.class)) {
                                     List<CT> list = (List<CT>) objInstance;
                                     for (CT ct : list) {

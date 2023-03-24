@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,18 +15,16 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
-import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
-import org.identityconnectors.framework.common.objects.Attribute;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
-//public class SCIMComplex<E extends Serializable> extends SCIMDefault {
-public class SCIMComplex<E extends Serializable> implements SCIMComplexValue {
+public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComplex {
 
     private static final long serialVersionUID = -5982485563252126677L;
 
@@ -41,17 +39,6 @@ public class SCIMComplex<E extends Serializable> implements SCIMComplexValue {
 
     @JsonProperty
     private String operation;
-
-    @JsonProperty
-    protected String value;
-
-    public void setValue(final String value) {
-        this.value = value;
-    }
-
-    public String getValue() {
-        return value;
-    }
 
     public String getDisplay() {
         return display;
@@ -85,32 +72,29 @@ public class SCIMComplex<E extends Serializable> implements SCIMComplexValue {
         this.operation = operation;
     }
 
-    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
-        Set<Attribute> attrs = new HashSet<>();
-        Field[] fields = this.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            if (!field.isAnnotationPresent(JsonIgnore.class)) {
-                field.setAccessible(true);
-                attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
-                        field.get(this),
-                        id.concat(".")
-                                .concat("default")
-                                .concat(".")
-                                .concat(field.getName()),
-                        field.getType()).build());
-            }
-        }
-        return attrs;
+    @Override
+    protected List<Field> getDeclaredFields() {
+        return FieldUtils.getAllFieldsList(this.getClass()).stream().
+                filter(f -> !"LOG".equals(f.getName()) && !"serialVersionUID".equals(f.getName()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    protected String getAttributeName(final String id, final Field field) {
+        return id.concat(".")
+                .concat(type.toString())
+                .concat(".")
+                .concat(field.getName());
     }
 
     @Override
     public String toString() {
-        return "SCIMComplex{"
-                + "value=" + value
-                + ", display=" + display
-                + ", type=" + type
-                + ", primary=" + primary
-                + ", operation=" + operation
-                + '}';
+        return new ToStringBuilder(this)
+                .append("display", display)
+                .append("type", type)
+                .append("primary", primary)
+                .append("operation", operation)
+                .append("value", value)
+                .toString();
     }
 }

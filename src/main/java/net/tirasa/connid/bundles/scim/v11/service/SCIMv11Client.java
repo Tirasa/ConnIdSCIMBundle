@@ -15,97 +15,24 @@
  */
 package net.tirasa.connid.bundles.scim.v11.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import java.io.IOException;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.identityconnectors.common.StringUtil;
-import org.identityconnectors.common.logging.Log;
 
-public class SCIMv11Client extends SCIMv11Service {
-
-    private static final Log LOG = Log.getLog(SCIMv11Client.class);
+public class SCIMv11Client extends AbstractSCIMService<SCIMv11User> {
 
     public SCIMv11Client(final SCIMConnectorConfiguration config) {
         super(config);
-    }
-
-    /**
-     * @param attributesToGet
-     * @return List of Users
-     */
-    public List<SCIMv11User> getAllUsers(final Set<String> attributesToGet) {
-        WebClient webClient = getWebclient("Users", null);
-        Map<String, String> params = new HashMap<>();
-        params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                SCIMv11Attribute.class));
-        return doGetAllUsers(webClient).getResources();
-    }
-
-    /**
-     * @param filterQuery to filter results
-     * @param attributesToGet
-     * @return Filtered list of Users
-     */
-    public List<SCIMv11User> getAllUsers(final String filterQuery, final Set<String> attributesToGet) {
-        Map<String, String> params = new HashMap<>();
-        params.put("filter", filterQuery);
-        params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                SCIMv11Attribute.class));
-        WebClient webClient = getWebclient("Users", params);
-        return doGetAllUsers(webClient).getResources();
-    }
-
-    /**
-     * @param startIndex
-     * @param count
-     * @param attributesToGet
-     * @return Paged list of Users
-     */
-    public PagedResults<SCIMv11User> getAllUsers(final Integer startIndex, final Integer count,
-            final Set<String> attributesToGet) {
-        Map<String, String> params = new HashMap<>();
-        params.put("startIndex", String.valueOf(startIndex));
-        if (count != null) {
-            params.put("count", String.valueOf(count));
-        }
-        params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                SCIMv11Attribute.class));
-        WebClient webClient = getWebclient("Users", params);
-        return doGetAllUsers(webClient);
-    }
-
-    /**
-     * @param filterQuery
-     * @param startIndex
-     * @param count
-     * @param attributesToGet
-     * @return Paged and Filtered list of Users
-     */
-    public PagedResults<SCIMv11User> getAllUsers(final String filterQuery, final Integer startIndex,
-            final Integer count,
-            final Set<String> attributesToGet) {
-        Map<String, String> params = new HashMap<>();
-        params.put("startIndex", String.valueOf(startIndex));
-        if (count != null) {
-            params.put("count", String.valueOf(count));
-        }
-        params.put("filter", filterQuery);
-        params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                SCIMv11Attribute.class));
-        WebClient webClient = getWebclient("Users", params);
-        return doGetAllUsers(webClient);
     }
 
     /**
@@ -113,9 +40,8 @@ public class SCIMv11Client extends SCIMv11Service {
      * @return User with userId id
      */
     public SCIMv11User getUser(final String userId) {
-        WebClient webClient = getWebclient("Users", null)
-                .path(userId);
-        return doGetUser(webClient);
+        WebClient webClient = getWebclient("Users", null).path(userId);
+        return doGetUser(webClient, SCIMv11User.class, SCIMv11Attribute.class);
     }
 
     /**
@@ -131,7 +57,7 @@ public class SCIMv11Client extends SCIMv11Service {
      * @return Update User
      */
     public SCIMv11User updateUser(final SCIMv11User user) {
-        return SCIMv11User.class.cast(doUpdateUser(user));
+        return doUpdateUser(user, Collections.emptySet(), SCIMv11User.class);
     }
 
     /**
@@ -156,99 +82,10 @@ public class SCIMv11Client extends SCIMv11Service {
         return getAllUsers(1, 1, attributesToGet) != null;
     }
 
-    private PagedResults<SCIMv11User> doGetAllUsers(final WebClient webClient) {
-        PagedResults<SCIMv11User> resources = null;
-        JsonNode node = doGet(webClient);
-        if (node == null) {
-            SCIMUtils.handleGeneralError("While retrieving Users from service");
-        }
-
-        try {
-            resources = SCIMUtils.MAPPER.readValue(
-                    node.toString(),
-                    new TypeReference<PagedResults<SCIMv11User>>() {
-            });
-        } catch (IOException ex) {
-            LOG.error(ex, "While converting from JSON to Users");
-        }
-
-        if (resources == null) {
-            SCIMUtils.handleGeneralError("While retrieving Users from service");
-        } else {
-            // check custom attributes
-            if (!resources.getResources().isEmpty()) {
-                readCustomAttributes(resources, node.get(RESPONSE_RESOURCES));
-            }
-        }
-
-        return resources;
-    }
-
-    private SCIMv11User doGetUser(final WebClient webClient) {
-        SCIMv11User user = null;
-        JsonNode node = doGet(webClient);
-        if (node == null) {
-            SCIMUtils.handleGeneralError("While retrieving User from service");
-        }
-
-        try {
-            user = SCIMUtils.MAPPER.readValue(
-                    node.toString(),
-                    SCIMv11User.class);
-        } catch (IOException ex) {
-            LOG.error(ex, "While converting from JSON to User");
-        }
-
-        if (user == null) {
-            SCIMUtils.handleGeneralError("While retrieving user from service after create");
-        } else {
-            // check custom attributes
-            readCustomAttributes(user, node);
-        }
-
-        return user;
-    }
-
-    private SCIMv11User doCreateUser(final SCIMv11User user) {
-        doCreate(user, getWebclient("Users", null));
-        return user;
-    }
-
-    private SCIMv11User doUpdateUser(final SCIMv11User user) {
-        if (StringUtil.isBlank(user.getId())) {
-            SCIMUtils.handleGeneralError("Missing required user id attribute for update");
-        }
-
-        SCIMv11User updated = null;
-        JsonNode node = doUpdate(user, getWebclient("Users", null)
-                .path(user.getId()));
-        if (node == null) {
-            SCIMUtils.handleGeneralError("While running update on service");
-        }
-
-        try {
-            updated = SCIMUtils.MAPPER.readValue(
-                    node.toString(),
-                    SCIMv11User.class
-            );
-        } catch (IOException ex) {
-            LOG.error(ex, "While converting from JSON to User");
-        }
-
-        if (updated == null) {
-            SCIMUtils.handleGeneralError("While retrieving user from service after update");
-        }
-
-        return updated;
-    }
-
-    private void doDeleteUser(final String userId, final WebClient webClient) {
-        doDelete(userId, webClient);
-    }
-
-    private void doActivateUser(final String userId) {
-        doActivate(userId, getWebclient("activation", null)
-                .path("tokens"));
+    @Override
+    protected PagedResults<SCIMv11User> deserializePagedResults(final String node) throws JsonProcessingException {
+        return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv11User>>() {
+        });
     }
 
 }

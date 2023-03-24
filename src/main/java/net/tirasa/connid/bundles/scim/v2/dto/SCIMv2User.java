@@ -19,14 +19,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.ResourceReference;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
-import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Service;
+import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv2User extends AbstractSCIMUser<SCIMv2Attribute, ResourceReference, SCIMComplex<String>, SCIMv2Meta> {
+public class SCIMv2User
+        extends AbstractSCIMUser<SCIMv2Attribute, ResourceReference, SCIMGenericComplex<String>, SCIMv2Meta> {
 
     private static final long serialVersionUID = 7039988195599856857L;
 
@@ -73,7 +74,7 @@ public class SCIMv2User extends AbstractSCIMUser<SCIMv2Attribute, ResourceRefere
     @JsonIgnore
     public void fillSCIMCustomAttributes(final Set<Attribute> attributes, final String customAttributesJSON) {
         SCIMSchema<SCIMv2Attribute> customAttributesObj =
-                SCIMv2Service.extractSCIMSchemas(customAttributesJSON, SCIMv2Attribute.class);
+                AbstractSCIMService.extractSCIMSchemas(customAttributesJSON, SCIMv2Attribute.class);
         if (customAttributesObj != null) {
             for (Attribute attribute : attributes) {
                 if (!CollectionUtil.isEmpty(attribute.getValue())) {

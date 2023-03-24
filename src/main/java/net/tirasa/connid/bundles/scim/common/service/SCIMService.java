@@ -22,21 +22,23 @@ import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public interface SCIMService<T extends SCIMUser<Attribute, ? extends SCIMBaseMeta>> {
+public interface SCIMService<UT extends SCIMUser<Attribute, ? extends SCIMBaseMeta>> {
 
-    PagedResults<T> getAllUsers(Integer valueOf, Integer pagesSize, Set<String> attributesToGet);
+    PagedResults<UT> getAllUsers(Integer valueOf, Integer pagesSize, Set<String> attributesToGet);
 
-    List<T> getAllUsers(Set<String> attributesToGet);
+    List<UT> getAllUsers(Set<String> attributesToGet);
 
-    T getUser(String asStringValue);
+    UT getUser(String userId);
 
-    List<T> getAllUsers(String s, Set<String> attributesToGet);
+    List<UT> getAllUsers(String s, Set<String> attributesToGet);
 
-    T createUser(T user);
+    UT createUser(UT user);
 
     void deleteUser(String userId);
 
-    T updateUser(T user);
+    UT updateUser(UT user);
+
+    void activateUser(String userId);
 
     boolean testService();
 }

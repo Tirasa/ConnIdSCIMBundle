@@ -21,12 +21,13 @@ import java.util.Set;
 import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
-import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Service;
+import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefault, SCIMDefault, SCIMv11Meta> {
+public class SCIMv11User
+        extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultComplex, SCIMDefaultComplex, SCIMv11Meta> {
 
     private static final long serialVersionUID = -6868285123690771711L;
 
@@ -68,7 +69,8 @@ public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefault,
     @JsonIgnore
     @Override
     public void fillSCIMCustomAttributes(final Set<Attribute> attributes, final String customAttributesJSON) {
-        SCIMSchema<SCIMv11Attribute> customAttributesObj = SCIMv11Service.extractSCIMSchemas(customAttributesJSON);
+        SCIMSchema<SCIMv11Attribute> customAttributesObj =
+                AbstractSCIMService.extractSCIMSchemas(customAttributesJSON, SCIMv11Attribute.class);
         if (customAttributesObj != null) {
             for (Attribute attribute : attributes) {
                 if (!CollectionUtil.isEmpty(attribute.getValue())) {
@@ -88,17 +90,17 @@ public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefault,
 
     @JsonIgnore
     private void handleSCIMDefaultObject(
-            final String value, final List<SCIMDefault> list, final Consumer<SCIMDefault> setter) {
+            final String value, final List<SCIMDefaultComplex> list, final Consumer<SCIMDefaultComplex> setter) {
 
-        SCIMDefault selected = null;
-        for (SCIMDefault scimDefault : list) {
+        SCIMDefaultComplex selected = null;
+        for (SCIMDefaultComplex scimDefault : list) {
             if (scimDefault.getValue().equals(value)) {
                 selected = scimDefault;
                 break;
             }
         }
         if (selected == null) {
-            selected = new SCIMDefault();
+            selected = new SCIMDefaultComplex();
             list.add(selected);
         }
 

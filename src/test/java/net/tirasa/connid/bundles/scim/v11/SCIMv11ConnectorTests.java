@@ -34,7 +34,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMComplex;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
 import net.tirasa.connid.bundles.scim.common.service.NoSuchEntityException;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
@@ -42,7 +42,7 @@ import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
-import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefault;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;
@@ -214,12 +214,12 @@ public class SCIMv11ConnectorTests {
         user.setName(new SCIMUserName());
         user.getName().setFamilyName(SCIMv11ConnectorTestsUtils.VALUE_FAMILY_NAME);
         user.getName().setGivenName(SCIMv11ConnectorTestsUtils.VALUE_GIVEN_NAME);
-        SCIMComplex<EmailCanonicalType> email = new SCIMComplex<>();
+        SCIMGenericComplex<EmailCanonicalType> email = new SCIMGenericComplex<>();
         email.setPrimary(true);
         email.setType(EmailCanonicalType.work);
         email.setValue(name);
         user.getEmails().add(email);
-        SCIMComplex<PhoneNumberCanonicalType> phone = new SCIMComplex<>();
+        SCIMGenericComplex<PhoneNumberCanonicalType> phone = new SCIMGenericComplex<>();
         phone.setPrimary(false);
         phone.setType(PhoneNumberCanonicalType.other);
         phone.setValue(SCIMv11ConnectorTestsUtils.VALUE_PHONE_NUMBER);
@@ -235,7 +235,7 @@ public class SCIMv11ConnectorTests {
         user.getAddresses().add(userAddress);
         if (PROPS.containsKey("auth.defaultEntitlement")
                 && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            SCIMDefault entitlement = new SCIMDefault();
+            SCIMDefaultComplex entitlement = new SCIMDefaultComplex();
             entitlement.setValue(PROPS.getProperty("auth.defaultEntitlement"));
             user.getEntitlements().add(entitlement);
         }
@@ -260,7 +260,7 @@ public class SCIMv11ConnectorTests {
         user.getName().setGivenName(newGivenName);
 
         // want also to remove attributes
-        for (SCIMComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
+        for (SCIMGenericComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
             if (phone.getType().equals(PhoneNumberCanonicalType.other)) {
                 // Note that "value" and "primary" must also be the same of current attribute in order to proceed with
                 // deletion
@@ -282,7 +282,7 @@ public class SCIMv11ConnectorTests {
         LOG.info("Updated User with PATCH: {0}", updated);
 
         // test removed attribute
-        for (SCIMComplex<PhoneNumberCanonicalType> phone : updated.getPhoneNumbers()) {
+        for (SCIMGenericComplex<PhoneNumberCanonicalType> phone : updated.getPhoneNumbers()) {
             assertNotEquals(phone.getType(), PhoneNumberCanonicalType.other);
         }
 
@@ -387,7 +387,7 @@ public class SCIMv11ConnectorTests {
         // GET USER by userName
         List<SCIMv11User> users = client.getAllUsers(
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
+                        + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
         assertNotNull(users);
         assertFalse(users.isEmpty());
         assertNotNull(users.get(0).getId());
@@ -399,7 +399,7 @@ public class SCIMv11ConnectorTests {
     private static void deleteUsersServiceTest(final SCIMv11Client client) {
         PagedResults<SCIMv11User> users = client.getAllUsers(
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                + " sw \"" + SCIMv11ConnectorTestsUtils.VALUE_USERNAME + "\"", 1, 100, testAttributesToGet());
+                        + " sw \"" + SCIMv11ConnectorTestsUtils.VALUE_USERNAME + "\"", 1, 100, testAttributesToGet());
         assertNotNull(users);
         if (!users.getResources().isEmpty()) {
             for (SCIMv11User user : users.getResources()) {
@@ -655,10 +655,10 @@ public class SCIMv11ConnectorTests {
             // test removed attribute
             SCIMv11User user = client.getUser(updatedUser.getId());
             assertNotNull(user);
-            for (SCIMComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
+            for (SCIMGenericComplex<PhoneNumberCanonicalType> phone : user.getPhoneNumbers()) {
                 assertNotEquals(phone.getType(), PhoneNumberCanonicalType.other);
             }
-            for (SCIMComplex<EmailCanonicalType> email : user.getEmails()) {
+            for (SCIMGenericComplex<EmailCanonicalType> email : user.getEmails()) {
                 assertNotEquals(email.getType(), EmailCanonicalType.other);
                 assertNotEquals(email.getType(), EmailCanonicalType.home);
             }

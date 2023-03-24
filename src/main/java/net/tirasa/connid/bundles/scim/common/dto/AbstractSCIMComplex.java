@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.tirasa.connid.bundles.scim.v11.dto;
+package net.tirasa.connid.bundles.scim.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMComplexValue;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMDefault implements SCIMComplexValue {
+public abstract class AbstractSCIMComplex implements SCIMComplexAttribute {
 
     private static final long serialVersionUID = 4302319332020863582L;
 
@@ -40,27 +39,23 @@ public class SCIMDefault implements SCIMComplexValue {
         return value;
     }
 
+    @Override
     public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
-        Field[] fields = this.getClass().getDeclaredFields();
-        for (Field field : fields) {
+        for (Field field : getDeclaredFields()) {
             if (!field.isAnnotationPresent(JsonIgnore.class)) {
                 field.setAccessible(true);
                 attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
                         field.get(this),
-                        id.concat(".")
-                                .concat("default")
-                                .concat(".")
-                                .concat(field.getName()),
+                        getAttributeName(id, field),
                         field.getType()).build());
             }
         }
         return attrs;
     }
 
-    @Override
-    public String toString() {
-        return "SCIMDefault{" + "value=" + value + '}';
-    }
+    protected abstract List<Field> getDeclaredFields();
+
+    protected abstract String getAttributeName(String id, Field field);
 
 }
