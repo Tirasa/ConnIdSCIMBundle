@@ -30,12 +30,12 @@ public abstract class AbstractSCIMBaseResource<AT, MT extends SCIMBaseMeta> impl
     protected MT meta;
 
     @JsonProperty
-    private String id;
+    protected String id;
 
     @JsonProperty
-    private String externalId;
+    protected String externalId;
 
-    private String baseSchema;
+    protected String baseSchema;
 
     protected final Set<String> schemas = new TreeSet<>();
 

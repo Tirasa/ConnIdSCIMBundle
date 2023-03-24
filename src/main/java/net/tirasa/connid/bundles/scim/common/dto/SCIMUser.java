@@ -33,4 +33,6 @@ public interface SCIMUser<AT, MT extends SCIMBaseMeta> extends SCIMBaseResource<
     void fillSCIMCustomAttributes(Set<Attribute> createAttributes, String customAttributesJSON);
 
     Map<String, List<Object>> getReturnedCustomAttributes();
+
+    Map<? extends SCIMBaseAttribute<?>, List<Object>> getSCIMCustomAttributes();
 }

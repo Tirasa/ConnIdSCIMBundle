@@ -13,33 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.tirasa.connid.bundles.scim.common.dto;
+package net.tirasa.connid.bundles.scim.common.types;
 
-import java.io.Serializable;
-import java.util.Set;
-
-public interface SCIMBaseResource<AT, MT extends SCIMBaseMeta> extends Serializable {
-
-    Set<String> getSchemas();
-
-    void setSchemas(Set<String> schemas);
-
-    MT getMeta();
-
-    void setMeta(MT meta);
-
-    String getId();
-
-    void setId(String id);
-
-    String getExternalId();
-
-    void setExternalId(String externalId);
-
-    String getBaseSchema();
-
-    Set<AT> toAttributes(Class<?> type) throws IllegalArgumentException, IllegalAccessException;
-
-    void fromAttributes(Set<AT> attributes);
+public enum PhotoCanonicalType {
+    photo,
+    thumbnail
 
 }

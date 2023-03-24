@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.tirasa.connid.bundles.scim.v11.types;
+package net.tirasa.connid.bundles.scim.common.dto;
 
-public enum PhoneNumberCanonicalType {
-    work,
-    home,
-    mobile,
-    fax,
-    pager,
-    other
+import java.io.Serializable;
+import java.util.Set;
+import org.identityconnectors.framework.common.objects.Attribute;
 
+public interface SCIMComplexAttribute extends Serializable {
+
+    void setValue(String value);
+
+    String getValue();
+
+    Set<Attribute> toAttributes(String id) throws IllegalArgumentException, IllegalAccessException;
 }

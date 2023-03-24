@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.tirasa.connid.bundles.scim.v11.types;
+package net.tirasa.connid.bundles.scim.common.types;
 
-public enum PhotoCanonicalType {
-    photo,
-    thumbnail
+public enum PhoneNumberCanonicalType {
+    work,
+    home,
+    mobile,
+    fax,
+    pager,
+    other
 
 }

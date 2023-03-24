@@ -75,7 +75,7 @@ public final class SCIMAttributeUtils {
 
     public static final String SCIM_SCHEMA_EXTENSION = "extension";
 
-    public static <T extends SCIMBaseAttribute<?>> Schema buildSchema(
+    public static <T extends SCIMBaseAttribute<T>> Schema buildSchema(
             final String customAttributes, final Class<T> attrType) {
 
         SchemaBuilder builder = new SchemaBuilder(AbstractSCIMConnector.class);

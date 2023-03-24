@@ -15,22 +15,18 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
-import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
-import org.identityconnectors.framework.common.objects.Attribute;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
-public class SCIMComplex<E extends Serializable> implements Serializable {
+public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComplex {
 
     private static final long serialVersionUID = -5982485563252126677L;
-
-    @JsonProperty
-    private String value;
 
     @JsonProperty(access = Access.READ_ONLY)
     private String display;
@@ -43,14 +39,6 @@ public class SCIMComplex<E extends Serializable> implements Serializable {
 
     @JsonProperty
     private String operation;
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(final String value) {
-        this.value = value;
-    }
 
     public String getDisplay() {
         return display;
@@ -84,28 +72,29 @@ public class SCIMComplex<E extends Serializable> implements Serializable {
         this.operation = operation;
     }
 
-    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
-        Set<Attribute> attrs = new HashSet<>();
-        Field[] fields = this.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            if (!field.isAnnotationPresent(JsonIgnore.class)) {
-                field.setAccessible(true);
-                attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
-                        field.get(this),
-                        id.concat(".")
-                                .concat(type.toString())
-                                .concat(".")
-                                .concat(field.getName()),
-                        field.getType()).build());
-            }
-        }
-        return attrs;
+    @Override
+    protected List<Field> getDeclaredFields() {
+        return FieldUtils.getAllFieldsList(this.getClass()).stream().
+                filter(f -> !"LOG".equals(f.getName()) && !"serialVersionUID".equals(f.getName()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    protected String getAttributeName(final String id, final Field field) {
+        return id.concat(".")
+                .concat(type.toString())
+                .concat(".")
+                .concat(field.getName());
     }
 
     @Override
     public String toString() {
-        return "SCIMComplex{" + "value=" + value + ", display=" + display + ", type=" + type + ", primary=" + primary
-                + ", operation=" + operation + '}';
+        return new ToStringBuilder(this)
+                .append("display", display)
+                .append("type", type)
+                .append("primary", primary)
+                .append("operation", operation)
+                .append("value", value)
+                .toString();
     }
-
 }
