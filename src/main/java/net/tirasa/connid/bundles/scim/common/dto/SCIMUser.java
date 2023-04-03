@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,8 @@ import java.util.Map;
 import java.util.Set;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public interface SCIMUser<AT, MT extends SCIMBaseMeta> extends SCIMBaseResource<AT, MT> {
+public interface SCIMUser<AT, MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser>
+        extends SCIMBaseResource<AT, MT> {
 
     String getUserName();
 
@@ -35,4 +36,10 @@ public interface SCIMUser<AT, MT extends SCIMBaseMeta> extends SCIMBaseResource<
     Map<String, List<Object>> getReturnedCustomAttributes();
 
     Map<? extends SCIMBaseAttribute<?>, List<Object>> getSCIMCustomAttributes();
+
+    EUT getEnterpriseUser();
+
+    void fillEnterpriseUser(Set<Attribute> attributes);
+
+    void setEnterpriseUser(EUT enterpriseUser);
 }

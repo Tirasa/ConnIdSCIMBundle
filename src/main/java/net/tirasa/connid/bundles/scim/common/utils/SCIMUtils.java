@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,6 +26,8 @@ import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
+import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -112,6 +114,11 @@ public final class SCIMUtils {
                 result += SCIMAttributeUtils.SCIM_USER_PHOTOS.concat(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES + ".")) {
                 result += SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES.concat(",");
+            } else if (attributeToGet.startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)) {
+                // SCIM-3
+                result += SCIMv2EnterpriseUser.SCHEMA_URI
+                        + (attributeToGet.replace(SCIMv2EnterpriseUser.SCHEMA_URI, StringUtils.EMPTY)
+                        .replaceFirst(".", ":").concat(","));
             } else if (customAttributesObj == null) {
                 result += attributeToGet.concat(",");
             } else if (!isCustomAttribute(customAttributesObj, attributeToGet)) {

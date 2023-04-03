@@ -42,7 +42,7 @@ import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
-import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefaultComplex;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;

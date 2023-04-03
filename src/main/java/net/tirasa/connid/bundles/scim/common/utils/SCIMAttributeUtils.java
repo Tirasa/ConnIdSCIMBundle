@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,6 +45,8 @@ public final class SCIMAttributeUtils {
 
     public static final String USER_ATTRIBUTE_ACTIVE = "active";
 
+    public static final String ENTERPRISE_USER = "active";
+
     public static final String USER_ATTRIBUTE_EXTERNAL_ID = "externalId";
 
     public static final String SCIM_USER_NAME = "name";
@@ -74,6 +76,14 @@ public final class SCIMAttributeUtils {
     public static final String SCIM_SCHEMA_TYPE_COMPLEX = "complex";
 
     public static final String SCIM_SCHEMA_EXTENSION = "extension";
+
+    public static final String SCIM_ENTERPRISE_EMPLOYEE_NUMBER = "employeeNumber";
+
+    public static final String SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE = "manager.value";
+
+    public static final String SCIM_ENTERPRISE_EMPLOYEE_MANAGER_REF = "manager.ref";
+
+    public static final String SCIM_ENTERPRISE_EMPLOYEE_MANAGER_DISPLAY_NAMER = "manager.displayName";
 
     public static <T extends SCIMBaseAttribute<T>> Schema buildSchema(
             final String customAttributes, final Class<T> attrType) {
@@ -241,11 +251,11 @@ public final class SCIMAttributeUtils {
                     AttributeInfoBuilder attributeInfoBuilder = AttributeInfoBuilder.define(
                             attribute instanceof SCIMv11Attribute
                                     ? SCIMv11Attribute.class.cast(attribute).getSchema()
-                                            .concat(".")
-                                            .concat(attribute.getName())
+                                    .concat(".")
+                                    .concat(attribute.getName())
                                     : SCIMv2Attribute.class.cast(attribute).getExtensionSchema()
-                                            .concat(".")
-                                            .concat(attribute.getName()));
+                                    .concat(".")
+                                    .concat(attribute.getName()));
                     attributeInfoBuilder.setMultiValued(attribute.getMultiValued())
                             .setRequired(attribute.getRequired())
                             .setUpdateable(attribute instanceof SCIMv11Attribute
@@ -272,14 +282,14 @@ public final class SCIMAttributeUtils {
     }
 
     public static AttributeBuilder buildAttributeFromClassField(final Field field,
-            final Object that)
+                                                                final Object that)
             throws IllegalArgumentException, IllegalAccessException {
 
         return doBuildAttributeFromClassField(field.get(that), field.getName(), field.getType());
     }
 
     public static AttributeBuilder doBuildAttributeFromClassField(final Object value, final String name,
-            final Class<?> clazz) {
+                                                                  final Class<?> clazz) {
 
         AttributeBuilder attributeBuilder = new AttributeBuilder();
         if (value != null) {
@@ -291,7 +301,7 @@ public final class SCIMAttributeUtils {
                     for (Object elem : list) {
                         doBuildAttributeFromClassField(elem, name, clazz);
                     }
-                } else if (!list.isEmpty()) {
+                } else if (!list.isEmpty() && list.get(0) != null) {
                     attributeBuilder.addValue(list.get(0).toString());
                 }
             } else {

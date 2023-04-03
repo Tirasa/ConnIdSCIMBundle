@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,24 +16,31 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.ResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
 
 public class SCIMv2User
-        extends AbstractSCIMUser<SCIMv2Attribute, ResourceReference, SCIMGenericComplex<String>, SCIMv2Meta> {
+        extends AbstractSCIMUser<SCIMv2Attribute, ResourceReference, SCIMGenericComplex<String>, SCIMv2Meta,
+        SCIMv2EnterpriseUser> {
 
     private static final long serialVersionUID = 7039988195599856857L;
 
     public static final String RESOURCE_NAME = "User";
 
     public static final String SCHEMA_URI = "urn:ietf:params:scim:schemas:core:2.0:User";
+
+    @JsonProperty(SCIMv2EnterpriseUser.SCHEMA_URI)
+    protected SCIMv2EnterpriseUser enterpriseUser;
 
     public SCIMv2User() {
         super(SCHEMA_URI, RESOURCE_NAME, new SCIMv2Meta(RESOURCE_NAME));
@@ -90,6 +97,40 @@ public class SCIMv2User
                 }
             }
         }
+    }
+
+    @Override
+    public SCIMv2EnterpriseUser getEnterpriseUser() {
+        return enterpriseUser;
+    }
+
+    @Override
+    public void setEnterpriseUser(final SCIMv2EnterpriseUser enterpriseUser) {
+        this.enterpriseUser = enterpriseUser;
+    }
+
+    @Override
+    public void fillEnterpriseUser(final Set<Attribute> attributes) {
+        this.enterpriseUser = new SCIMv2EnterpriseUser();
+        attributes.stream().filter(a -> a.getName().startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)).forEach(
+                a -> {
+                    switch (StringUtils.replace(a.getName(), SCIMv2EnterpriseUser.SCHEMA_URI + ".",
+                            StringUtils.EMPTY)) {
+                        case "employeeNumber":
+                            enterpriseUser.setEmployeeNumber(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "manager.value":
+                            SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager manager = enterpriseUser.getManager();
+                            if (manager == null) {
+                                manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
+                                enterpriseUser.setManager(manager);
+                            }
+                            manager.setValue(AttributeUtil.getAsStringValue(a));
+                            break;
+                    }
+
+                }
+        );
     }
 
     @Override

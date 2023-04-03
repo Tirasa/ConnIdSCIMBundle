@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -27,7 +28,8 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public class SCIMv11User
-        extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultComplex, SCIMDefaultComplex, SCIMv11Meta> {
+        extends
+        AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultComplex, SCIMDefaultComplex, SCIMv11Meta, SCIMv11EnterpriseUser> {
 
     private static final long serialVersionUID = -6868285123690771711L;
 
@@ -86,6 +88,21 @@ public class SCIMv11User
                 }
             }
         }
+    }
+
+    @Override
+    public SCIMv11EnterpriseUser getEnterpriseUser() {
+        return null;
+    }
+
+    @Override
+    public void setEnterpriseUser(final SCIMv11EnterpriseUser enterpriseUser){
+        // TODO
+    }
+
+    @Override
+    public void fillEnterpriseUser(Set<Attribute> attributes) {
+        // TODO
     }
 
     @JsonIgnore

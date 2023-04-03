@@ -20,9 +20,11 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import java.util.ArrayList;
 import java.util.List;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 
-public class PagedResults<T extends SCIMUser<?, ?>> {
+public class PagedResults<T extends SCIMUser<?, ? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>> {
 
     @JsonProperty
     private int totalResults;

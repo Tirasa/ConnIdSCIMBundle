@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,11 +22,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 import net.tirasa.connid.bundles.scim.common.service.SCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -59,7 +61,7 @@ import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 
 public abstract class AbstractSCIMConnector<
-        T extends SCIMUser<Attribute, ? extends SCIMBaseMeta>, ST extends SCIMService<T>>
+        T extends SCIMUser<Attribute, ? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>, ST extends SCIMService<T>>
         implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp {
 
     private static final Log LOG = Log.getLog(AbstractSCIMConnector.class);
@@ -234,11 +236,15 @@ public abstract class AbstractSCIMConnector<
                 user.fromAttributes(createAttributes);
 
                 // custom attributes
-                if (StringUtil.isNotBlank(
-                        configuration.getCustomAttributesJSON())) {
-                    user.fillSCIMCustomAttributes(createAttributes,
-                            configuration.getCustomAttributesJSON());
+                if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
+                    user.fillSCIMCustomAttributes(createAttributes, configuration.getCustomAttributesJSON());
                 }
+                // SCIM-3 enterprise user
+                createAttributes.stream().filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI))
+                        .findFirst().ifPresent(ca -> {
+                            user.getSchemas().add(SCIMv2EnterpriseUser.SCHEMA_URI);
+                            user.fillEnterpriseUser(createAttributes);
+                        });
 
                 client.createUser(user);
             } catch (Exception e) {
@@ -295,6 +301,12 @@ public abstract class AbstractSCIMConnector<
             if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
                 user.fillSCIMCustomAttributes(replaceAttributes, configuration.getCustomAttributesJSON());
             }
+            // SCIM-3 enterprise user
+            replaceAttributes.stream().filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI))
+                    .findFirst().ifPresent(ca -> {
+                        user.getSchemas().add(SCIMv2EnterpriseUser.SCHEMA_URI);
+                        user.fillEnterpriseUser(replaceAttributes);
+                    });
 
             try {
                 user.fromAttributes(replaceAttributes);

@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response.Status;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
@@ -48,8 +49,8 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public abstract class AbstractSCIMService<UT extends SCIMUser<Attribute, ? extends SCIMBaseMeta>>
-        implements SCIMService<UT> {
+public abstract class AbstractSCIMService<UT extends SCIMUser<Attribute, ? extends SCIMBaseMeta,
+        ? extends SCIMEnterpriseUser>> implements SCIMService<UT> {
 
     protected static final Log LOG = Log.getLog(AbstractSCIMService.class);
 
