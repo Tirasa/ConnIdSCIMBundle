@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -136,26 +136,18 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
             this.displayName = displayName;
         }
 
-        @Override
-        public String toString() {
-            return new ToStringBuilder(this)
-                    .append("value", value)
-                    .append("ref", ref)
-                    .append("displayName", displayName)
-                    .toString();
-        }
 
-        public SCIMv2EnterpriseUserManager value(String value) {
+        public SCIMv2EnterpriseUserManager value(final String value) {
             this.value = value;
             return this;
         }
 
-        public SCIMv2EnterpriseUserManager ref(String ref) {
+        public SCIMv2EnterpriseUserManager ref(final String ref) {
             this.ref = ref;
             return this;
         }
 
-        public SCIMv2EnterpriseUserManager displayName(String displayName) {
+        public SCIMv2EnterpriseUserManager displayName(final String displayName) {
             this.displayName = displayName;
             return this;
         }
@@ -164,6 +156,15 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
             return Arrays.asList(AttributeBuilder.build(SCHEMA_URI + ".manager.value", this.value),
                     AttributeBuilder.build(SCHEMA_URI + ".manager.ref", this.ref),
                     AttributeBuilder.build(SCHEMA_URI + ".manager.displayName", this.displayName));
+        }
+
+        @Override
+        public String toString() {
+            return new ToStringBuilder(this)
+                    .append("value", value)
+                    .append("ref", ref)
+                    .append("displayName", displayName)
+                    .toString();
         }
     }
 

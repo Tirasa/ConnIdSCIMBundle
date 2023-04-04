@@ -96,12 +96,12 @@ public class SCIMv11User
     }
 
     @Override
-    public void setEnterpriseUser(final SCIMv11EnterpriseUser enterpriseUser){
+    public void setEnterpriseUser(final SCIMv11EnterpriseUser enterpriseUser) {
         // TODO
     }
 
     @Override
-    public void fillEnterpriseUser(Set<Attribute> attributes) {
+    public void fillEnterpriseUser(final Set<Attribute> attributes) {
         // TODO
     }
 

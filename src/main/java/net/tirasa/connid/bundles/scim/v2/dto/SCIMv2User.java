@@ -127,6 +127,8 @@ public class SCIMv2User
                             }
                             manager.setValue(AttributeUtil.getAsStringValue(a));
                             break;
+                        default:
+                            // do nothing
                     }
 
                 }
