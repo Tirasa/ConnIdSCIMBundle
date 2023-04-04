@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -114,23 +114,41 @@ public class SCIMv2User
         this.enterpriseUser = new SCIMv2EnterpriseUser();
         attributes.stream().filter(a -> a.getName().startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)).forEach(
                 a -> {
+                    SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager manager = enterpriseUser.getManager();
                     switch (StringUtils.replace(a.getName(), SCIMv2EnterpriseUser.SCHEMA_URI + ".",
                             StringUtils.EMPTY)) {
                         case "employeeNumber":
                             enterpriseUser.setEmployeeNumber(AttributeUtil.getAsStringValue(a));
                             break;
+                        case "costCenter":
+                            enterpriseUser.setCostCenter(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "organization":
+                            enterpriseUser.setOrganization(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "division":
+                            enterpriseUser.setDivision(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "department":
+                            enterpriseUser.setDepartment(AttributeUtil.getAsStringValue(a));
+                            break;
                         case "manager.value":
-                            SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager manager = enterpriseUser.getManager();
                             if (manager == null) {
                                 manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
                                 enterpriseUser.setManager(manager);
                             }
                             manager.setValue(AttributeUtil.getAsStringValue(a));
                             break;
+                        case "manager.displayName":
+                            if (manager == null) {
+                                manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
+                                enterpriseUser.setManager(manager);
+                            }
+                            manager.setDisplayName(AttributeUtil.getAsStringValue(a));
+                            break;
                         default:
                             // do nothing
                     }
-
                 }
         );
     }
