@@ -16,24 +16,31 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.ResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
 
 public class SCIMv2User
-        extends AbstractSCIMUser<SCIMv2Attribute, ResourceReference, SCIMGenericComplex<String>, SCIMv2Meta> {
+        extends AbstractSCIMUser<SCIMv2Attribute, ResourceReference, SCIMGenericComplex<String>, SCIMv2Meta,
+        SCIMv2EnterpriseUser> {
 
     private static final long serialVersionUID = 7039988195599856857L;
 
     public static final String RESOURCE_NAME = "User";
 
     public static final String SCHEMA_URI = "urn:ietf:params:scim:schemas:core:2.0:User";
+
+    @JsonProperty(SCIMv2EnterpriseUser.SCHEMA_URI)
+    protected SCIMv2EnterpriseUser enterpriseUser;
 
     public SCIMv2User() {
         super(SCHEMA_URI, RESOURCE_NAME, new SCIMv2Meta(RESOURCE_NAME));
@@ -90,6 +97,60 @@ public class SCIMv2User
                 }
             }
         }
+    }
+
+    @Override
+    public SCIMv2EnterpriseUser getEnterpriseUser() {
+        return enterpriseUser;
+    }
+
+    @Override
+    public void setEnterpriseUser(final SCIMv2EnterpriseUser enterpriseUser) {
+        this.enterpriseUser = enterpriseUser;
+    }
+
+    @Override
+    public void fillEnterpriseUser(final Set<Attribute> attributes) {
+        this.enterpriseUser = new SCIMv2EnterpriseUser();
+        attributes.stream().filter(a -> a.getName().startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)).forEach(
+                a -> {
+                    SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager manager = enterpriseUser.getManager();
+                    switch (StringUtils.replace(a.getName(), SCIMv2EnterpriseUser.SCHEMA_URI + ".",
+                            StringUtils.EMPTY)) {
+                        case "employeeNumber":
+                            enterpriseUser.setEmployeeNumber(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "costCenter":
+                            enterpriseUser.setCostCenter(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "organization":
+                            enterpriseUser.setOrganization(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "division":
+                            enterpriseUser.setDivision(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "department":
+                            enterpriseUser.setDepartment(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "manager.value":
+                            if (manager == null) {
+                                manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
+                                enterpriseUser.setManager(manager);
+                            }
+                            manager.setValue(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "manager.displayName":
+                            if (manager == null) {
+                                manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
+                                enterpriseUser.setManager(manager);
+                            }
+                            manager.setDisplayName(AttributeUtil.getAsStringValue(a));
+                            break;
+                        default:
+                            // do nothing
+                    }
+                }
+        );
     }
 
     @Override

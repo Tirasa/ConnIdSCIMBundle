@@ -33,8 +33,8 @@ import net.tirasa.connid.bundles.scim.common.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.PhotoCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import net.tirasa.connid.bundles.scim.v11.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.identityconnectors.common.CollectionUtil;
@@ -42,8 +42,9 @@ import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT extends Serializable,
-        CT extends SCIMComplexAttribute, MT extends SCIMBaseMeta> extends AbstractSCIMBaseResource<Attribute, MT>
-        implements SCIMUser<Attribute, MT> {
+        CT extends SCIMComplexAttribute, MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser>
+        extends AbstractSCIMBaseResource<Attribute, MT>
+        implements SCIMUser<Attribute, MT, EUT> {
 
     private static final long serialVersionUID = 9147517308573800805L;
 
@@ -977,11 +978,22 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
         Set<Attribute> attrs = new HashSet<>();
 
         FieldUtils.getAllFieldsList(type).stream().
-                filter(f -> !"LOG".equals(f.getName()) && !"serialVersionUID".equals(f.getName())).forEach(field -> {
+                filter(f -> !"LOG".equals(f.getName())
+                        && !"serialVersionUID".equals(f.getName())
+                        && !"RESOURCE_NAME".equals(f.getName())
+                        && !"SCHEMA_URI".equals(f.getName())).forEach(field -> {
                     try {
-                        Object objInstance = field.get(this);
-                        if (!field.isAnnotationPresent(JsonIgnore.class) && !SCIMUtils.isEmptyObject(objInstance)) {
+                        field.setAccessible(true);
+                        // SCIM-3 manage enterprise user
+                        if (SCIMEnterpriseUser.class.isAssignableFrom(field.getType()) && getEnterpriseUser() != null) {
                             field.setAccessible(true);
+                            addAttribute(
+                                    getEnterpriseUser().toAttributes(SCIMv2EnterpriseUser.SCHEMA_URI),
+                                    attrs,
+                                    field.getType());
+                        } else if (!field.isAnnotationPresent(JsonIgnore.class)
+                                && !SCIMUtils.isEmptyObject(field.get(this))) {
+                            Object objInstance = field.get(this);
 
                             if (field.getGenericType().toString().contains(SCIMGenericComplex.class.getName())) {
                                 if (field.getGenericType().toString()
@@ -1142,7 +1154,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                             }
                         }
                     } catch (IllegalAccessException e) {
-                        LOG.error("Unable to build user attributes by reflection", e);
+                        LOG.error(e, "Unable to build user attributes by reflection");
                     }
                 });
 

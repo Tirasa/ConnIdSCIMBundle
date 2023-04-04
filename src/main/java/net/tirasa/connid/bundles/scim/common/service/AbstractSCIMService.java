@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response.Status;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
@@ -48,8 +49,8 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public abstract class AbstractSCIMService<UT extends SCIMUser<Attribute, ? extends SCIMBaseMeta>>
-        implements SCIMService<UT> {
+public abstract class AbstractSCIMService<UT extends SCIMUser<Attribute, ? extends SCIMBaseMeta,
+        ? extends SCIMEnterpriseUser>> implements SCIMService<UT> {
 
     protected static final Log LOG = Log.getLog(AbstractSCIMService.class);
 

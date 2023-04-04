@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.tirasa.connid.bundles.scim.v11.dto;
+package net.tirasa.connid.bundles.scim.common.dto;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMComplex;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.reflect.FieldUtils;
 

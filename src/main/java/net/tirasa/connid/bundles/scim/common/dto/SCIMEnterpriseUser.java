@@ -15,31 +15,20 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
-import java.util.List;
-import java.util.Map;
+import java.io.Serializable;
 import java.util.Set;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public interface SCIMUser<AT, MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser>
-        extends SCIMBaseResource<AT, MT> {
+public interface SCIMEnterpriseUser<T extends Serializable> extends Serializable {
 
-    String getUserName();
+    String getEmployeeNumber();
 
-    void setUserName(String username);
+    void setEmployeeNumber(String employeeNumber);
 
-    void setPassword(String password);
+    T getManager();
 
-    void setActive(Boolean active);
+    void setManager(T manager);
 
-    void fillSCIMCustomAttributes(Set<Attribute> createAttributes, String customAttributesJSON);
+    Set<Attribute> toAttributes(String id) throws IllegalArgumentException, IllegalAccessException;
 
-    Map<String, List<Object>> getReturnedCustomAttributes();
-
-    Map<? extends SCIMBaseAttribute<?>, List<Object>> getSCIMCustomAttributes();
-
-    EUT getEnterpriseUser();
-
-    void fillEnterpriseUser(Set<Attribute> attributes);
-
-    void setEnterpriseUser(EUT enterpriseUser);
 }

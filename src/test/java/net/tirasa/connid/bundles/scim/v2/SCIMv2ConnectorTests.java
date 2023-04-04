@@ -45,6 +45,7 @@ import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import net.tirasa.connid.bundles.scim.v2.dto.Uniqueness;
 import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Client;
@@ -92,7 +93,7 @@ public class SCIMv2ConnectorTests {
 
     private static ConnectorFacade FACADE;
 
-    private static final List<String> CUSTOMS_OTHER_SCHEMAS = new ArrayList<>();
+    private static final List<String> CUSTOM_OTHER_SCHEMAS = new ArrayList<>();
 
     private static final List<String> CUSTOM_ATTRIBUTES_KEYS = new ArrayList<>();
 
@@ -133,10 +134,10 @@ public class SCIMv2ConnectorTests {
         // custom schemas
         if (PROPS.containsKey("auth.otherSchemas")
                 && PROPS.getProperty("auth.otherSchemas") != null) {
-            CUSTOMS_OTHER_SCHEMAS.addAll(
+            CUSTOM_OTHER_SCHEMAS.addAll(
                     Arrays.asList(PROPS.getProperty("auth.otherSchemas").split("\\s*,\\s*")));
         }
-        CUSTOMS_OTHER_SCHEMAS.add("urn:ietf:params:scim:schemas:core:2.0:User");
+        CUSTOM_OTHER_SCHEMAS.add("urn:ietf:params:scim:schemas:core:2.0:User");
 
         // custom attributes
         if (PROPS.containsKey("auth.customAttributesValues")
@@ -206,8 +207,21 @@ public class SCIMv2ConnectorTests {
         // custom attributes
         addCustomAttributes(userAttrs);
 
+        // enterprise v2 user info
+        userAttrs.add(
+                AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.employeeNumber",
+                        "12345"));
+        userAttrs.add(
+                AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.manager.value",
+                        "bulkId:qwerty"));
+
+
+//        urn:scim:schemas:extension:enterprise:1.0:employeeNumber
+//        urn:scim:schemas:extension:enterprise:1.0:manager.managerId
+//        urn:scim:schemas:extension:enterprise:1.0:manager.displayName
+
         // custom schemas
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOMS_OTHER_SCHEMAS));
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOM_OTHER_SCHEMAS));
 
         Uid created = FACADE.create(ObjectClass.ACCOUNT, userAttrs, new OperationOptionsBuilder().build());
         assertNotNull(created);
@@ -247,7 +261,16 @@ public class SCIMv2ConnectorTests {
         addCustomAttributes(userAttrs);
 
         // custom schemas
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOMS_OTHER_SCHEMAS));
+        CUSTOM_OTHER_SCHEMAS.add(SCIMv2EnterpriseUser.SCHEMA_URI);
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOM_OTHER_SCHEMAS));
+
+        // SCIM-3
+        userAttrs.add(
+                AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.employeeNumber",
+                        "56789"));
+        userAttrs.add(
+                AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.manager.value",
+                        "bulkId:asdsdfas"));
 
         Uid updated = FACADE.update(
                 ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
@@ -288,8 +311,8 @@ public class SCIMv2ConnectorTests {
                     SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + "."));
         }
 
+        List<ConnectorObject> found = new ArrayList<>();
         if (testCustomAttributes()) {
-            List<ConnectorObject> found = new ArrayList<>();
             FACADE.search(ObjectClass.ACCOUNT,
                     new EqualsFilter(new Name(user.getUserName())),
                     found::add,
@@ -306,6 +329,20 @@ public class SCIMv2ConnectorTests {
             }
             LOG.info("Found User using Connector search: {0}", found.get(0));
         }
+        // SCIM-3
+        found.clear();
+        FACADE.search(ObjectClass.ACCOUNT,
+                new EqualsFilter(new Name(user.getUserName())),
+                found::add,
+                new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
+                        "displayName", "active",
+                        SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber",
+                        SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value",
+                        "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(found.get(0).getAttributes(),
+                SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber"));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(found.get(0).getAttributes(),
+                SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value"));
 
         return user;
     }
@@ -315,7 +352,7 @@ public class SCIMv2ConnectorTests {
         String name = SCIMv2ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
         user.setUserName(name);
         user.setPassword(SCIMv2ConnectorTestsUtils.VALUE_PASSWORD);
-        user.getSchemas().addAll(CUSTOMS_OTHER_SCHEMAS);
+        user.getSchemas().addAll(CUSTOM_OTHER_SCHEMAS);
         user.setNickName(SCIMv2ConnectorTestsUtils.VALUE_NICK_NAME + uid.toString().substring(0, 10));
         user.setName(new SCIMUserName());
         user.getName().setFamilyName(SCIMv2ConnectorTestsUtils.VALUE_FAMILY_NAME);
@@ -357,6 +394,12 @@ public class SCIMv2ConnectorTests {
         luckyNumberAttribute.setType("integer");
         luckyNumberAttribute.setReturned("default");
         user.getSCIMCustomAttributes().putIfAbsent(luckyNumberAttribute, Collections.singletonList("7"));
+
+        SCIMv2EnterpriseUser enterpriseUser = new SCIMv2EnterpriseUser();
+        enterpriseUser.setEmployeeNumber("11111");
+        enterpriseUser.setManager(
+                new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager().displayName("amanager").value("22222"));
+        user.setEnterpriseUser(enterpriseUser);
 
         SCIMv2User created = client.createUser(user);
         assertNotNull(created);
@@ -480,7 +523,7 @@ public class SCIMv2ConnectorTests {
         // GET USER by userName
         List<SCIMv2User> users = client.getAllUsers(
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
+                        + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
         assertNotNull(users);
         assertFalse(users.isEmpty());
         assertNotNull(users.get(0).getId());
@@ -492,7 +535,7 @@ public class SCIMv2ConnectorTests {
     private static void deleteUsersServiceTest(final SCIMv2Client client, final String username) {
         PagedResults<SCIMv2User> users = client.getAllUsers(
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                + " sw \"" + username + "\"", 1, 100, testAttributesToGet());
+                        + " sw \"" + username + "\"", 1, 100, testAttributesToGet());
         assertNotNull(users);
         if (!users.getResources().isEmpty()) {
             for (SCIMv2User user : users.getResources()) {
@@ -581,7 +624,9 @@ public class SCIMv2ConnectorTests {
                 handler,
                 new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
                         "displayName", "active",
-                        "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
+                        "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber",
+                        SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber",
+                        SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value").build());
         assertNotNull(result);
         assertNull(result.getPagedResultsCookie());
         assertEquals(-1, result.getRemainingPagedResults());
@@ -590,11 +635,17 @@ public class SCIMv2ConnectorTests {
         assertTrue(handler.getObjects().stream().anyMatch(su -> user1.getUserName().equals(su.getName().getNameValue())
                 && BooleanUtils.toBoolean(su.getAttributeByName("active").getValue().get(0).toString())
                 && user1.getEmails().get(0).getValue().equals(
-                        AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
+                AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
                 && user2.getName().getFamilyName().equals(
-                        AttributeUtil.getAsStringValue(su.getAttributeByName("name.familyName")))
+                AttributeUtil.getAsStringValue(su.getAttributeByName("name.familyName")))
                 && 7 == AttributeUtil.getIntegerValue(su.getAttributeByName(
-                        "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber"))));
+                "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber"))
+                && user1.getEnterpriseUser().getEmployeeNumber()
+                .equals(AttributeUtil.getAsStringValue(su.getAttributeByName(
+                        SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber")))
+                && user1.getEnterpriseUser().getManager().getValue()
+                .equals(AttributeUtil.getAsStringValue(su.getAttributeByName(
+                        SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")))));
         assertTrue(handler.getObjects().stream().anyMatch(su -> user3.getUserName().equals(su.getName().getNameValue())
                 && !BooleanUtils.toBoolean(su.getAttributeByName("active").getValue().get(0).toString())));
         assertTrue(
@@ -686,11 +737,11 @@ public class SCIMv2ConnectorTests {
             assertTrue(user.getPhoneNumbers().stream()
                     .anyMatch(
                             pn -> PhoneNumberCanonicalType.home == pn.getType() && pn.isPrimary() && "123456789".equals(
-                            pn.getValue())));
+                                    pn.getValue())));
 
             assertTrue(user.getEmails().stream()
                     .anyMatch(email -> EmailCanonicalType.work == email.getType()
-                    && ("updated" + updatedUser.getUserName()).equals(email.getValue())));
+                            && ("updated" + updatedUser.getUserName()).equals(email.getValue())));
         } catch (Exception e) {
             LOG.error(e, "While running crud test");
             fail(e.getMessage());

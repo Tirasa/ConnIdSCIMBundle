@@ -16,20 +16,28 @@
 package net.tirasa.connid.bundles.scim.v11.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
 
 public class SCIMv11User
-        extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultComplex, SCIMDefaultComplex, SCIMv11Meta> {
+        extends
+        AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultComplex, SCIMDefaultComplex, SCIMv11Meta, SCIMv11EnterpriseUser> {
 
     private static final long serialVersionUID = -6868285123690771711L;
+
+    @JsonProperty(SCIMv11EnterpriseUser.SCHEMA_URI)
+    protected SCIMv11EnterpriseUser enterpriseUser;
 
     public SCIMv11User() {
         super();
@@ -86,6 +94,51 @@ public class SCIMv11User
                 }
             }
         }
+    }
+
+    @Override
+    public SCIMv11EnterpriseUser getEnterpriseUser() {
+        return this.enterpriseUser;
+    }
+
+    @Override
+    public void setEnterpriseUser(final SCIMv11EnterpriseUser enterpriseUser) {
+        this.enterpriseUser = enterpriseUser;
+    }
+
+    @Override
+    public void fillEnterpriseUser(final Set<Attribute> attributes) {
+        this.enterpriseUser = new SCIMv11EnterpriseUser();
+        attributes.stream().filter(a -> a.getName().startsWith(SCIMv11EnterpriseUser.SCHEMA_URI)).forEach(
+                a -> {
+                    SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager manager = enterpriseUser.getManager();
+                    switch (StringUtils.replace(a.getName(), SCIMv11EnterpriseUser.SCHEMA_URI + ".",
+                            StringUtils.EMPTY)) {
+                        case "employeeNumber":
+                            enterpriseUser.setEmployeeNumber(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "manager.managerId":
+                            manager = enterpriseUser.getManager();
+                            if (manager == null) {
+                                manager = new SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager();
+                                enterpriseUser.setManager(manager);
+                            }
+                            manager.setManagerId(AttributeUtil.getAsStringValue(a));
+                            break;
+                        case "manager.displayName":
+                            manager = enterpriseUser.getManager();
+                            if (manager == null) {
+                                manager = new SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager();
+                                enterpriseUser.setManager(manager);
+                            }
+                            manager.setDisplayName(AttributeUtil.getAsStringValue(a));
+                            break;
+                        default:
+                            // do nothing
+                    }
+
+                }
+        );
     }
 
     @JsonIgnore
