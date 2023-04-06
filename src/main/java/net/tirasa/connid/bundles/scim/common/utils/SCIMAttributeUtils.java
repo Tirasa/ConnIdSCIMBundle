@@ -22,8 +22,10 @@ import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11EnterpriseUser;
 import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
@@ -273,6 +275,44 @@ public final class SCIMAttributeUtils {
                     userBuilder.addAttributeInfo(attributeInfoBuilder.build());
                 }
             }
+        }
+
+        // SCIM-3 enterprise user
+        if (SCIMv2Attribute.class.equals(attrType)) {
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber")
+                            .setMultiValued(false).build());
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".costCenter")
+                            .setMultiValued(false).build());
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".organization")
+                            .setMultiValued(false).build());
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".division")
+                            .setMultiValued(false).build());
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".department")
+                            .setMultiValued(false).build());
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")
+                            .setMultiValued(false).build());
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.ref")
+                            .setMultiValued(false).build());
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.displayName")
+                            .setMultiValued(false).build());
+        } else {
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv11EnterpriseUser.SCHEMA_URI + ".employeeNumber")
+                            .setMultiValued(false).build());
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv11EnterpriseUser.SCHEMA_URI + ".manager.managerId")
+                            .setMultiValued(false).build());
+            userBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(SCIMv11EnterpriseUser.SCHEMA_URI + ".manager.displayName")
+                            .setMultiValued(false).build());
         }
 
         user = userBuilder.build();

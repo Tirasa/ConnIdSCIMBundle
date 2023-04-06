@@ -64,7 +64,7 @@ public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11Enterpri
     public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
         for (Field field : FieldUtils.getAllFieldsList(this.getClass()).stream().
-                filter(f -> !"SCHEMA_URI".equals(f.getName()) && !"serialVersionUID".equals(f.getName()))
+                filter(f -> !"SCHEMA_URI" .equals(f.getName()) && !"serialVersionUID" .equals(f.getName()))
                 .collect(Collectors.toList())) {
             if (SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager.class.equals(
                     field.getType()) && this.manager != null) {
@@ -81,7 +81,7 @@ public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11Enterpri
 
         private static final long serialVersionUID = -7930518578899296192L;
 
-        @JsonProperty("value")
+        @JsonProperty("managerId")
         private String managerId;
 
         @JsonProperty("displayName")
