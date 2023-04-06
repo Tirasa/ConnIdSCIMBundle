@@ -146,6 +146,13 @@ public class SCIMv2User
                             }
                             manager.setDisplayName(AttributeUtil.getAsStringValue(a));
                             break;
+                        case "manager.ref":
+                            if (manager == null) {
+                                manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
+                                enterpriseUser.setManager(manager);
+                            }
+                            manager.setRef(AttributeUtil.getAsStringValue(a));
+                            break;
                         default:
                             // do nothing
                     }
