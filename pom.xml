@@ -35,7 +35,7 @@
   <packaging>jar</packaging>
   
   <url>http://connid.tirasa.net</url>
-  <inceptionYear>2018</inceptionYear>
+  <inceptionYear>2023</inceptionYear>
   
   <licenses>
     <license>
@@ -46,9 +46,9 @@
   </licenses>
   
   <scm>
-    <connection>scm:git:git@github.com:Tirasa/ConnIdSCIMv11Bundle.git</connection>
-    <url>scm:git:git@github.com:Tirasa/ConnIdSCIMv11Bundle.git</url>
-    <developerConnection>scm:git:git@github.com:Tirasa/ConnIdSCIMv11Bundle.git</developerConnection>
+    <connection>scm:git:git@github.com:Tirasa/ConnIdSCIMBundle.git</connection>
+    <url>scm:git:git@github.com:Tirasa/ConnIdSCIMBundle.git</url>
+    <developerConnection>scm:git:git@github.com:Tirasa/ConnIdSCIMBundle.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
@@ -215,7 +215,7 @@
       <plugin>
         <groupId>org.gaul</groupId>
         <artifactId>modernizer-maven-plugin</artifactId>
-        <version>2.5.0</version>
+        <version>2.6.0</version>
         <configuration>
           <javaVersion>${targetJdk}</javaVersion>
         </configuration>
@@ -287,7 +287,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>3.3.1</version>
         <executions>
           <execution>
             <id>copy-artifact-legal-files</id>
