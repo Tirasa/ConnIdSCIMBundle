@@ -206,19 +206,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             LOG.error(e, "While validating baseAddress");
             failValidation("Base address must be a valid URL.");
         }
-        if (StringUtil.isBlank(bearerToken)) {
-            if (StringUtil.isBlank(username)
-                    && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
-                failValidation(
-                        "Username cannot be null or empty. Since clientId, clientSecret, "
-                                + "accessTokenNodeId and accessTokenBaseAddress are blank");
-            }
-            if (password != null && StringUtil.isBlank(SecurityUtil.decrypt(password))
-                    && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
-                failValidation(
-                        "Password Id cannot be null or empty.  Since clientId, clientSecret, "
-                                + "accessTokenNodeId and accessTokenBaseAddress are blank");
-            }
+        if (StringUtil.isBlank(username)
+                && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
+            failValidation(
+                    "Username cannot be null or empty. Since clientId, clientSecret, "
+                            + "accessTokenNodeId and accessTokenBaseAddress are blank");
+        }
+        if (password != null && StringUtil.isBlank(SecurityUtil.decrypt(password))
+                && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
+            failValidation(
+                    "Password Id cannot be null or empty.  Since clientId, clientSecret, "
+                            + "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
         if (StringUtil.isNotBlank(customAttributesJSON)) {
             try {

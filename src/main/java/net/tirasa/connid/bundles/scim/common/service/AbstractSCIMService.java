@@ -102,36 +102,35 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<Attribute, ? exten
     private String generateToken() {
         if (StringUtil.isNotBlank(config.getBearerToken())) {
             return config.getBearerToken();
-        } else {
-            WebClient webClient = WebClient
-                    .create(config.getAccessTokenBaseAddress())
-                    .type(config.getAccessTokenContentType())
-                    .accept(config.getAccept());
-
-            String contentUri = new StringBuilder("&client_id=")
-                    .append(config.getCliendId())
-                    .append("&client_secret=")
-                    .append(config.getClientSecret())
-                    .append("&username=")
-                    .append(config.getUsername())
-                    .append("&password=")
-                    .append(SecurityUtil.decrypt(config.getPassword()))
-                    .toString();
-            String token = null;
-            try {
-                Response response = webClient.post(contentUri);
-                String responseAsString = response.readEntity(String.class);
-                JsonNode result = SCIMUtils.MAPPER.readTree(responseAsString);
-                if (result == null || !result.hasNonNull(config.getAccessTokenNodeId())) {
-                    SCIMUtils.handleGeneralError("No access token found - " + responseAsString);
-                }
-                token = result.get(config.getAccessTokenNodeId()).textValue();
-            } catch (Exception ex) {
-                SCIMUtils.handleGeneralError("While obtaining authentication token", ex);
-            }
-
-            return token;
         }
+        WebClient webClient = WebClient
+                .create(config.getAccessTokenBaseAddress())
+                .type(config.getAccessTokenContentType())
+                .accept(config.getAccept());
+
+        String contentUri = new StringBuilder("&client_id=")
+                .append(config.getCliendId())
+                .append("&client_secret=")
+                .append(config.getClientSecret())
+                .append("&username=")
+                .append(config.getUsername())
+                .append("&password=")
+                .append(SecurityUtil.decrypt(config.getPassword()))
+                .toString();
+        String token = null;
+        try {
+            Response response = webClient.post(contentUri);
+            String responseAsString = response.readEntity(String.class);
+            JsonNode result = SCIMUtils.MAPPER.readTree(responseAsString);
+            if (result == null || !result.hasNonNull(config.getAccessTokenNodeId())) {
+                SCIMUtils.handleGeneralError("No access token found - " + responseAsString);
+            }
+            token = result.get(config.getAccessTokenNodeId()).textValue();
+        } catch (Exception ex) {
+            SCIMUtils.handleGeneralError("While obtaining authentication token", ex);
+        }
+
+        return token;
     }
 
     protected JsonNode doGet(final WebClient webClient) {
