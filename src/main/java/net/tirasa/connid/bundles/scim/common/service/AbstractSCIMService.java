@@ -66,10 +66,11 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<Attribute, ? exten
 
     protected WebClient getWebclient(final String path, final Map<String, String> params) {
         WebClient webClient;
-        if (StringUtil.isNotBlank(config.getCliendId())
+        if (StringUtil.isNotBlank(config.getBearerToken())
+                || (StringUtil.isNotBlank(config.getCliendId())
                 && StringUtil.isNotBlank(config.getClientSecret())
                 && StringUtil.isNotBlank(config.getAccessTokenBaseAddress())
-                && StringUtil.isNotBlank(config.getAccessTokenNodeId())) {
+                && StringUtil.isNotBlank(config.getAccessTokenNodeId()))) {
             webClient = WebClient.create(config.getBaseAddress())
                     .type(config.getAccept())
                     .accept(config.getContentType())
@@ -99,6 +100,9 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<Attribute, ? exten
     }
 
     private String generateToken() {
+        if (StringUtil.isNotBlank(config.getBearerToken())) {
+            return config.getBearerToken();
+        }
         WebClient webClient = WebClient
                 .create(config.getAccessTokenBaseAddress())
                 .type(config.getAccessTokenContentType())
