@@ -43,6 +43,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private GuardedString password;
 
+    private String bearerToken;
+
     private String baseAddress;
 
     private String customAttributesJSON;
@@ -113,8 +115,18 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.password = password;
     }
 
+    @ConfigurationProperty(displayMessageKey = "bearerToken.display",
+            helpMessageKey = "bearerToken.help", order = 6, confidential = true)
+    public String getBearerToken() {
+        return bearerToken;
+    }
+
+    public void setBearerToken(final String bearerToken) {
+        this.bearerToken = bearerToken;
+    }
+
     @ConfigurationProperty(displayMessageKey = "clientId.display",
-            helpMessageKey = "clientId.help", order = 6)
+            helpMessageKey = "clientId.help", order = 7)
     public String getCliendId() {
         return clientId;
     }
@@ -124,7 +136,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "clientSecret.display",
-            helpMessageKey = "clientSecret.help", order = 7, confidential = true)
+            helpMessageKey = "clientSecret.help", order = 8, confidential = true)
     public String getClientSecret() {
         return clientSecret;
     }
@@ -134,7 +146,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "customAttributesJSON.display",
-            helpMessageKey = "customAttributesJSON.help", order = 8)
+            helpMessageKey = "customAttributesJSON.help", order = 9)
     public String getCustomAttributesJSON() {
         return customAttributesJSON;
     }
@@ -144,7 +156,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "updateMethod.display",
-            helpMessageKey = "updateMethod.help", order = 9)
+            helpMessageKey = "updateMethod.help", order = 10)
     public String getUpdateMethod() {
         return updateMethod;
     }
@@ -154,7 +166,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "accessTokenNodeId.display",
-            helpMessageKey = "accessTokenNodeId.help", order = 10)
+            helpMessageKey = "accessTokenNodeId.help", order = 11)
     public String getAccessTokenNodeId() {
         return accessTokenNodeId;
     }
@@ -164,7 +176,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "accessTokenBaseAddress.display",
-            helpMessageKey = "accessTokenBaseAddress.help", order = 11)
+            helpMessageKey = "accessTokenBaseAddress.help", order = 12)
     public String getAccessTokenBaseAddress() {
         return accessTokenBaseAddress;
     }
@@ -174,7 +186,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "accessTokenContentType.display",
-            helpMessageKey = "accessTokenContentType.help", order = 12)
+            helpMessageKey = "accessTokenContentType.help", order = 13)
     public String getAccessTokenContentType() {
         return accessTokenContentType;
     }
@@ -194,17 +206,19 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             LOG.error(e, "While validating baseAddress");
             failValidation("Base address must be a valid URL.");
         }
-        if (StringUtil.isBlank(username)
-                && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
-            failValidation(
-                    "Username cannot be null or empty. Since clientId, clientSecret, "
-                    + "accessTokenNodeId and accessTokenBaseAddress are blank");
-        }
-        if (StringUtil.isBlank(SecurityUtil.decrypt(password))
-                && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
-            failValidation(
-                    "Password Id cannot be null or empty.  Since clientId, clientSecret, "
-                    + "accessTokenNodeId and accessTokenBaseAddress are blank");
+        if (StringUtil.isBlank(bearerToken)) {
+            if (StringUtil.isBlank(username)
+                    && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
+                failValidation(
+                        "Username cannot be null or empty. Since clientId, clientSecret, "
+                                + "accessTokenNodeId and accessTokenBaseAddress are blank");
+            }
+            if (password != null && StringUtil.isBlank(SecurityUtil.decrypt(password))
+                    && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
+                failValidation(
+                        "Password Id cannot be null or empty.  Since clientId, clientSecret, "
+                                + "accessTokenNodeId and accessTokenBaseAddress are blank");
+            }
         }
         if (StringUtil.isNotBlank(customAttributesJSON)) {
             try {
