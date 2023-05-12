@@ -15,12 +15,9 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Set;
 import java.util.TreeSet;
-
 import org.identityconnectors.common.logging.Log;
 
 public abstract class AbstractSCIMBaseResource<MT extends SCIMBaseMeta> implements SCIMBaseResource<MT> {

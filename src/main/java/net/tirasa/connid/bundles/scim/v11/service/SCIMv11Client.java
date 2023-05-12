@@ -17,6 +17,9 @@ package net.tirasa.connid.bundles.scim.v11.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
@@ -26,10 +29,6 @@ import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Group;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import org.apache.cxf.jaxrs.client.WebClient;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group> {
 
@@ -101,7 +100,8 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
     }
 
     @Override
-    protected PagedResults<SCIMv11Group> deserializeGroupPagedResults(String node) throws JsonProcessingException {
+    protected PagedResults<SCIMv11Group> deserializeGroupPagedResults(final String node) 
+            throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv11Group>>() {
         });
     }

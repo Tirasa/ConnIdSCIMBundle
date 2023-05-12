@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
@@ -288,6 +289,23 @@ public abstract class AbstractSCIMConnector<
             try {
                 user.setUserName(username);
                 user.setExternalId(externalId != null ? externalId : username);
+                // SCIM-1 manage groups
+                List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
+                if (groups != null && !groups.isEmpty()) {
+                    LOG.info("Adding groups {0} to user {1}", groups, user.getId());
+                    groups.forEach(g -> {
+                        GT group = client.getGroup(g);
+                        if (group == null) {
+                            LOG.error("Unable to add group {0} to the user, group does not exist", g);
+                        } else {
+                            user.getGroups().add(new BaseResourceReference.Builder()
+                                    .value(group.getId())
+                                    .ref("../Groups/" + group.getId())
+                                    .display(group.getDisplayName())
+                                    .build());
+                        }
+                    });
+                }
 
                 if (password == null) {
                     LOG.warn("Missing password attribute");
@@ -370,6 +388,23 @@ public abstract class AbstractSCIMConnector<
             UT user = buildNewUserEntity();
             user.setId(uid.getUidValue());
             user.setUserName(username);
+            // SCIM-1 manage groups
+            List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
+            if (groups != null && !groups.isEmpty()) {
+                LOG.info("Updating groups {0} of user {1}", groups, user.getId());
+                groups.forEach(g -> {
+                    GT group = client.getGroup(g);
+                    if (group == null) {
+                        LOG.error("Unable to add group {0} to the user, group does not exist", g);
+                    } else {
+                        user.getGroups().add(new BaseResourceReference.Builder()
+                                .value(group.getId())
+                                .ref("../Groups/" + group.getId())
+                                .display(group.getDisplayName())
+                                .build());
+                    }
+                });
+            }
 
             if (status == null
                     || status.getValue() == null
@@ -412,7 +447,6 @@ public abstract class AbstractSCIMConnector<
                 SCIMUtils.wrapGeneralError(
                         "Could not update User " + uid.getUidValue() + " from attributes ", e);
             }
-
 
         } else if (ObjectClass.GROUP.equals(objectClass)) {
             String displayName = accessor.findString(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME);

@@ -27,17 +27,7 @@ public class ResourceReference extends BaseResourceReference {
 
     }
 
-    private String display;
-
     private ReferenceType type;
-
-    public String getDisplay() {
-        return display;
-    }
-
-    public void setDisplay(final String display) {
-        this.display = display;
-    }
 
     public ReferenceType getType() {
         return type;

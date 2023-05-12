@@ -17,6 +17,8 @@ package net.tirasa.connid.bundles.scim.v2.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.Collections;
+import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
@@ -25,9 +27,6 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import org.identityconnectors.framework.common.objects.Attribute;
-
-import java.util.Collections;
-import java.util.Set;
 
 public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
 
@@ -81,7 +80,7 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
     public void activateUser(final String userId) {
         doActivateUser(userId);
     }
-    
+
     @Override
     public SCIMv2Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv2Group.class);
@@ -100,7 +99,7 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
     public void deleteGroup(final String groupId) {
         doDeleteGroup(groupId, getWebclient("Groups", null).path(groupId));
     }
-    
+
     @Override
     protected PagedResults<SCIMv2User> deserializeUserPagedResults(final String node) throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv2User>>() {
@@ -112,6 +111,5 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv2Group>>() {
         });
     }
-
 
 }

@@ -18,7 +18,6 @@ package net.tirasa.connid.bundles.scim.common.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,12 +82,12 @@ public class PagedResults<T extends SCIMBaseResource<? extends SCIMBaseMeta>> {
 
     @Override
     public String toString() {
-        return "PagedResults{" +
-                "totalResults=" + totalResults +
-                ", itemsPerPage=" + itemsPerPage +
-                ", startIndex=" + startIndex +
-                ", schemas=" + schemas +
-                ", resources=" + resources +
-                '}';
+        return "PagedResults{"
+                + "totalResults=" + totalResults
+                + ", itemsPerPage=" + itemsPerPage
+                + ", startIndex=" + startIndex
+                + ", schemas=" + schemas
+                + ", resources=" + resources
+                + '}';
     }
 }

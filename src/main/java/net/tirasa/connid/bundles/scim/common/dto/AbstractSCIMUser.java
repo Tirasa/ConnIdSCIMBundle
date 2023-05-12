@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.IMCanonicalType;
@@ -42,8 +43,9 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 
-public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT extends Serializable,
+public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
         CT extends SCIMComplexAttribute, MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser>
         extends AbstractSCIMBaseResource<MT> implements SCIMUser<MT, EUT> {
 
@@ -59,7 +61,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
 
     protected List<CT> entitlements = new ArrayList<>();
 
-    protected List<GT> groups = new ArrayList<>();
+    protected List<BaseResourceReference> groups = new ArrayList<>();
 
     protected List<SCIMGenericComplex<IMCanonicalType>> ims = new ArrayList<>();
 
@@ -144,7 +146,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
         return entitlements;
     }
 
-    public List<GT> getGroups() {
+    public List<BaseResourceReference> getGroups() {
         return groups;
     }
 
@@ -269,7 +271,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setGroups(final List<GT> groups) {
+    public void setGroups(final List<BaseResourceReference> groups) {
         this.groups = groups;
     }
 
@@ -1249,8 +1251,6 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                                 localId = SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS;
                                             } else if (roles.contains(ct)) {
                                                 localId = SCIMAttributeUtils.SCIM_USER_ROLES;
-                                            } else if (groups.contains(ct)) {
-                                                localId = SCIMAttributeUtils.SCIM_USER_GROUPS;
                                             }
                                         }
                                         if (localId != null) {
@@ -1292,6 +1292,11 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                                             attrs,
                                             field.getType());
                                 }
+                            } else if (SCIMAttributeUtils.SCIM_USER_GROUPS.equals(field.getName())) {
+                                // SCIM-1 manage groups
+                                List<BaseResourceReference> groupRefs = (List<BaseResourceReference>) objInstance;
+                                attrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, 
+                                        groupRefs.stream().map(g -> g.getValue()).collect(Collectors.toList())));
                             } else {
                                 attrs.add(SCIMAttributeUtils.buildAttributeFromClassField(field, this).build());
                             }

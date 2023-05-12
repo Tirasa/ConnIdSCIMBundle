@@ -17,13 +17,11 @@ package net.tirasa.connid.bundles.scim.common.service;
 
 import java.util.List;
 import java.util.Set;
-
+import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
-import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
-import org.identityconnectors.framework.common.objects.Attribute;
 
 public interface SCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>, 
         GT extends SCIMGroup<? extends SCIMBaseMeta>> {

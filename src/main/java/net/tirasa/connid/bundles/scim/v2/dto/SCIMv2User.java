@@ -17,8 +17,8 @@ package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
-import net.tirasa.connid.bundles.scim.common.dto.ResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
@@ -28,11 +28,8 @@ import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 
-import java.util.Set;
-
 public class SCIMv2User
-        extends AbstractSCIMUser<SCIMv2Attribute, ResourceReference, SCIMGenericComplex<String>, SCIMv2Meta,
-        SCIMv2EnterpriseUser> {
+        extends AbstractSCIMUser<SCIMv2Attribute, SCIMGenericComplex<String>, SCIMv2Meta, SCIMv2EnterpriseUser> {
 
     private static final long serialVersionUID = 7039988195599856857L;
 

@@ -18,7 +18,6 @@ package net.tirasa.connid.bundles.scim.common.dto;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser> extends SCIMBaseUser<MT> {
@@ -42,5 +41,7 @@ public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUse
     void fillEnterpriseUser(Set<Attribute> attributes);
 
     void setEnterpriseUser(EUT enterpriseUser);
+
+    List<BaseResourceReference> getGroups();
 
 }

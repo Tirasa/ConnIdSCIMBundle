@@ -19,7 +19,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
@@ -73,7 +72,7 @@ public final class SCIMAttributeUtils {
     public static final String SCIM_USER_X509CERTIFICATES = "x509Certificates";
 
     public static final String SCIM_USER_GROUPS = "groups";
-
+    
     public static final String SCIM_USER_PHOTOS = "photos";
 
     public static final String SCIM_USER_SCHEMAS = "schemas";
@@ -93,7 +92,7 @@ public final class SCIMAttributeUtils {
     public static final String SCIM_GROUP_DISPLAY_NAME = "displayName";
 
     public static final String SCIM_GROUP_MEMBERS = "members";
-
+    
     public static <T extends SCIMBaseAttribute<T>> Schema buildSchema(
             final String customAttributes, final Class<T> attrType) {
 

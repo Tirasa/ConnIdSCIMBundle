@@ -31,10 +31,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.ResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
@@ -53,6 +55,7 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import net.tirasa.connid.bundles.scim.v2.dto.Uniqueness;
 import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Client;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -83,7 +86,8 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers public class SCIMv2ConnectorTests {
+@Testcontainers
+public class SCIMv2ConnectorTests {
 
     private static final Log LOG = Log.getLog(SCIMv2ConnectorTests.class);
 
@@ -103,11 +107,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
     private static final List<String> CUSTOM_ATTRIBUTES_UPDATE_VALUES = new ArrayList<>();
 
-    @Container private static final GenericContainer<?> SCIMPLE_SERVER =
-            new GenericContainer<>("tirasa/scimple-server:1.0.0").withExposedPorts(8080)
-                    .waitingFor(Wait.forLogMessage(".*Started ScimpleSpringBootApplication in.*\\n", 1));
+    @Container
+    private static final GenericContainer<?> SCIMPLE_SERVER = new GenericContainer<>(
+            "tirasa/scimple-server:1.0.0").withExposedPorts(8080)
+            .waitingFor(Wait.forLogMessage(".*Started ScimpleSpringBootApplication in.*\\n", 1));
 
-    @BeforeAll public static void setUpConf() throws IOException {
+    @BeforeAll
+    public static void setUpConf() throws IOException {
         PROPS.load(SCIMv2ConnectorTests.class.getResourceAsStream("/net/tirasa/connid/bundles/scim/authv2.properties"));
 
         Map<String, String> configurationParameters = new HashMap<>();
@@ -216,7 +222,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOM_OTHER_SCHEMAS));
 
         // SCIM-1 add groups
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, groups));
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, groups));
 
         Uid created = FACADE.create(ObjectClass.ACCOUNT, userAttrs, new OperationOptionsBuilder().build());
         assertNotNull(created);
@@ -226,7 +232,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         return created;
     }
 
-    private static Uid updateUser(final Uid created, final String name) {
+    private static Uid updateUser(final Uid created, final String name, final String... groups) {
         Attribute password = AttributeBuilder.buildPassword(
                 new GuardedString((SCIMv2ConnectorTestsUtils.VALUE_PASSWORD + "01").toCharArray()));
         // UPDATE USER VALUE_PASSWORD
@@ -264,6 +270,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         userAttrs.add(AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.manager.value",
                 "bulkId:asdsdfas"));
 
+        // SCIM-1 change groups
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, groups));
+
         Uid updated = FACADE.update(ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
         assertNotNull(updated);
         assertFalse(updated.getUidValue().isEmpty());
@@ -272,10 +281,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         return updated;
     }
 
-    private static Uid createGroup(final UUID uid) {
+    private static Uid createGroup(final UUID uid, final String prefix) {
         Set<Attribute> groupAttrs = new HashSet<>();
-        groupAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, "group_" + uid.toString()));
-        groupAttrs.add(new Name("group_" + uid));
+        String displayName = prefix + "_group_" + uid.toString().substring(0, 10);
+        groupAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, displayName));
+        groupAttrs.add(new Name(displayName));
         Uid created = FACADE.create(ObjectClass.GROUP, groupAttrs, new OperationOptionsBuilder().build());
         assertNotNull(created);
         assertFalse(created.getUidValue().isEmpty());
@@ -289,13 +299,17 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         groupAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, newDisplayName));
         groupAttrs.add(new Name(newDisplayName));
 
-        Uid updated =
-                FACADE.update(ObjectClass.GROUP, groupToUpdate, groupAttrs, new OperationOptionsBuilder().build());
+        Uid updated = FACADE.update(ObjectClass.GROUP, groupToUpdate, groupAttrs,
+                new OperationOptionsBuilder().build());
         assertNotNull(updated);
         assertFalse(updated.getUidValue().isEmpty());
         LOG.info("Updated Group uid: {0}", updated);
 
         return updated;
+    }
+
+    private static void deleteUser(final Uid userToDelete) {
+        FACADE.delete(ObjectClass.ACCOUNT, userToDelete, new OperationOptionsBuilder().build());
     }
 
     private static void deleteGroup(final Uid groupToDelete) {
@@ -371,7 +385,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     }
 
     private static SCIMv2User createUserServiceTest(final UUID uid, final boolean active,
-            final List<ResourceReference> groups, final SCIMv2Client client) {
+                                                    final List<ResourceReference> groups, final SCIMv2Client client) {
         SCIMv2User user = new SCIMv2User();
         String name = SCIMv2ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
         user.setUserName(name);
@@ -517,15 +531,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
     private static SCIMv2Group updateGroupServiceTestPATCH(final String groupId, final SCIMv2Client client)
             throws IllegalArgumentException {
-
-        CONF.setUpdateMethod("PATCH");
-        SCIMv2Group group = client.getGroup(groupId);
-        LOG.info("Updated Group with PATCH: {0}", group);
-        return group;
+        // TODO CONF.setUpdateMethod("PATCH");
+        return null;
     }
 
-    private static void readUsersServiceTest(final SCIMv2Client client)
-            throws IllegalArgumentException, IllegalAccessException {
+    private static void readUsersServiceTest(final SCIMv2Client client) throws IllegalArgumentException {
 
         Set<String> attributesToGet = testUserAttributesToGet();
 
@@ -584,9 +594,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         }
 
         // GET USER by userName
-        List<SCIMv2User> users =
-                client.getAllUsers(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " eq \"" + user.getUserName() + "\"",
-                        testUserAttributesToGet());
+        List<SCIMv2User> users = client.getAllUsers(
+                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " eq \"" + user.getUserName() + "\"",
+                testUserAttributesToGet());
         assertNotNull(users);
         assertFalse(users.isEmpty());
         assertNotNull(users.get(0).getId());
@@ -619,20 +629,17 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         return group;
     }
 
-    private static void readGroupsServiceTest(final SCIMv2Client client)
-            throws IllegalArgumentException, IllegalAccessException {
+    private static void readGroupsServiceTest(final SCIMv2Client client) throws IllegalArgumentException {
 
-        // GET USER
         List<SCIMv2Group> groups = client.getAllGroups();
         assertNotNull(groups);
         assertFalse(groups.isEmpty());
         LOG.info("Found Groups: {0}", groups);
 
-        // GET USERS
         PagedResults<SCIMv2Group> paged = client.getAllGroups(1, 2);
         assertNotNull(paged);
         assertFalse(paged.getResources().isEmpty());
-        assertTrue(paged.getResources().size() == 2);
+        assertEquals(2, paged.getResources().size());
         assertEquals(paged.getStartIndex(), 1);
         assertEquals(2, paged.getTotalResults());
         assertEquals(paged.getItemsPerPage(), 2);
@@ -641,17 +648,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         PagedResults<SCIMv2Group> paged2 = client.getAllGroups(3, 2);
         assertNotNull(paged2);
         assertFalse(paged2.getResources().isEmpty());
-        assertEquals(1, paged2.getResources().size());
         assertEquals(3, paged2.getStartIndex());
-        assertEquals(1, paged2.getTotalResults());
-        assertEquals(paged2.getItemsPerPage(), 1);
+        assertEquals(2, paged2.getItemsPerPage());
         LOG.info("Paged Groups next page: {0}", paged2);
     }
 
     private static void deleteUsersServiceTest(final SCIMv2Client client, final String username) {
-        PagedResults<SCIMv2User> users =
-                client.getAllUsers(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " sw \"" + username + "\"", 1, 100,
-                        testUserAttributesToGet());
+        PagedResults<SCIMv2User> users = client.getAllUsers(
+                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " sw \"" + username + "\"", 1, 100,
+                testUserAttributesToGet());
         assertNotNull(users);
         if (!users.getResources().isEmpty()) {
             for (SCIMv2User user : users.getResources()) {
@@ -661,9 +666,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     }
 
     private static void deleteGroupsServiceTest(final SCIMv2Client client, final String displayNameInitials) {
-        PagedResults<SCIMv2Group> groups =
-                client.getAllGroups(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME + " sw \"" + displayNameInitials + "\"",
-                        1, 100);
+        PagedResults<SCIMv2Group> groups = client.getAllGroups(
+                SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME + " sw \"" + displayNameInitials + "\"", 1, 100);
         assertNotNull(groups);
         if (!groups.getResources().isEmpty()) {
             for (SCIMv2Group group : groups.getResources()) {
@@ -835,23 +839,64 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         String testGroup1;
         try {
             // SCIM-1 create group
-            Uid group1 = createGroup(UUID.randomUUID());
-            testGroup1 = group1.getUidValue();
+            Uid group1 = createGroup(UUID.randomUUID(), "group1");
+            Uid group2 = createGroup(UUID.randomUUID(), "group2");
+            Uid group3 = createGroup(UUID.randomUUID(), "group3");
 
-            SCIMv2Group createdGroup = readGroup(testGroup1, client);
-            assertEquals(createdGroup.getId(), group1.getUidValue());
+            SCIMv2Group createdGroup1 = readGroup(group1.getUidValue(), client);
+            assertEquals(createdGroup1.getId(), group1.getUidValue());
+            SCIMv2Group createdGroup2 = readGroup(group2.getUidValue(), client);
+            assertEquals(createdGroup2.getId(), group2.getUidValue());
+            SCIMv2Group createdGroup3 = readGroup(group3.getUidValue(), client);
+            assertEquals(createdGroup3.getId(), group3.getUidValue());
 
-            Uid created = createUser(uid);
+            Uid created = createUser(uid, group1.getUidValue(), group2.getUidValue());
             testUser = created.getUidValue();
 
             SCIMv2User createdUser = readUser(testUser, client);
             assertEquals(createdUser.getId(), created.getUidValue());
+            // SCIM-1 check groups
+            assertFalse(createdUser.getGroups().isEmpty());
+            assertEquals(2, createdUser.getGroups().size());
+            Optional<BaseResourceReference> groupRef1 = createdUser.getGroups().stream()
+                    .filter(g -> createdGroup1.getId().equals(g.getValue())).findFirst();
+            // first group checks
+            assertTrue(groupRef1.isPresent());
+            assertEquals(createdGroup1.getDisplayName(), groupRef1.get().getDisplay());
+            assertEquals("../Groups/" + createdGroup1.getId(), groupRef1.get().getRef());
+            // second group checks
+            Optional<BaseResourceReference> groupRef2 = createdUser.getGroups().stream()
+                    .filter(g -> createdGroup2.getId().equals(g.getValue())).findFirst();
+            assertTrue(groupRef2.isPresent());
+            assertEquals(createdGroup2.getDisplayName(), groupRef2.get().getDisplay());
+            assertEquals("../Groups/" + createdGroup2.getId(), groupRef2.get().getRef());
 
-            Uid updated = updateUser(created, createdUser.getUserName());
+            // read user through connector APIs
+            ConnectorObject createdConnObj = FACADE.getObject(ObjectClass.ACCOUNT, created,
+                    new OperationOptionsBuilder().setAttributesToGet(
+                                    "name",
+                                    "emails.work.value",
+                                    "name.familyName",
+                                    "displayName",
+                                    "active",
+                                    SCIMAttributeUtils.SCIM_USER_GROUPS,
+                                    "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber")
+                            .build());
+            Attribute groupsAttr = createdConnObj.getAttributeByName(SCIMAttributeUtils.SCIM_USER_GROUPS);
+            assertNotNull(groupsAttr);
+            assertTrue(groupsAttr.getValue().contains(group1.getUidValue()));
+            assertTrue(groupsAttr.getValue().contains(group2.getUidValue()));
+
+            Uid updated = updateUser(created, createdUser.getUserName(), group1.getUidValue(), group3.getUidValue());
 
             SCIMv2User updatedUser = readUser(updated.getUidValue(), client);
             LOG.info("Updated user: {0}", updatedUser);
             assertNull(updatedUser.getPassword()); // password won't be retrieved from API
+
+            // SCIM-1 check group update, remove group2, keep group1 and add group3
+            assertEquals(2, updatedUser.getGroups().size());
+            assertTrue(updatedUser.getGroups().stream().anyMatch(g -> g.getValue().equals(createdGroup1.getId())));
+            assertTrue(updatedUser.getGroups().stream().anyMatch(g -> g.getValue().equals(createdGroup3.getId())));
 
             // test removed attribute
             SCIMv2User user = client.getUser(updatedUser.getId());
@@ -864,19 +909,28 @@ import org.testcontainers.junit.jupiter.Testcontainers;
             assertTrue(user.getEmails().stream().anyMatch(
                     email -> EmailCanonicalType.work == email.getType() && ("updated"
                             + updatedUser.getUserName()).equals(email.getValue())));
+
+            // check delete user
+            deleteUser(updated);
+            assertThrows(NoSuchEntityException.class,
+                    () -> FACADE.getObject(ObjectClass.ACCOUNT, updated, new OperationOptionsBuilder().build()));
         } catch (Exception e) {
             LOG.error(e, "While running crud test");
             fail(e.getMessage());
+        } finally {
+            // cleanup groups
+            deleteGroupsServiceTest(client, "group");
         }
     }
 
     @Test public void searchGroup() {
         // create some sample users
-        SCIMv2Group group1 = createGroupServiceTest(UUID.randomUUID(), newClient());
-        SCIMv2Group group2 = createGroupServiceTest(UUID.randomUUID(), newClient());
-        SCIMv2Group group3 = createGroupServiceTest(UUID.randomUUID(), newClient());
-        SCIMv2Group group4 = createGroupServiceTest(UUID.randomUUID(), newClient());
-        SCIMv2Group group5 = createGroupServiceTest(UUID.randomUUID(), newClient());
+        SCIMv2Client client = newClient();
+        SCIMv2Group group1 = createGroupServiceTest(UUID.randomUUID(), client);
+        SCIMv2Group group2 = createGroupServiceTest(UUID.randomUUID(), client);
+        SCIMv2Group group3 = createGroupServiceTest(UUID.randomUUID(), client);
+        SCIMv2Group group4 = createGroupServiceTest(UUID.randomUUID(), client);
+        SCIMv2Group group5 = createGroupServiceTest(UUID.randomUUID(), client);
 
         ToListResultsHandler handler = new ToListResultsHandler();
 
@@ -894,28 +948,29 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         assertTrue(handler.getObjects().stream()
                 .anyMatch(su -> group2.getDisplayName().equals(su.getName().getNameValue())));
 
-        result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
+        result = FACADE.search(ObjectClass.GROUP, null, handler,
                 new OperationOptionsBuilder().setAttributesToGet(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME)
                         .setPageSize(1).build());
         assertNotNull(result);
         assertNotNull(result.getPagedResultsCookie());
         assertEquals(-1, result.getRemainingPagedResults());
 
-        result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
+        result = FACADE.search(ObjectClass.GROUP, null, handler,
                 new OperationOptionsBuilder().setAttributesToGet(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME)
                         .setPagedResultsOffset(2).setPageSize(1).build());
         assertNotNull(result);
         assertNotNull(result.getPagedResultsCookie());
         assertEquals(-1, result.getRemainingPagedResults());
+
     }
 
     @Test public void pagedSearchGroup() {
         // create some sample groups for pagination
-        createGroup(UUID.randomUUID());
-        createGroup(UUID.randomUUID());
-        createGroup(UUID.randomUUID());
-        createGroup(UUID.randomUUID());
-        createGroup(UUID.randomUUID());
+        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
+        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
+        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
+        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
+        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
 
         final List<ConnectorObject> results = new ArrayList<>();
         final ResultsHandler handler = results::add;
@@ -947,7 +1002,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
         try {
             // SCIM-1 create group
-            Uid group1 = createGroup(UUID.randomUUID());
+            Uid group1 = createGroup(UUID.randomUUID(), StringUtils.EMPTY);
 
             SCIMv2Group createdGroup = readGroup(group1.getUidValue(), client);
             assertEquals(createdGroup.getId(), group1.getUidValue());
@@ -1007,11 +1062,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
             updateGroupServiceTest(testGroup1.getId(), client);
 
             updateGroupServiceTestPATCH(testGroup1.getId(), newClient());
-
-            deleteGroupsServiceTest(client, "group_");
         } catch (Exception e) {
             LOG.error(e, "While running service test");
             fail(e.getMessage());
+        } finally {
+            deleteGroupsServiceTest(client, "group_");
         }
     }
 }

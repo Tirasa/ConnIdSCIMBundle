@@ -660,7 +660,6 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         return group;
     }
 
-
     @Override
     public PagedResults<GT> getAllGroups(final Integer startIndex, final Integer count) {
         Map<String, String> params = new HashMap<>();
@@ -700,7 +699,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         WebClient webClient = getWebclient("Users", params);
         return doGetAllGroups(webClient);
     }
-    
+
     protected PagedResults<GT> doGetAllGroups(final WebClient webClient) {
         PagedResults<GT> pagedResults = null;
         JsonNode node = doGet(webClient);
@@ -730,7 +729,6 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
     public GT createGroup(final GT group) {
         return doCreateGroup(group);
     }
-
 
     protected void doCreate(final GT group, final WebClient webClient) {
         LOG.ok("CREATE: {0}", webClient.getCurrentURI());
@@ -822,7 +820,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
             throw new NoSuchEntityException(groupId);
         }
     }
-    
+
     protected abstract PagedResults<UT> deserializeUserPagedResults(String node) throws JsonProcessingException;
     protected abstract PagedResults<GT> deserializeGroupPagedResults(String node) throws JsonProcessingException;
 

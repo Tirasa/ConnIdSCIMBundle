@@ -15,9 +15,6 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
-import java.io.Serializable;
-import java.util.Set;
-
 public interface SCIMBaseUser<MT extends SCIMBaseMeta> extends SCIMBaseResource<MT> {
 
     String getExternalId();

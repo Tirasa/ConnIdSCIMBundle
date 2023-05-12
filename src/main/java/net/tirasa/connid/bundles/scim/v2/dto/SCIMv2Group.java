@@ -1,10 +1,25 @@
-package net.tirasa.connid.bundles.scim.v2.dto;
+/**
+ * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMGroup;
-import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
+package net.tirasa.connid.bundles.scim.v2.dto;
 
 import java.util.List;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMGroup;
+import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 
 public class SCIMv2Group extends AbstractSCIMGroup<SCIMv2Meta> {
 
@@ -27,32 +42,32 @@ public class SCIMv2Group extends AbstractSCIMGroup<SCIMv2Meta> {
         public Builder() {
         }
 
-        public Builder meta(SCIMv2Meta meta) {
+        public Builder meta(final SCIMv2Meta meta) {
             this.meta = meta;
             return this;
         }
 
-        public Builder id(String id) {
+        public Builder id(final String id) {
             this.id = id;
             return this;
         }
 
-        public Builder displayName(String displayName) {
+        public Builder displayName(final String displayName) {
             this.displayName = displayName;
             return this;
         }
 
-        public Builder members(List<BaseResourceReference> members) {
+        public Builder members(final List<BaseResourceReference> members) {
             this.members = members;
             return this;
         }
 
-        public Builder schemas(Set<String> schemas) {
+        public Builder schemas(final Set<String> schemas) {
             this.schemas = schemas;
             return this;
         }
 
-        public Builder baseSchema(String baseSchema) {
+        public Builder baseSchema(final String baseSchema) {
             this.baseSchema = baseSchema;
             return this;
         }
@@ -72,13 +87,13 @@ public class SCIMv2Group extends AbstractSCIMGroup<SCIMv2Meta> {
 
     @Override
     public String toString() {
-        return "SCIMv2Group{" +
-                "displayName='" + displayName + '\'' +
-                ", members=" + members +
-                ", schemas=" + schemas +
-                ", baseSchema='" + baseSchema + '\'' +
-                ", meta=" + meta +
-                ", id='" + id + '\'' +
-                '}';
+        return "SCIMv2Group{"
+                + "displayName='" + displayName
+                + ", members=" + members
+                + ", schemas=" + schemas
+                + ", baseSchema='" + baseSchema
+                + ", meta=" + meta
+                + ", id='" + id
+                + '}';
     }
 }
