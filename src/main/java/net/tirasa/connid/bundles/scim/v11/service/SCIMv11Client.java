@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,19 +17,21 @@ package net.tirasa.connid.bundles.scim.v11.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Group;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import org.apache.cxf.jaxrs.client.WebClient;
 
-public class SCIMv11Client extends AbstractSCIMService<SCIMv11User> {
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group> {
 
     public SCIMv11Client(final SCIMConnectorConfiguration config) {
         super(config);
@@ -83,8 +85,24 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User> {
     }
 
     @Override
-    protected PagedResults<SCIMv11User> deserializePagedResults(final String node) throws JsonProcessingException {
+    public SCIMv11Group getGroup(final String groupId) {
+        return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv11Group.class);
+    }
+
+    @Override
+    public SCIMv11Group updateGroup(final SCIMv11Group group) {
+        return doUpdateGroup(group, Collections.emptySet(), SCIMv11Group.class);
+    }
+
+    @Override
+    protected PagedResults<SCIMv11User> deserializeUserPagedResults(final String node) throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv11User>>() {
+        });
+    }
+
+    @Override
+    protected PagedResults<SCIMv11Group> deserializeGroupPagedResults(String node) throws JsonProcessingException {
+        return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv11Group>>() {
         });
     }
 

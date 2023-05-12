@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,17 +17,19 @@ package net.tirasa.connid.bundles.scim.v2.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.util.Collections;
-import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv2Client extends AbstractSCIMService<SCIMv2User> {
+import java.util.Collections;
+import java.util.Set;
+
+public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
 
     public SCIMv2Client(final SCIMConnectorConfiguration config) {
         super(config);
@@ -79,11 +81,37 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User> {
     public void activateUser(final String userId) {
         doActivateUser(userId);
     }
+    
+    @Override
+    public SCIMv2Group getGroup(final String groupId) {
+        return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv2Group.class);
+    }
 
     @Override
-    protected PagedResults<SCIMv2User> deserializePagedResults(final String node) throws JsonProcessingException {
+    public SCIMv2Group updateGroup(final SCIMv2Group group) {
+        return doUpdateGroup(group, Collections.emptySet(), SCIMv2Group.class);
+    }
+
+    public SCIMv2Group updateGroup(final SCIMv2Group group, final Set<Attribute> replaceAttributes) {
+        return doUpdateGroup(group, replaceAttributes, SCIMv2Group.class);
+    }
+
+    @Override
+    public void deleteGroup(final String groupId) {
+        doDeleteGroup(groupId, getWebclient("Groups", null).path(groupId));
+    }
+    
+    @Override
+    protected PagedResults<SCIMv2User> deserializeUserPagedResults(final String node) throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv2User>>() {
         });
     }
+
+    @Override
+    protected PagedResults<SCIMv2Group> deserializeGroupPagedResults(final String node) throws JsonProcessingException {
+        return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv2Group>>() {
+        });
+    }
+
 
 }

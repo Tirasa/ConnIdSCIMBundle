@@ -19,6 +19,7 @@ import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Group;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;
 import org.identityconnectors.common.logging.Log;
@@ -28,7 +29,7 @@ import org.identityconnectors.framework.spi.ConnectorClass;
 @ConnectorClass(displayNameKey = "SCIMv11Connector.connector.display",
         configurationClass = SCIMConnectorConfiguration.class,
         messageCatalogPaths = {"net.tirasa.connid.bundles.scim.common.Messages"})
-public class SCIMv11Connector extends AbstractSCIMConnector<SCIMv11User, SCIMv11Client> {
+public class SCIMv11Connector extends AbstractSCIMConnector<SCIMv11User, SCIMv11Group, SCIMv11Client> {
 
     private static final Log LOG = Log.getLog(SCIMv11Connector.class);
 
@@ -58,6 +59,11 @@ public class SCIMv11Connector extends AbstractSCIMConnector<SCIMv11User, SCIMv11
     @Override
     protected SCIMv11User buildNewUserEntity() {
         return new SCIMv11User();
+    }
+
+    @Override
+    protected SCIMv11Group buildNewGroupEntity() {
+        return new SCIMv11Group();
     }
 
 }

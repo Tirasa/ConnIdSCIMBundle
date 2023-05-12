@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -34,6 +35,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
+import net.tirasa.connid.bundles.scim.common.dto.ResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
 import net.tirasa.connid.bundles.scim.common.service.NoSuchEntityException;
@@ -41,11 +44,11 @@ import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
-import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import net.tirasa.connid.bundles.scim.v2.dto.Uniqueness;
 import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Client;
@@ -80,8 +83,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers
-public class SCIMv2ConnectorTests {
+@Testcontainers public class SCIMv2ConnectorTests {
 
     private static final Log LOG = Log.getLog(SCIMv2ConnectorTests.class);
 
@@ -101,16 +103,12 @@ public class SCIMv2ConnectorTests {
 
     private static final List<String> CUSTOM_ATTRIBUTES_UPDATE_VALUES = new ArrayList<>();
 
-    @Container
-    private static final GenericContainer<?> SCIMPLE_SERVER =
-            new GenericContainer<>("tirasa/scimple-server:1.0.0")
-                    .withExposedPorts(8080)
+    @Container private static final GenericContainer<?> SCIMPLE_SERVER =
+            new GenericContainer<>("tirasa/scimple-server:1.0.0").withExposedPorts(8080)
                     .waitingFor(Wait.forLogMessage(".*Started ScimpleSpringBootApplication in.*\\n", 1));
 
-    @BeforeAll
-    public static void setUpConf() throws IOException {
-        PROPS.load(
-                SCIMv2ConnectorTests.class.getResourceAsStream("/net/tirasa/connid/bundles/scim/authv2.properties"));
+    @BeforeAll public static void setUpConf() throws IOException {
+        PROPS.load(SCIMv2ConnectorTests.class.getResourceAsStream("/net/tirasa/connid/bundles/scim/authv2.properties"));
 
         Map<String, String> configurationParameters = new HashMap<>();
         for (final String name : PROPS.stringPropertyNames()) {
@@ -132,10 +130,8 @@ public class SCIMv2ConnectorTests {
         }
 
         // custom schemas
-        if (PROPS.containsKey("auth.otherSchemas")
-                && PROPS.getProperty("auth.otherSchemas") != null) {
-            CUSTOM_OTHER_SCHEMAS.addAll(
-                    Arrays.asList(PROPS.getProperty("auth.otherSchemas").split("\\s*,\\s*")));
+        if (PROPS.containsKey("auth.otherSchemas") && PROPS.getProperty("auth.otherSchemas") != null) {
+            CUSTOM_OTHER_SCHEMAS.addAll(Arrays.asList(PROPS.getProperty("auth.otherSchemas").split("\\s*,\\s*")));
         }
         CUSTOM_OTHER_SCHEMAS.add("urn:ietf:params:scim:schemas:core:2.0:User");
 
@@ -145,8 +141,7 @@ public class SCIMv2ConnectorTests {
             CUSTOM_ATTRIBUTES_VALUES.addAll(
                     Arrays.asList(PROPS.getProperty("auth.customAttributesValues").split("\\s*,\\s*")));
         }
-        if (PROPS.containsKey("auth.customAttributesKeys")
-                && PROPS.getProperty("auth.customAttributesKeys") != null) {
+        if (PROPS.containsKey("auth.customAttributesKeys") && PROPS.getProperty("auth.customAttributesKeys") != null) {
             CUSTOM_ATTRIBUTES_KEYS.addAll(
                     Arrays.asList(PROPS.getProperty("auth.customAttributesKeys").split("\\s*,\\s*")));
         }
@@ -179,7 +174,7 @@ public class SCIMv2ConnectorTests {
         return CONN.getClient();
     }
 
-    private static Uid createUser(final UUID uid) {
+    private static Uid createUser(final UUID uid, final String... groups) {
         Attribute password = AttributeBuilder.buildPassword(
                 new GuardedString(SCIMv2ConnectorTestsUtils.VALUE_PASSWORD.toCharArray()));
         String name = SCIMv2ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
@@ -197,11 +192,10 @@ public class SCIMv2ConnectorTests {
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE, true));
         userAttrs.add(password);
 
-        if (PROPS.containsKey("auth.defaultEntitlement")
-                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            userAttrs.add(
-                    AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
-                            PROPS.getProperty("auth.defaultEntitlement")));
+        if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
+                PROPS.getProperty("auth.defaultEntitlement"))) {
+            userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
+                    PROPS.getProperty("auth.defaultEntitlement")));
         }
 
         // custom attributes
@@ -211,17 +205,18 @@ public class SCIMv2ConnectorTests {
         userAttrs.add(
                 AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.employeeNumber",
                         "12345"));
-        userAttrs.add(
-                AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.manager.value",
-                        "bulkId:qwerty"));
+        userAttrs.add(AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.manager.value",
+                "bulkId:qwerty"));
 
-
-//        urn:scim:schemas:extension:enterprise:1.0:employeeNumber
-//        urn:scim:schemas:extension:enterprise:1.0:manager.managerId
-//        urn:scim:schemas:extension:enterprise:1.0:manager.displayName
+        //        urn:scim:schemas:extension:enterprise:1.0:employeeNumber
+        //        urn:scim:schemas:extension:enterprise:1.0:manager.managerId
+        //        urn:scim:schemas:extension:enterprise:1.0:manager.displayName
 
         // custom schemas
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOM_OTHER_SCHEMAS));
+
+        // SCIM-1 add groups
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, groups));
 
         Uid created = FACADE.create(ObjectClass.ACCOUNT, userAttrs, new OperationOptionsBuilder().build());
         assertNotNull(created);
@@ -241,20 +236,18 @@ public class SCIMv2ConnectorTests {
                 SCIMv2ConnectorTestsUtils.VALUE_FAMILY_NAME));
         userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME,
                 SCIMv2ConnectorTestsUtils.VALUE_NICK_NAME + created.getUidValue().substring(0, 10)));
-        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE,
-                "updated" + name));
+        userAttrs.add(
+                AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE, "updated" + name));
         // no phone number -> delete
-        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_HOME_VALUE,
-                "123456789"));
+        userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_HOME_VALUE, "123456789"));
         userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_HOME_PRIMARY, true));
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE, true));
         userAttrs.add(password);
 
-        if (PROPS.containsKey("auth.defaultEntitlement")
-                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            userAttrs.add(
-                    AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
-                            PROPS.getProperty("auth.defaultEntitlement")));
+        if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
+                PROPS.getProperty("auth.defaultEntitlement"))) {
+            userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
+                    PROPS.getProperty("auth.defaultEntitlement")));
         }
 
         // custom attributes
@@ -268,17 +261,45 @@ public class SCIMv2ConnectorTests {
         userAttrs.add(
                 AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.employeeNumber",
                         "56789"));
-        userAttrs.add(
-                AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.manager.value",
-                        "bulkId:asdsdfas"));
+        userAttrs.add(AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.manager.value",
+                "bulkId:asdsdfas"));
 
-        Uid updated = FACADE.update(
-                ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
+        Uid updated = FACADE.update(ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
         assertNotNull(updated);
         assertFalse(updated.getUidValue().isEmpty());
         LOG.info("Updated User uid: {0}", updated);
 
         return updated;
+    }
+
+    private static Uid createGroup(final UUID uid) {
+        Set<Attribute> groupAttrs = new HashSet<>();
+        groupAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, "group_" + uid.toString()));
+        groupAttrs.add(new Name("group_" + uid));
+        Uid created = FACADE.create(ObjectClass.GROUP, groupAttrs, new OperationOptionsBuilder().build());
+        assertNotNull(created);
+        assertFalse(created.getUidValue().isEmpty());
+        LOG.info("Created Group uid: {0}", created);
+
+        return created;
+    }
+
+    private static Uid updateGroup(final Uid groupToUpdate, final String newDisplayName) {
+        Set<Attribute> groupAttrs = new HashSet<>();
+        groupAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, newDisplayName));
+        groupAttrs.add(new Name(newDisplayName));
+
+        Uid updated =
+                FACADE.update(ObjectClass.GROUP, groupToUpdate, groupAttrs, new OperationOptionsBuilder().build());
+        assertNotNull(updated);
+        assertFalse(updated.getUidValue().isEmpty());
+        LOG.info("Updated Group uid: {0}", updated);
+
+        return updated;
+    }
+
+    private static void deleteGroup(final Uid groupToDelete) {
+        FACADE.delete(ObjectClass.GROUP, groupToDelete, new OperationOptionsBuilder().build());
     }
 
     private static SCIMv2User readUser(final String id, final SCIMv2Client client)
@@ -297,25 +318,20 @@ public class SCIMv2ConnectorTests {
                 SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME));
-        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE));
-        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.SCIM_USER_SCHEMAS));
-        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
-        if (PROPS.containsKey("auth.defaultEntitlement")
-                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.SCIM_USER_SCHEMAS));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
+        if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
+                PROPS.getProperty("auth.defaultEntitlement"))) {
             assertTrue(SCIMv2ConnectorTestsUtils.containsAttribute(toAttributes,
                     SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + "."));
         }
 
         List<ConnectorObject> found = new ArrayList<>();
         if (testCustomAttributes()) {
-            FACADE.search(ObjectClass.ACCOUNT,
-                    new EqualsFilter(new Name(user.getUserName())),
-                    found::add,
+            FACADE.search(ObjectClass.ACCOUNT, new EqualsFilter(new Name(user.getUserName())), found::add,
                     new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
                             "displayName", "active",
                             "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
@@ -331,12 +347,9 @@ public class SCIMv2ConnectorTests {
         }
         // SCIM-3
         found.clear();
-        FACADE.search(ObjectClass.ACCOUNT,
-                new EqualsFilter(new Name(user.getUserName())),
-                found::add,
+        FACADE.search(ObjectClass.ACCOUNT, new EqualsFilter(new Name(user.getUserName())), found::add,
                 new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
-                        "displayName", "active",
-                        SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber",
+                        "displayName", "active", SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber",
                         SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value",
                         "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(found.get(0).getAttributes(),
@@ -347,7 +360,18 @@ public class SCIMv2ConnectorTests {
         return user;
     }
 
-    private static SCIMv2User createUserServiceTest(final UUID uid, final boolean active, final SCIMv2Client client) {
+    private static SCIMv2Group readGroup(final String id, final SCIMv2Client client) throws IllegalArgumentException {
+        SCIMv2Group group = client.getGroup(id);
+        assertNotNull(group);
+        assertNotNull(group.getId());
+        assertNotNull(group.getDisplayName());
+        LOG.info("Found Group: {0}", group);
+
+        return group;
+    }
+
+    private static SCIMv2User createUserServiceTest(final UUID uid, final boolean active,
+            final List<ResourceReference> groups, final SCIMv2Client client) {
         SCIMv2User user = new SCIMv2User();
         String name = SCIMv2ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
         user.setUserName(name);
@@ -376,8 +400,8 @@ public class SCIMv2ConnectorTests {
         userAddress.setPrimary(false);
         userAddress.setType(AddressCanonicalType.work);
         user.getAddresses().add(userAddress);
-        if (PROPS.containsKey("auth.defaultEntitlement")
-                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
+        if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
+                PROPS.getProperty("auth.defaultEntitlement"))) {
             SCIMGenericComplex<String> entitlement = new SCIMGenericComplex<>();
             entitlement.setValue(PROPS.getProperty("auth.defaultEntitlement"));
             user.getEntitlements().add(entitlement);
@@ -402,11 +426,26 @@ public class SCIMv2ConnectorTests {
         user.setEnterpriseUser(enterpriseUser);
 
         SCIMv2User created = client.createUser(user);
+        // SCIM-1 group to user group1 = new SCIMv2Group.Builder()
+        created.getGroups().addAll(groups);
         assertNotNull(created);
         assertNotNull(created.getId());
         LOG.info("Created user: {0}", created);
 
         return created;
+    }
+
+    private static SCIMv2Group createGroupServiceTest(final UUID uid, final SCIMv2Client client) {
+        SCIMv2Group group = new SCIMv2Group();
+        group.setId(uid.toString());
+        group.setDisplayName("group_" + uid.toString().substring(0, 10));
+
+        group = client.createGroup(group);
+        assertNotNull(group);
+        assertNotNull(group.getId());
+        LOG.info("Created group: {0}", group);
+
+        return group;
     }
 
     private static SCIMv2User updateUserServiceTest(final String userId, final SCIMv2Client client) {
@@ -449,6 +488,24 @@ public class SCIMv2ConnectorTests {
         return updated;
     }
 
+    private static SCIMv2Group updateGroupServiceTest(final String groupId, final SCIMv2Client client) {
+        SCIMv2Group group = client.getGroup(groupId);
+
+        // want to update the displayName
+        String oldDisplayName = group.getDisplayName();
+        String newDisplayName = "Updated_" + oldDisplayName;
+        group.setDisplayName(newDisplayName);
+
+        LOG.warn("Update group: {0}", group);
+        SCIMv2Group updated = client.updateGroup(group);
+        assertNotNull(group);
+        assertFalse(updated.getDisplayName().equals(oldDisplayName));
+        assertEquals(updated.getDisplayName(), newDisplayName);
+        LOG.info("Updated Group with PUT: {0}", updated);
+
+        return updated;
+    }
+
     private static SCIMv2User updateUserServiceTestPATCH(final String userId, final SCIMv2Client client)
             throws IllegalArgumentException {
 
@@ -458,10 +515,19 @@ public class SCIMv2ConnectorTests {
         return user;
     }
 
+    private static SCIMv2Group updateGroupServiceTestPATCH(final String groupId, final SCIMv2Client client)
+            throws IllegalArgumentException {
+
+        CONF.setUpdateMethod("PATCH");
+        SCIMv2Group group = client.getGroup(groupId);
+        LOG.info("Updated Group with PATCH: {0}", group);
+        return group;
+    }
+
     private static void readUsersServiceTest(final SCIMv2Client client)
             throws IllegalArgumentException, IllegalAccessException {
 
-        Set<String> attributesToGet = testAttributesToGet();
+        Set<String> attributesToGet = testUserAttributesToGet();
 
         // GET USER
         List<SCIMv2User> users = client.getAllUsers(attributesToGet);
@@ -504,26 +570,23 @@ public class SCIMv2ConnectorTests {
                 SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME));
-        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE));
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS));
-        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.SCIM_USER_SCHEMAS));
-        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
-                SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
-        if (PROPS.containsKey("auth.defaultEntitlement")
-                && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.SCIM_USER_SCHEMAS));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
+        if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
+                PROPS.getProperty("auth.defaultEntitlement"))) {
             assertTrue(SCIMv2ConnectorTestsUtils.containsAttribute(toAttributes,
                     SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + "."));
         }
 
         // GET USER by userName
-        List<SCIMv2User> users = client.getAllUsers(
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                        + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
+        List<SCIMv2User> users =
+                client.getAllUsers(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " eq \"" + user.getUserName() + "\"",
+                        testUserAttributesToGet());
         assertNotNull(users);
         assertFalse(users.isEmpty());
         assertNotNull(users.get(0).getId());
@@ -532,10 +595,63 @@ public class SCIMv2ConnectorTests {
         return user;
     }
 
+    private static SCIMv2Group readGroupServiceTest(final String id, final SCIMv2Client client)
+            throws IllegalArgumentException, IllegalAccessException {
+        SCIMv2Group group = client.getGroup(id);
+        assertNotNull(group);
+        assertNotNull(group.getId());
+        LOG.info("Found Group: {0}", group);
+
+        // USER TO ATTRIBUTES
+        Set<Attribute> toAttributes = group.toAttributes(group.getClass(), CONF);
+        LOG.info("User to attributes: {0}", toAttributes);
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMv2ConnectorTestsUtils.DISPLAY_NAME));
+
+        // search group by displayName
+        List<SCIMv2Group> groups = client.getAllGroups(
+                SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME + " eq \"" + group.getDisplayName() + "\"");
+        assertNotNull(groups);
+        assertFalse(groups.isEmpty());
+        assertNotNull(groups.get(0).getId());
+        assertNotNull(groups.get(0).getDisplayName());
+        LOG.info("Found Groups by displayName: {0}", groups.get(0));
+
+        return group;
+    }
+
+    private static void readGroupsServiceTest(final SCIMv2Client client)
+            throws IllegalArgumentException, IllegalAccessException {
+
+        // GET USER
+        List<SCIMv2Group> groups = client.getAllGroups();
+        assertNotNull(groups);
+        assertFalse(groups.isEmpty());
+        LOG.info("Found Groups: {0}", groups);
+
+        // GET USERS
+        PagedResults<SCIMv2Group> paged = client.getAllGroups(1, 2);
+        assertNotNull(paged);
+        assertFalse(paged.getResources().isEmpty());
+        assertTrue(paged.getResources().size() == 2);
+        assertEquals(paged.getStartIndex(), 1);
+        assertEquals(2, paged.getTotalResults());
+        assertEquals(paged.getItemsPerPage(), 2);
+        LOG.info("Paged Groups: {0}", paged);
+
+        PagedResults<SCIMv2Group> paged2 = client.getAllGroups(3, 2);
+        assertNotNull(paged2);
+        assertFalse(paged2.getResources().isEmpty());
+        assertEquals(1, paged2.getResources().size());
+        assertEquals(3, paged2.getStartIndex());
+        assertEquals(1, paged2.getTotalResults());
+        assertEquals(paged2.getItemsPerPage(), 1);
+        LOG.info("Paged Groups next page: {0}", paged2);
+    }
+
     private static void deleteUsersServiceTest(final SCIMv2Client client, final String username) {
-        PagedResults<SCIMv2User> users = client.getAllUsers(
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                        + " sw \"" + username + "\"", 1, 100, testAttributesToGet());
+        PagedResults<SCIMv2User> users =
+                client.getAllUsers(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " sw \"" + username + "\"", 1, 100,
+                        testUserAttributesToGet());
         assertNotNull(users);
         if (!users.getResources().isEmpty()) {
             for (SCIMv2User user : users.getResources()) {
@@ -544,26 +660,39 @@ public class SCIMv2ConnectorTests {
         }
     }
 
+    private static void deleteGroupsServiceTest(final SCIMv2Client client, final String displayNameInitials) {
+        PagedResults<SCIMv2Group> groups =
+                client.getAllGroups(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME + " sw \"" + displayNameInitials + "\"",
+                        1, 100);
+        assertNotNull(groups);
+        if (!groups.getResources().isEmpty()) {
+            for (SCIMv2Group group : groups.getResources()) {
+                client.deleteGroup(group.getId());
+            }
+        }
+
+        groups = client.getAllGroups(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME + " sw \"" + displayNameInitials + "\"",
+                1, 100);
+
+        assertTrue(groups.getResources().isEmpty());
+    }
+
     private static void addCustomAttributes(final Set<Attribute> userAttrs) {
         if (testCustomAttributes()) {
             for (int i = 0; i < CUSTOM_ATTRIBUTES_VALUES.size(); i++) {
-                userAttrs.add(AttributeBuilder.build(
-                        CUSTOM_ATTRIBUTES_KEYS.get(i),
-                        CUSTOM_ATTRIBUTES_VALUES.get(i)));
+                userAttrs.add(AttributeBuilder.build(CUSTOM_ATTRIBUTES_KEYS.get(i), CUSTOM_ATTRIBUTES_VALUES.get(i)));
             }
         }
     }
 
     private static boolean testCustomAttributes() {
-        return StringUtil.isNotBlank(CONF.getCustomAttributesJSON())
-                && !CUSTOM_ATTRIBUTES_KEYS.isEmpty()
-                && !CUSTOM_ATTRIBUTES_VALUES.isEmpty()
-                && !CUSTOM_ATTRIBUTES_UPDATE_VALUES.isEmpty();
+        return StringUtil.isNotBlank(CONF.getCustomAttributesJSON()) && !CUSTOM_ATTRIBUTES_KEYS.isEmpty()
+                && !CUSTOM_ATTRIBUTES_VALUES.isEmpty() && !CUSTOM_ATTRIBUTES_UPDATE_VALUES.isEmpty();
     }
 
-    private static Set<String> testAttributesToGet() {
+    private static Set<String> testUserAttributesToGet() {
         Set<String> attributesToGet = new HashSet<>();
-        attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_ID);
+        attributesToGet.add(SCIMAttributeUtils.ATTRIBUTE_ID);
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_PASSWORD);
         attributesToGet.add(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME);
@@ -571,57 +700,54 @@ public class SCIMv2ConnectorTests {
         return attributesToGet;
     }
 
-    @AfterEach
-    public void cleanup() {
+    @AfterEach public void cleanup() {
         // check that the user has effectively been removed
         try {
             ToListResultsHandler handler = new ToListResultsHandler();
-            FACADE.search(ObjectClass.ACCOUNT,
-                    null,
-                    handler,
+            FACADE.search(ObjectClass.ACCOUNT, null, handler,
                     new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
                             "displayName", "active",
                             "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
-            handler.getObjects().forEach(user
-                    -> FACADE.delete(ObjectClass.ACCOUNT, user.getUid(), new OperationOptionsBuilder().build()));
+            handler.getObjects().forEach(
+                    user -> FACADE.delete(ObjectClass.ACCOUNT, user.getUid(), new OperationOptionsBuilder().build()));
         } catch (NoSuchEntityException nsee) {
             LOG.ok(nsee, "No user found, as expected");
         }
     }
 
-    @Test
-    public void validate() {
+    @Test public void validate() {
         FACADE.validate();
     }
 
-    @Test
-    public void schema() {
+    @Test public void schema() {
         Schema schema = FACADE.schema();
-        assertEquals(1, schema.getObjectClassInfo().size());
+        assertEquals(2, schema.getObjectClassInfo().size());
 
         boolean accountFound = false;
+        boolean groupFound = false;
         for (ObjectClassInfo oci : schema.getObjectClassInfo()) {
             if (ObjectClass.ACCOUNT_NAME.equals(oci.getType())) {
                 accountFound = true;
             }
+            if (ObjectClass.GROUP_NAME.equals(oci.getType())) {
+                groupFound = true;
+            }
         }
         assertTrue(accountFound);
+        assertTrue(groupFound);
     }
 
-    @Test
-    public void search() {
+    @Test public void search() {
         // create some sample users
-        SCIMv2User user1 = createUserServiceTest(UUID.randomUUID(), true, newClient());
-        SCIMv2User user2 = createUserServiceTest(UUID.randomUUID(), true, newClient());
-        SCIMv2User user3 = createUserServiceTest(UUID.randomUUID(), false, newClient());
-        SCIMv2User user4 = createUserServiceTest(UUID.randomUUID(), true, newClient());
-        SCIMv2User user5 = createUserServiceTest(UUID.randomUUID(), true, newClient());
+        SCIMv2User user1 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
+        SCIMv2User user2 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
+        SCIMv2User user3 = createUserServiceTest(UUID.randomUUID(), false, Collections.emptyList(), newClient());
+        SCIMv2User user4 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
+        SCIMv2User user5 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
 
         ToListResultsHandler handler = new ToListResultsHandler();
 
-        SearchResult result = FACADE.search(ObjectClass.ACCOUNT,
-                null,
-                handler,
+        SearchResult result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
                 new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
                         "displayName", "active",
                         "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber",
@@ -632,50 +758,41 @@ public class SCIMv2ConnectorTests {
         assertEquals(-1, result.getRemainingPagedResults());
         assertFalse(handler.getObjects().isEmpty());
         // verify keys
-        assertTrue(handler.getObjects().stream().anyMatch(su -> user1.getUserName().equals(su.getName().getNameValue())
-                && BooleanUtils.toBoolean(su.getAttributeByName("active").getValue().get(0).toString())
-                && user1.getEmails().get(0).getValue().equals(
-                AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
-                && user2.getName().getFamilyName().equals(
-                AttributeUtil.getAsStringValue(su.getAttributeByName("name.familyName")))
-                && 7 == AttributeUtil.getIntegerValue(su.getAttributeByName(
-                "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber"))
-                && user1.getEnterpriseUser().getEmployeeNumber()
-                .equals(AttributeUtil.getAsStringValue(su.getAttributeByName(
-                        SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber")))
-                && user1.getEnterpriseUser().getManager().getValue()
-                .equals(AttributeUtil.getAsStringValue(su.getAttributeByName(
-                        SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")))));
-        assertTrue(handler.getObjects().stream().anyMatch(su -> user3.getUserName().equals(su.getName().getNameValue())
-                && !BooleanUtils.toBoolean(su.getAttributeByName("active").getValue().get(0).toString())));
+        assertTrue(handler.getObjects().stream().anyMatch(
+                su -> user1.getUserName().equals(su.getName().getNameValue()) && BooleanUtils.toBoolean(
+                        su.getAttributeByName("active").getValue().get(0).toString()) && user1.getEmails().get(0)
+                        .getValue().equals(AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
+                        && user2.getName().getFamilyName()
+                        .equals(AttributeUtil.getAsStringValue(su.getAttributeByName("name.familyName")))
+                        && 7 == AttributeUtil.getIntegerValue(
+                        su.getAttributeByName("urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber"))
+                        && user1.getEnterpriseUser().getEmployeeNumber().equals(AttributeUtil.getAsStringValue(
+                        su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber")))
+                        && user1.getEnterpriseUser().getManager().getValue().equals(AttributeUtil.getAsStringValue(
+                        su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")))));
+        assertTrue(handler.getObjects().stream().anyMatch(
+                su -> user3.getUserName().equals(su.getName().getNameValue()) && !BooleanUtils.toBoolean(
+                        su.getAttributeByName("active").getValue().get(0).toString())));
         assertTrue(
                 handler.getObjects().stream().anyMatch(su -> user4.getUserName().equals(su.getName().getNameValue())));
         // verify attributes
 
-        result = FACADE.search(ObjectClass.ACCOUNT,
-                null,
-                handler,
-                new OperationOptionsBuilder()
-                        .setAttributesToGet("name", "emails.work.value", "name.familyName", "displayName", "active")
-                        .setPageSize(1).build());
+        result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
+                new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
+                        "displayName", "active").setPageSize(1).build());
         assertNotNull(result);
         assertNotNull(result.getPagedResultsCookie());
         assertEquals(-1, result.getRemainingPagedResults());
 
-        result = FACADE.search(ObjectClass.ACCOUNT,
-                null,
-                handler,
-                new OperationOptionsBuilder()
-                        .setAttributesToGet("name", "emails.work.value", "name.familyName",
-                                "displayName", "active")
-                        .setPagedResultsOffset(2).setPageSize(1).build());
+        result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
+                new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
+                        "displayName", "active").setPagedResultsOffset(2).setPageSize(1).build());
         assertNotNull(result);
         assertNotNull(result.getPagedResultsCookie());
         assertEquals(-1, result.getRemainingPagedResults());
     }
 
-    @Test
-    public void pagedSearch() {
+    @Test public void pagedSearchUser() {
         // create some sample users for pagination
         createUser(UUID.randomUUID());
         createUser(UUID.randomUUID());
@@ -709,14 +826,21 @@ public class SCIMv2ConnectorTests {
         assertTrue(results.size() > 3);
     }
 
-    @Test
-    public void crud() {
+    @Test public void crudUser() {
         SCIMv2Client client = newClient();
 
         UUID uid = UUID.randomUUID();
 
         String testUser;
+        String testGroup1;
         try {
+            // SCIM-1 create group
+            Uid group1 = createGroup(UUID.randomUUID());
+            testGroup1 = group1.getUidValue();
+
+            SCIMv2Group createdGroup = readGroup(testGroup1, client);
+            assertEquals(createdGroup.getId(), group1.getUidValue());
+
             Uid created = createUser(uid);
             testUser = created.getUidValue();
 
@@ -732,32 +856,126 @@ public class SCIMv2ConnectorTests {
             // test removed attribute
             SCIMv2User user = client.getUser(updatedUser.getId());
             assertNotNull(user);
-            assertTrue(user.getPhoneNumbers().stream()
-                    .noneMatch(pn -> PhoneNumberCanonicalType.other == pn.getType()));
-            assertTrue(user.getPhoneNumbers().stream()
-                    .anyMatch(
-                            pn -> PhoneNumberCanonicalType.home == pn.getType() && pn.isPrimary() && "123456789".equals(
-                                    pn.getValue())));
+            assertTrue(user.getPhoneNumbers().stream().noneMatch(pn -> PhoneNumberCanonicalType.other == pn.getType()));
+            assertTrue(user.getPhoneNumbers().stream().anyMatch(
+                    pn -> PhoneNumberCanonicalType.home == pn.getType() && pn.isPrimary() && "123456789".equals(
+                            pn.getValue())));
 
-            assertTrue(user.getEmails().stream()
-                    .anyMatch(email -> EmailCanonicalType.work == email.getType()
-                            && ("updated" + updatedUser.getUserName()).equals(email.getValue())));
+            assertTrue(user.getEmails().stream().anyMatch(
+                    email -> EmailCanonicalType.work == email.getType() && ("updated"
+                            + updatedUser.getUserName()).equals(email.getValue())));
         } catch (Exception e) {
             LOG.error(e, "While running crud test");
             fail(e.getMessage());
         }
     }
 
-    @Test
-    public void serviceTest() {
+    @Test public void searchGroup() {
+        // create some sample users
+        SCIMv2Group group1 = createGroupServiceTest(UUID.randomUUID(), newClient());
+        SCIMv2Group group2 = createGroupServiceTest(UUID.randomUUID(), newClient());
+        SCIMv2Group group3 = createGroupServiceTest(UUID.randomUUID(), newClient());
+        SCIMv2Group group4 = createGroupServiceTest(UUID.randomUUID(), newClient());
+        SCIMv2Group group5 = createGroupServiceTest(UUID.randomUUID(), newClient());
+
+        ToListResultsHandler handler = new ToListResultsHandler();
+
+        SearchResult result = FACADE.search(ObjectClass.GROUP, null, handler,
+                new OperationOptionsBuilder().setAttributesToGet(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME).build());
+        assertNotNull(result);
+        assertNull(result.getPagedResultsCookie());
+        assertEquals(-1, result.getRemainingPagedResults());
+        assertFalse(handler.getObjects().isEmpty());
+        assertTrue(handler.getObjects().stream().anyMatch(
+                su -> group1.getDisplayName().equals(su.getName().getNameValue())
+                        && su.getAttributeByName(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME) != null
+                        && su.getAttributeByName(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME).getValue()
+                        .contains(group1.getDisplayName())));
+        assertTrue(handler.getObjects().stream()
+                .anyMatch(su -> group2.getDisplayName().equals(su.getName().getNameValue())));
+
+        result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
+                new OperationOptionsBuilder().setAttributesToGet(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME)
+                        .setPageSize(1).build());
+        assertNotNull(result);
+        assertNotNull(result.getPagedResultsCookie());
+        assertEquals(-1, result.getRemainingPagedResults());
+
+        result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
+                new OperationOptionsBuilder().setAttributesToGet(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME)
+                        .setPagedResultsOffset(2).setPageSize(1).build());
+        assertNotNull(result);
+        assertNotNull(result.getPagedResultsCookie());
+        assertEquals(-1, result.getRemainingPagedResults());
+    }
+
+    @Test public void pagedSearchGroup() {
+        // create some sample groups for pagination
+        createGroup(UUID.randomUUID());
+        createGroup(UUID.randomUUID());
+        createGroup(UUID.randomUUID());
+        createGroup(UUID.randomUUID());
+        createGroup(UUID.randomUUID());
+
+        final List<ConnectorObject> results = new ArrayList<>();
+        final ResultsHandler handler = results::add;
+
+        final OperationOptionsBuilder oob = new OperationOptionsBuilder();
+        oob.setPageSize(2);
+        oob.setSortKeys(new SortKey("displayName", false));
+
+        FACADE.search(ObjectClass.GROUP, null, handler, oob.build());
+
+        assertEquals(2, results.size());
+
+        results.clear();
+
+        String cookie = "";
+        do {
+            oob.setPagedResultsCookie(cookie);
+            final SearchResult searchResult = FACADE.search(ObjectClass.GROUP, null, handler, oob.build());
+            cookie = searchResult.getPagedResultsCookie();
+        } while (cookie != null);
+
+        LOG.info("Paged search results : {0}", results);
+
+        assertTrue(results.size() > 3);
+    }
+
+    @Test public void crudGroup() {
+        SCIMv2Client client = newClient();
+
+        try {
+            // SCIM-1 create group
+            Uid group1 = createGroup(UUID.randomUUID());
+
+            SCIMv2Group createdGroup = readGroup(group1.getUidValue(), client);
+            assertEquals(createdGroup.getId(), group1.getUidValue());
+            assertNotNull(FACADE.getObject(ObjectClass.GROUP, new Uid(createdGroup.getId()),
+                    new OperationOptionsBuilder().build()));
+
+            Uid updated = updateGroup(group1, "updated_" + createdGroup.getDisplayName());
+            SCIMv2Group updatedGroup = readGroup(updated.getUidValue(), client);
+            assertEquals("updated_" + createdGroup.getDisplayName(), updatedGroup.getDisplayName());
+
+            deleteGroup(updated);
+            assertThrows(NoSuchEntityException.class,
+                    () -> FACADE.getObject(ObjectClass.GROUP, updated, new OperationOptionsBuilder().build()));
+        } catch (Exception e) {
+            LOG.error(e, "While running crud test");
+            fail(e.getMessage());
+        }
+    }
+
+    @Test public void serviceTestUser() {
         SCIMv2Client client = newClient();
 
         String testUser;
         try {
-            SCIMv2User created1 = createUserServiceTest(UUID.randomUUID(), true, client);
-            SCIMv2User created2 = createUserServiceTest(UUID.randomUUID(), true, client);
-            SCIMv2User created3 = createUserServiceTest(UUID.randomUUID(), true, client);
-            SCIMv2User created4 = createUserServiceTest(UUID.randomUUID(), true, client);
+            SCIMv2User created1 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), client);
+            SCIMv2User created2 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), client);
+            SCIMv2User created3 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), client);
+            SCIMv2User created4 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), client);
             testUser = created1.getId();
 
             readUserServiceTest(testUser, client);
@@ -769,6 +987,28 @@ public class SCIMv2ConnectorTests {
             updateUserServiceTestPATCH(testUser, newClient());
 
             deleteUsersServiceTest(client, created1.getUserName());
+        } catch (Exception e) {
+            LOG.error(e, "While running service test");
+            fail(e.getMessage());
+        }
+    }
+
+    @Test public void serviceTestGroup() {
+        SCIMv2Client client = newClient();
+
+        try {
+            SCIMv2Group testGroup1 = createGroupServiceTest(UUID.randomUUID(), client);
+            SCIMv2Group created2 = createGroupServiceTest(UUID.randomUUID(), client);
+
+            readGroupServiceTest(testGroup1.getId(), client);
+
+            readGroupsServiceTest(client);
+
+            updateGroupServiceTest(testGroup1.getId(), client);
+
+            updateGroupServiceTestPATCH(testGroup1.getId(), newClient());
+
+            deleteGroupsServiceTest(client, "group_");
         } catch (Exception e) {
             LOG.error(e, "While running service test");
             fail(e.getMessage());

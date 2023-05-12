@@ -42,7 +42,7 @@ import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
-import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
+import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;
@@ -427,7 +427,7 @@ public class SCIMv11ConnectorTests {
 
     private static Set<String> testAttributesToGet() {
         Set<String> attributesToGet = new HashSet<>();
-        attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_ID);
+        attributesToGet.add(SCIMAttributeUtils.ATTRIBUTE_ID);
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_PASSWORD);
         attributesToGet.add(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME);

@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,8 @@ package net.tirasa.connid.bundles.scim.common.utils;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
@@ -27,6 +29,7 @@ import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
 import org.identityconnectors.common.StringUtil;
+import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Name;
@@ -39,7 +42,7 @@ import org.identityconnectors.framework.common.objects.SchemaBuilder;
 
 public final class SCIMAttributeUtils {
 
-    public static final String USER_ATTRIBUTE_ID = "id";
+    public static final String ATTRIBUTE_ID = "id";
 
     public static final String USER_ATTRIBUTE_USERNAME = "userName";
 
@@ -85,7 +88,11 @@ public final class SCIMAttributeUtils {
 
     public static final String SCIM_ENTERPRISE_EMPLOYEE_MANAGER_REF = "manager.ref";
 
-    public static final String SCIM_ENTERPRISE_EMPLOYEE_MANAGER_DISPLAY_NAMER = "manager.displayName";
+    public static final String SCIM_ENTERPRISE_EMPLOYEE_MANAGER_DISPLAY_NAME = "manager.displayName";
+
+    public static final String SCIM_GROUP_DISPLAY_NAME = "displayName";
+
+    public static final String SCIM_GROUP_MEMBERS = "members";
 
     public static <T extends SCIMBaseAttribute<T>> Schema buildSchema(
             final String customAttributes, final Class<T> attrType) {
@@ -96,7 +103,7 @@ public final class SCIMAttributeUtils {
         ObjectClassInfo user;
 
         userBuilder.addAttributeInfo(Name.INFO);
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define(USER_ATTRIBUTE_ID).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define(ATTRIBUTE_ID).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("externalId")
                 .setUpdateable(false).build());
 
@@ -318,6 +325,12 @@ public final class SCIMAttributeUtils {
         user = userBuilder.build();
         builder.defineObjectClass(user);
 
+        // SCIM-1 Group
+        ObjectClassInfoBuilder groupBuilder = new ObjectClassInfoBuilder().setType(ObjectClass.GROUP_NAME);
+        groupBuilder.addAttributeInfo(AttributeInfoBuilder.define(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME)
+                .setMultiValued(false).build());
+        builder.defineObjectClass(groupBuilder.build());
+
         return builder.build();
     }
 
@@ -357,9 +370,18 @@ public final class SCIMAttributeUtils {
     public static String defaultAttributesToGet() {
         return USER_ATTRIBUTE_USERNAME
                 .concat(",")
-                .concat(USER_ATTRIBUTE_ID)
+                .concat(ATTRIBUTE_ID)
                 .concat(",")
                 .concat(SCIM_USER_NAME);
+    }
+
+    public static void addAttribute(final Set<Attribute> toAttrs, final Set<Attribute> attrs, final Class<?> type) {
+        for (Attribute toAttribute : toAttrs) {
+            attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
+                    toAttribute.getValue(),
+                    toAttribute.getName(),
+                    type).build());
+        }
     }
 
     private SCIMAttributeUtils() {

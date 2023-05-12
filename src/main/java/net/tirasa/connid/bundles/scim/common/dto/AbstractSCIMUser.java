@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2018 ConnId (connid-dev@googlegroups.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@
 package net.tirasa.connid.bundles.scim.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import java.io.Serializable;
@@ -44,8 +45,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 
 public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT extends Serializable,
         CT extends SCIMComplexAttribute, MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser>
-        extends AbstractSCIMBaseResource<Attribute, MT>
-        implements SCIMUser<Attribute, MT, EUT> {
+        extends AbstractSCIMBaseResource<MT> implements SCIMUser<MT, EUT> {
 
     private static final long serialVersionUID = 9147517308573800805L;
 
@@ -91,6 +91,11 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
 
     protected List<CT> x509Certificates = new ArrayList<>();
 
+    protected String externalId;
+
+    @JsonIgnore
+    protected String baseSchema;
+
     @JsonIgnore
     protected final Map<SAT, List<Object>> scimCustomAttributes = new HashMap<>();
 
@@ -100,8 +105,10 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
     protected AbstractSCIMUser() {
     }
 
-    protected AbstractSCIMUser(final String schemaUri, final String resourceName, final MT meta) {
-        super(schemaUri, resourceName, meta);
+    protected AbstractSCIMUser(final String schemaUri, final MT meta) {
+        super(meta);
+        this.baseSchema = schemaUri;
+        schemas.add(baseSchema);
     }
 
     public Boolean getActive() {
@@ -1077,6 +1084,23 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, GT ex
                     toAttribute.getName(),
                     type).build());
         }
+    }
+
+    @Override
+    @JsonProperty
+    public String getExternalId() {
+        return externalId;
+    }
+
+    @Override
+    @JsonProperty
+    public void setExternalId(final String externalId) {
+        this.externalId = externalId;
+    }
+
+    @Override
+    public String getBaseSchema() {
+        return baseSchema;
     }
 
     @JsonIgnore
