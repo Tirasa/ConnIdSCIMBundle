@@ -22,7 +22,7 @@ import org.identityconnectors.common.logging.Log;
 
 public abstract class AbstractSCIMBaseResource<MT extends SCIMBaseMeta> implements SCIMBaseResource<MT> {
 
-    private static final long serialVersionUIDù+ = 3673404125396687366L;
+    private static final long serialVersionUID = 3673404125396687366L;
 
     protected static final Log LOG = Log.getLog(AbstractSCIMBaseResource.class);
 

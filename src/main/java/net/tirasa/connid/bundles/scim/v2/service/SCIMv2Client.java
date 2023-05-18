@@ -22,13 +22,18 @@ import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Patch;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchImpl;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchOperation;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchValue;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
+public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, SCIMv2Patch> {
 
     public SCIMv2Client(final SCIMConnectorConfiguration config) {
         super(config);
@@ -38,8 +43,7 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
      * @param userId
      * @return User with userId id
      */
-    @Override
-    public SCIMv2User getUser(final String userId) {
+    @Override public SCIMv2User getUser(final String userId) {
         return doGetUser(getWebclient("Users", null).path(userId), SCIMv2User.class, SCIMv2Attribute.class);
     }
 
@@ -47,8 +51,7 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
      * @param user
      * @return Created User
      */
-    @Override
-    public SCIMv2User createUser(final SCIMv2User user) {
+    @Override public SCIMv2User createUser(final SCIMv2User user) {
         return doCreateUser(user);
     }
 
@@ -61,16 +64,14 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
         return doUpdateUser(user, replaceAttributes, SCIMv2User.class);
     }
 
-    @Override
-    public SCIMv2User updateUser(final SCIMv2User user) {
+    @Override public SCIMv2User updateUser(final SCIMv2User user) {
         return doUpdateUser(user, Collections.emptySet(), SCIMv2User.class);
     }
 
     /**
      * @param userId
      */
-    @Override
-    public void deleteUser(final String userId) {
+    @Override public void deleteUser(final String userId) {
         doDeleteUser(userId, getWebclient("Users", null).path(userId));
     }
 
@@ -81,35 +82,47 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group> {
         doActivateUser(userId);
     }
 
-    @Override
-    public SCIMv2Group getGroup(final String groupId) {
+    @Override public SCIMv2Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv2Group.class);
     }
 
-    @Override
-    public SCIMv2Group updateGroup(final SCIMv2Group group) {
-        return doUpdateGroup(group, Collections.emptySet(), SCIMv2Group.class);
+    @Override public SCIMv2Group updateGroup(final String groupId, final SCIMv2Patch groupPatch) {
+        return doUpdateGroup(new SCIMv2Group.Builder().id(groupId).build(), Collections.emptySet(), groupPatch,
+                SCIMv2Group.class);
+    }
+
+    @Override public SCIMv2Group updateGroup(final SCIMv2Group group) {
+        return doUpdateGroup(group, Collections.emptySet(), null, SCIMv2Group.class);
     }
 
     public SCIMv2Group updateGroup(final SCIMv2Group group, final Set<Attribute> replaceAttributes) {
-        return doUpdateGroup(group, replaceAttributes, SCIMv2Group.class);
+        return doUpdateGroup(group, replaceAttributes, null, SCIMv2Group.class);
     }
 
-    @Override
-    public void deleteGroup(final String groupId) {
+    @Override public void deleteGroup(final String groupId) {
         doDeleteGroup(groupId, getWebclient("Groups", null).path(groupId));
     }
 
-    @Override
-    protected PagedResults<SCIMv2User> deserializeUserPagedResults(final String node) throws JsonProcessingException {
+    @Override protected PagedResults<SCIMv2User> deserializeUserPagedResults(final String node)
+            throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv2User>>() {
         });
     }
 
-    @Override
-    protected PagedResults<SCIMv2Group> deserializeGroupPagedResults(final String node) throws JsonProcessingException {
+    @Override protected PagedResults<SCIMv2Group> deserializeGroupPagedResults(final String node)
+            throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv2Group>>() {
         });
     }
 
+    @Override protected SCIMv2Patch<String> buildPatchFromAttrs(final Set<Attribute> replaceAttributes) {
+        SCIMv2Patch<String> patch = new SCIMv2PatchImpl<>();
+        replaceAttributes.stream().filter(attr -> !attr.getValue().isEmpty())
+                .map(attr -> new SCIMv2PatchOperation.Builder<String>().op(SCIMAttributeUtils.SCIM2_REPLACE)
+                        .path(attr.getName())
+                        .values(Collections.singletonMap(attr.getName(),
+                                new SCIMv2PatchValue.Builder<String>().value(attr.getValue().get(0).toString())
+                                        .build())).build()).forEach(op -> patch.getOperations().add(op));
+        return patch;
+    }
 }

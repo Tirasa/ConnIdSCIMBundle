@@ -17,7 +17,6 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import java.util.List;
-import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 
@@ -34,10 +33,8 @@ public class SCIMv2Group extends AbstractSCIMGroup<SCIMv2Meta> {
     public static final class Builder {
         private SCIMv2Meta meta;
         private String id;
-        private Set<String> schemas;
         private String displayName;
         private List<BaseResourceReference> members;
-        private String baseSchema;
 
         public Builder() {
         }
@@ -62,38 +59,18 @@ public class SCIMv2Group extends AbstractSCIMGroup<SCIMv2Meta> {
             return this;
         }
 
-        public Builder schemas(final Set<String> schemas) {
-            this.schemas = schemas;
-            return this;
-        }
-
-        public Builder baseSchema(final String baseSchema) {
-            this.baseSchema = baseSchema;
-            return this;
-        }
-
         public SCIMv2Group build() {
             SCIMv2Group sCIMv2Group = new SCIMv2Group();
             sCIMv2Group.setMeta(meta);
             sCIMv2Group.setId(id);
-            sCIMv2Group.setSchemas(schemas);
             sCIMv2Group.setDisplayName(displayName);
-            sCIMv2Group.setSchemas(schemas);
-            sCIMv2Group.baseSchema = this.baseSchema;
             sCIMv2Group.members = this.members;
             return sCIMv2Group;
         }
     }
 
-    @Override
-    public String toString() {
-        return "SCIMv2Group{"
-                + "displayName='" + displayName
-                + ", members=" + members
-                + ", schemas=" + schemas
-                + ", baseSchema='" + baseSchema
-                + ", meta=" + meta
-                + ", id='" + id
-                + '}';
+    @Override public String toString() {
+        return "SCIMv2Group{" + "displayName='" + displayName + ", members=" + members + ", schemas=" + schemas
+                + ", baseSchema='" + baseSchema + ", meta=" + meta + ", id='" + id + '}';
     }
 }

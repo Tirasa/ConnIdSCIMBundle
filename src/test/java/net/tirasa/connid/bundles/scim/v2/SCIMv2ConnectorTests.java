@@ -86,8 +86,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers
-public class SCIMv2ConnectorTests {
+@Testcontainers public class SCIMv2ConnectorTests {
 
     private static final Log LOG = Log.getLog(SCIMv2ConnectorTests.class);
 
@@ -107,13 +106,11 @@ public class SCIMv2ConnectorTests {
 
     private static final List<String> CUSTOM_ATTRIBUTES_UPDATE_VALUES = new ArrayList<>();
 
-    @Container
-    private static final GenericContainer<?> SCIMPLE_SERVER = new GenericContainer<>(
-            "tirasa/scimple-server:1.0.0").withExposedPorts(8080)
-            .waitingFor(Wait.forLogMessage(".*Started ScimpleSpringBootApplication in.*\\n", 1));
+    @Container private static final GenericContainer<?> SCIMPLE_SERVER =
+            new GenericContainer<>("tirasa/scimple-server:1.0.0").withExposedPorts(8080)
+                    .waitingFor(Wait.forLogMessage(".*Started ScimpleSpringBootApplication in.*\\n", 1));
 
-    @BeforeAll
-    public static void setUpConf() throws IOException {
+    @BeforeAll public static void setUpConf() throws IOException {
         PROPS.load(SCIMv2ConnectorTests.class.getResourceAsStream("/net/tirasa/connid/bundles/scim/authv2.properties"));
 
         Map<String, String> configurationParameters = new HashMap<>();
@@ -233,6 +230,36 @@ public class SCIMv2ConnectorTests {
     }
 
     private static Uid updateUser(final Uid created, final String name, final String... groups) {
+        Set<Attribute> userAttrs = updateUserAttributes(created, name);
+
+        // SCIM-1 change groups
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, groups));
+
+        Uid updated = FACADE.update(ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
+        assertNotNull(updated);
+        assertFalse(updated.getUidValue().isEmpty());
+        LOG.info("Updated User uid: {0}", updated);
+
+        return updated;
+    }
+
+    private static Uid updateUser(final Uid created, final String name, final List<String> groupsToAdd,
+            final List<String> groupsToRemove) {
+        Set<Attribute> userAttrs = updateUserAttributes(created, name);
+
+        // SCIM-1 change groups
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS_TO_ADD, groupsToAdd));
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS_TO_REMOVE, groupsToRemove));
+
+        Uid updated = FACADE.update(ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
+        assertNotNull(updated);
+        assertFalse(updated.getUidValue().isEmpty());
+        LOG.info("Updated User uid: {0}", updated);
+
+        return updated;
+    }
+
+    private static Set<Attribute> updateUserAttributes(final Uid created, final String name) {
         Attribute password = AttributeBuilder.buildPassword(
                 new GuardedString((SCIMv2ConnectorTestsUtils.VALUE_PASSWORD + "01").toCharArray()));
         // UPDATE USER VALUE_PASSWORD
@@ -269,16 +296,7 @@ public class SCIMv2ConnectorTests {
                         "56789"));
         userAttrs.add(AttributeBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.manager.value",
                 "bulkId:asdsdfas"));
-
-        // SCIM-1 change groups
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, groups));
-
-        Uid updated = FACADE.update(ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
-        assertNotNull(updated);
-        assertFalse(updated.getUidValue().isEmpty());
-        LOG.info("Updated User uid: {0}", updated);
-
-        return updated;
+        return userAttrs;
     }
 
     private static Uid createGroup(final UUID uid, final String prefix) {
@@ -299,8 +317,8 @@ public class SCIMv2ConnectorTests {
         groupAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, newDisplayName));
         groupAttrs.add(new Name(newDisplayName));
 
-        Uid updated = FACADE.update(ObjectClass.GROUP, groupToUpdate, groupAttrs,
-                new OperationOptionsBuilder().build());
+        Uid updated =
+                FACADE.update(ObjectClass.GROUP, groupToUpdate, groupAttrs, new OperationOptionsBuilder().build());
         assertNotNull(updated);
         assertFalse(updated.getUidValue().isEmpty());
         LOG.info("Updated Group uid: {0}", updated);
@@ -385,7 +403,7 @@ public class SCIMv2ConnectorTests {
     }
 
     private static SCIMv2User createUserServiceTest(final UUID uid, final boolean active,
-                                                    final List<ResourceReference> groups, final SCIMv2Client client) {
+            final List<ResourceReference> groups, final SCIMv2Client client) {
         SCIMv2User user = new SCIMv2User();
         String name = SCIMv2ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
         user.setUserName(name);
@@ -594,9 +612,9 @@ public class SCIMv2ConnectorTests {
         }
 
         // GET USER by userName
-        List<SCIMv2User> users = client.getAllUsers(
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " eq \"" + user.getUserName() + "\"",
-                testUserAttributesToGet());
+        List<SCIMv2User> users =
+                client.getAllUsers(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " eq \"" + user.getUserName() + "\"",
+                        testUserAttributesToGet());
         assertNotNull(users);
         assertFalse(users.isEmpty());
         assertNotNull(users.get(0).getId());
@@ -654,9 +672,9 @@ public class SCIMv2ConnectorTests {
     }
 
     private static void deleteUsersServiceTest(final SCIMv2Client client, final String username) {
-        PagedResults<SCIMv2User> users = client.getAllUsers(
-                SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " sw \"" + username + "\"", 1, 100,
-                testUserAttributesToGet());
+        PagedResults<SCIMv2User> users =
+                client.getAllUsers(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + " sw \"" + username + "\"", 1, 100,
+                        testUserAttributesToGet());
         assertNotNull(users);
         if (!users.getResources().isEmpty()) {
             for (SCIMv2User user : users.getResources()) {
@@ -666,8 +684,9 @@ public class SCIMv2ConnectorTests {
     }
 
     private static void deleteGroupsServiceTest(final SCIMv2Client client, final String displayNameInitials) {
-        PagedResults<SCIMv2Group> groups = client.getAllGroups(
-                SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME + " sw \"" + displayNameInitials + "\"", 1, 100);
+        PagedResults<SCIMv2Group> groups =
+                client.getAllGroups(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME + " sw \"" + displayNameInitials + "\"",
+                        1, 100);
         assertNotNull(groups);
         if (!groups.getResources().isEmpty()) {
             for (SCIMv2Group group : groups.getResources()) {
@@ -858,36 +877,36 @@ public class SCIMv2ConnectorTests {
             // SCIM-1 check groups
             assertFalse(createdUser.getGroups().isEmpty());
             assertEquals(2, createdUser.getGroups().size());
-            Optional<BaseResourceReference> groupRef1 = createdUser.getGroups().stream()
-                    .filter(g -> createdGroup1.getId().equals(g.getValue())).findFirst();
+            Optional<BaseResourceReference> groupRef1 =
+                    createdUser.getGroups().stream().filter(g -> createdGroup1.getId().equals(g.getValue()))
+                            .findFirst();
             // first group checks
             assertTrue(groupRef1.isPresent());
             assertEquals(createdGroup1.getDisplayName(), groupRef1.get().getDisplay());
             assertEquals("../Groups/" + createdGroup1.getId(), groupRef1.get().getRef());
             // second group checks
-            Optional<BaseResourceReference> groupRef2 = createdUser.getGroups().stream()
-                    .filter(g -> createdGroup2.getId().equals(g.getValue())).findFirst();
+            Optional<BaseResourceReference> groupRef2 =
+                    createdUser.getGroups().stream().filter(g -> createdGroup2.getId().equals(g.getValue()))
+                            .findFirst();
             assertTrue(groupRef2.isPresent());
             assertEquals(createdGroup2.getDisplayName(), groupRef2.get().getDisplay());
             assertEquals("../Groups/" + createdGroup2.getId(), groupRef2.get().getRef());
 
             // read user through connector APIs
             ConnectorObject createdConnObj = FACADE.getObject(ObjectClass.ACCOUNT, created,
-                    new OperationOptionsBuilder().setAttributesToGet(
-                                    "name",
-                                    "emails.work.value",
-                                    "name.familyName",
-                                    "displayName",
-                                    "active",
-                                    SCIMAttributeUtils.SCIM_USER_GROUPS,
-                                    "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber")
-                            .build());
+                    new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
+                            "displayName", "active", SCIMAttributeUtils.SCIM_USER_GROUPS,
+                            "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
             Attribute groupsAttr = createdConnObj.getAttributeByName(SCIMAttributeUtils.SCIM_USER_GROUPS);
             assertNotNull(groupsAttr);
             assertTrue(groupsAttr.getValue().contains(group1.getUidValue()));
             assertTrue(groupsAttr.getValue().contains(group2.getUidValue()));
 
-            Uid updated = updateUser(created, createdUser.getUserName(), group1.getUidValue(), group3.getUidValue());
+            Uid updated = "PATCH".equalsIgnoreCase(CONF.getUpdateGroupMethod())
+                    ? updateUser(created, createdUser.getUserName(),
+                            Arrays.asList(group1.getUidValue(), group3.getUidValue()),
+                            Arrays.asList(group2.getUidValue()))
+                    : updateUser(created, createdUser.getUserName(), group1.getUidValue(), group3.getUidValue());
 
             SCIMv2User updatedUser = readUser(updated.getUidValue(), client);
             LOG.info("Updated user: {0}", updatedUser);

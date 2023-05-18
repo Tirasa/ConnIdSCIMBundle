@@ -111,6 +111,9 @@ public final class SCIMv2ConnectorTestsUtils {
                 case "auth.updateMethod":
                     connectorConfiguration.setUpdateMethod(entry.getValue());
                     break;
+                case "auth.updateGroupMethod":
+                    connectorConfiguration.setUpdateGroupMethod(entry.getValue());
+                    break;
                 default:
                     LOG.info("Occurrence of an non defined parameter");
                     break;

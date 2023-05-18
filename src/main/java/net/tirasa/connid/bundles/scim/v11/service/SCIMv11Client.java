@@ -26,11 +26,14 @@ import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11BasePatch;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Group;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11GroupPatch;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group> {
+public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group, SCIMv11BasePatch> {
 
     public SCIMv11Client(final SCIMConnectorConfiguration config) {
         super(config);
@@ -65,8 +68,7 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
      * @param userId
      */
     public void deleteUser(final String userId) {
-        WebClient webClient = getWebclient("Users", null)
-                .path(userId);
+        WebClient webClient = getWebclient("Users", null).path(userId);
         doDeleteUser(userId, webClient);
     }
 
@@ -83,27 +85,34 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
         return getAllUsers(1, 1, attributesToGet) != null;
     }
 
-    @Override
-    public SCIMv11Group getGroup(final String groupId) {
+    @Override public SCIMv11Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv11Group.class);
     }
 
-    @Override
-    public SCIMv11Group updateGroup(final SCIMv11Group group) {
-        return doUpdateGroup(group, Collections.emptySet(), SCIMv11Group.class);
+    @Override public SCIMv11Group updateGroup(final SCIMv11Group group) {
+        return doUpdateGroup(group, Collections.emptySet(), null, SCIMv11Group.class);
     }
 
-    @Override
-    protected PagedResults<SCIMv11User> deserializeUserPagedResults(final String node) throws JsonProcessingException {
+    @Override public SCIMv11Group updateGroup(final String groupId, final SCIMv11BasePatch groupPatch) {
+        return doUpdateGroup(new SCIMv11Group.Builder().id(groupId).build(), Collections.emptySet(), null,
+                SCIMv11Group.class);
+    }
+
+    @Override protected PagedResults<SCIMv11User> deserializeUserPagedResults(final String node)
+            throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv11User>>() {
         });
     }
 
-    @Override
-    protected PagedResults<SCIMv11Group> deserializeGroupPagedResults(final String node) 
+    @Override protected PagedResults<SCIMv11Group> deserializeGroupPagedResults(final String node)
             throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv11Group>>() {
         });
+    }
+
+    @Override protected SCIMv11GroupPatch buildPatchFromAttrs(final Set<Attribute> replaceAttributes) {
+        // TODO
+        return null;
     }
 
 }

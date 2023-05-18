@@ -50,6 +50,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String customAttributesJSON;
 
     private String updateMethod = "PUT";
+    
+    private String updateGroupMethod = "PUT";
 
     private String accept = MediaType.APPLICATION_JSON;
 
@@ -167,6 +169,16 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     public void setUpdateMethod(final String updateMethod) {
         this.updateMethod = updateMethod;
+    }
+    
+    @ConfigurationProperty(displayMessageKey = "updateGroupMethod.display",
+            helpMessageKey = "updateGroupMethod.help", order = 10)
+    public String getUpdateGroupMethod() {
+        return updateGroupMethod;
+    }
+
+    public void setUpdateGroupMethod(final String updateGroupMethod) {
+        this.updateGroupMethod = updateGroupMethod;
     }
 
     @ConfigurationProperty(displayMessageKey = "accessTokenNodeId.display",

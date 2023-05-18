@@ -17,13 +17,17 @@ package net.tirasa.connid.bundles.scim.common;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
@@ -62,10 +66,8 @@ import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 
-public abstract class AbstractSCIMConnector<
-        UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>,
-        GT extends SCIMGroup<? extends SCIMBaseMeta>,
-        ST extends SCIMService<UT, GT>>
+public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>
+        , GT extends SCIMGroup<? extends SCIMBaseMeta>, P extends SCIMBasePatch, ST extends SCIMService<UT, GT, P>>
         implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp {
 
     private static final Log LOG = Log.getLog(AbstractSCIMConnector.class);
@@ -74,8 +76,7 @@ public abstract class AbstractSCIMConnector<
 
     protected ST client;
 
-    @Override
-    public void init(final Configuration configuration) {
+    @Override public void init(final Configuration configuration) {
         LOG.ok("Init");
 
         this.configuration = (SCIMConnectorConfiguration) configuration;
@@ -87,30 +88,23 @@ public abstract class AbstractSCIMConnector<
         LOG.ok("Connector {0} successfully inited", getClass().getName());
     }
 
-    @Override
-    public void dispose() {
+    @Override public void dispose() {
         LOG.ok("Configuration cleanup");
 
         configuration = null;
     }
 
-    @Override
-    public void executeQuery(
-            final ObjectClass objectClass,
-            final Filter query,
-            final ResultsHandler handler,
+    @Override public void executeQuery(final ObjectClass objectClass, final Filter query, final ResultsHandler handler,
             final OperationOptions options) {
 
         LOG.ok("Connector READ");
 
         Attribute key = null;
         if (query instanceof EqualsFilter || query instanceof EqualsIgnoreCaseFilter) {
-            Attribute filterAttr = query instanceof EqualsFilter
-                    ? ((EqualsFilter) query).getAttribute()
+            Attribute filterAttr = query instanceof EqualsFilter ? ((EqualsFilter) query).getAttribute()
                     : ((EqualsIgnoreCaseFilter) query).getAttribute();
-            if (filterAttr instanceof Uid
-                    || ObjectClass.ACCOUNT.equals(objectClass)
-                    || ObjectClass.GROUP.equals(objectClass)) {
+            if (filterAttr instanceof Uid || ObjectClass.ACCOUNT.equals(objectClass) || ObjectClass.GROUP.equals(
+                    objectClass)) {
                 key = filterAttr;
             }
         }
@@ -134,16 +128,14 @@ public abstract class AbstractSCIMConnector<
                                     client.getAllUsers(Integer.valueOf(cookie), pagesSize, attributesToGet);
                             users = pagedResult.getResources();
 
-                            cookie = users.size() >= pagesSize
-                                    ? String.valueOf(pagedResult.getStartIndex() + users.size())
-                                    : null;
+                            cookie = users.size() >= pagesSize ? String.valueOf(
+                                    pagedResult.getStartIndex() + users.size()) : null;
                         } else {
                             PagedResults<UT> pagedResult = client.getAllUsers(1, pagesSize, attributesToGet);
                             users = pagedResult.getResources();
 
-                            cookie = users.size() >= pagesSize
-                                    ? String.valueOf(pagedResult.getStartIndex() + users.size())
-                                    : null;
+                            cookie = users.size() >= pagesSize ? String.valueOf(
+                                    pagedResult.getStartIndex() + users.size()) : null;
                         }
                     } else {
                         users = client.getAllUsers(attributesToGet);
@@ -166,20 +158,22 @@ public abstract class AbstractSCIMConnector<
                     try {
                         result = client.getUser(AttributeUtil.getAsStringValue(key));
                     } catch (Exception e) {
-                        SCIMUtils.wrapGeneralError("While getting User : "
-                                + key.getName() + " - " + AttributeUtil.getAsStringValue(key), e);
+                        SCIMUtils.wrapGeneralError(
+                                "While getting User : " + key.getName() + " - " + AttributeUtil.getAsStringValue(key),
+                                e);
                     }
                 } else {
                     try {
-                        List<UT> users =
-                                client.getAllUsers((Name.NAME.equals(key.getName()) ? "username" : key.getName())
-                                        + " eq \"" + AttributeUtil.getAsStringValue(key) + "\"", attributesToGet);
+                        List<UT> users = client.getAllUsers(
+                                (Name.NAME.equals(key.getName()) ? "username" : key.getName()) + " eq \""
+                                        + AttributeUtil.getAsStringValue(key) + "\"", attributesToGet);
                         if (!users.isEmpty()) {
                             result = users.get(0);
                         }
                     } catch (Exception e) {
-                        SCIMUtils.wrapGeneralError("While getting User : "
-                                + key.getName() + " - " + AttributeUtil.getAsStringValue(key), e);
+                        SCIMUtils.wrapGeneralError(
+                                "While getting User : " + key.getName() + " - " + AttributeUtil.getAsStringValue(key),
+                                e);
                     }
                 }
                 if (result != null) {
@@ -199,16 +193,14 @@ public abstract class AbstractSCIMConnector<
                             PagedResults<GT> pagedResult = client.getAllGroups(Integer.valueOf(cookie), pagesSize);
                             groups = pagedResult.getResources();
 
-                            cookie = groups.size() >= pagesSize
-                                    ? String.valueOf(pagedResult.getStartIndex() + groups.size())
-                                    : null;
+                            cookie = groups.size() >= pagesSize ? String.valueOf(
+                                    pagedResult.getStartIndex() + groups.size()) : null;
                         } else {
                             PagedResults<GT> pagedResult = client.getAllGroups(1, pagesSize);
                             groups = pagedResult.getResources();
 
-                            cookie = groups.size() >= pagesSize
-                                    ? String.valueOf(pagedResult.getStartIndex() + groups.size())
-                                    : null;
+                            cookie = groups.size() >= pagesSize ? String.valueOf(
+                                    pagedResult.getStartIndex() + groups.size()) : null;
                         }
                     } else {
                         groups = client.getAllGroups();
@@ -232,22 +224,22 @@ public abstract class AbstractSCIMConnector<
                     try {
                         result = client.getGroup(AttributeUtil.getAsStringValue(key));
                     } catch (Exception e) {
-                        SCIMUtils.wrapGeneralError("While getting Group : "
-                                + key.getName() + " - " + AttributeUtil.getAsStringValue(key), e);
+                        SCIMUtils.wrapGeneralError(
+                                "While getting Group : " + key.getName() + " - " + AttributeUtil.getAsStringValue(key),
+                                e);
                     }
                 } else {
                     try {
-                        List<GT> groups =
-                                client.getAllGroups((Name.NAME.equals(key.getName())
-                                        ? SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME
-                                        : key.getName())
-                                        + " eq \"" + AttributeUtil.getAsStringValue(key) + "\"");
+                        List<GT> groups = client.getAllGroups(
+                                (Name.NAME.equals(key.getName()) ? SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME
+                                        : key.getName()) + " eq \"" + AttributeUtil.getAsStringValue(key) + "\"");
                         if (!groups.isEmpty()) {
                             result = groups.get(0);
                         }
                     } catch (Exception e) {
-                        SCIMUtils.wrapGeneralError("While getting Group : "
-                                + key.getName() + " - " + AttributeUtil.getAsStringValue(key), e);
+                        SCIMUtils.wrapGeneralError(
+                                "While getting Group : " + key.getName() + " - " + AttributeUtil.getAsStringValue(key),
+                                e);
                     }
                 }
                 if (result != null) {
@@ -256,15 +248,12 @@ public abstract class AbstractSCIMConnector<
             }
         } else {
             LOG.warn("Search of type {0} is not supported", objectClass.getObjectClassValue());
-            throw new UnsupportedOperationException("Search of type" + objectClass.getObjectClassValue()
-                    + " is not supported");
+            throw new UnsupportedOperationException(
+                    "Search of type" + objectClass.getObjectClassValue() + " is not supported");
         }
     }
 
-    @Override
-    public Uid create(
-            final ObjectClass objectClass,
-            final Set<Attribute> createAttributes,
+    @Override public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes,
             final OperationOptions options) {
 
         LOG.ok("Connector CREATE");
@@ -298,11 +287,8 @@ public abstract class AbstractSCIMConnector<
                         if (group == null) {
                             LOG.error("Unable to add group {0} to the user, group does not exist", g);
                         } else {
-                            user.getGroups().add(new BaseResourceReference.Builder()
-                                    .value(group.getId())
-                                    .ref("../Groups/" + group.getId())
-                                    .display(group.getDisplayName())
-                                    .build());
+                            user.getGroups().add(new BaseResourceReference.Builder().value(group.getId())
+                                    .ref("../Groups/" + group.getId()).display(group.getDisplayName()).build());
                         }
                     });
                 }
@@ -313,9 +299,7 @@ public abstract class AbstractSCIMConnector<
                     user.setPassword(SecurityUtil.decrypt(password));
                 }
 
-                if (status == null
-                        || status.getValue() == null
-                        || status.getValue().isEmpty()) {
+                if (status == null || status.getValue() == null || status.getValue().isEmpty()) {
                     LOG.warn("{0} attribute value not correct or not found, won't handle User status",
                             OperationalAttributes.ENABLE_NAME);
                 } else {
@@ -357,16 +341,12 @@ public abstract class AbstractSCIMConnector<
             return new Uid(group.getId());
         } else {
             LOG.warn("Create of type {0} is not supported", objectClass.getObjectClassValue());
-            throw new UnsupportedOperationException("Create of type" + objectClass.getObjectClassValue()
-                    + " is not supported");
+            throw new UnsupportedOperationException(
+                    "Create of type" + objectClass.getObjectClassValue() + " is not supported");
         }
     }
 
-    @Override
-    public Uid update(
-            final ObjectClass objectClass,
-            final Uid uid,
-            final Set<Attribute> replaceAttributes,
+    @Override public Uid update(final ObjectClass objectClass, final Uid uid, final Set<Attribute> replaceAttributes,
             final OperationOptions options) {
 
         LOG.ok("Connector UPDATE object [{0}]", uid);
@@ -388,27 +368,7 @@ public abstract class AbstractSCIMConnector<
             UT user = buildNewUserEntity();
             user.setId(uid.getUidValue());
             user.setUserName(username);
-            // SCIM-1 manage groups
-            List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
-            if (groups != null && !groups.isEmpty()) {
-                LOG.info("Updating groups {0} of user {1}", groups, user.getId());
-                groups.forEach(g -> {
-                    GT group = client.getGroup(g);
-                    if (group == null) {
-                        LOG.error("Unable to add group {0} to the user, group does not exist", g);
-                    } else {
-                        user.getGroups().add(new BaseResourceReference.Builder()
-                                .value(group.getId())
-                                .ref("../Groups/" + group.getId())
-                                .display(group.getDisplayName())
-                                .build());
-                    }
-                });
-            }
-
-            if (status == null
-                    || status.getValue() == null
-                    || status.getValue().isEmpty()) {
+            if (status == null || status.getValue() == null || status.getValue().isEmpty()) {
                 LOG.warn("{0} attribute value not correct, can't handle User  status update",
                         OperationalAttributes.ENABLE_NAME);
             } else {
@@ -420,8 +380,8 @@ public abstract class AbstractSCIMConnector<
                 user.fillSCIMCustomAttributes(replaceAttributes, configuration.getCustomAttributesJSON());
             }
             // SCIM-3 enterprise user
-            replaceAttributes.stream().filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI))
-                    .findFirst().ifPresent(ca -> {
+            replaceAttributes.stream().filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI)).findFirst()
+                    .ifPresent(ca -> {
                         user.getSchemas().add(SCIMv2EnterpriseUser.SCHEMA_URI);
                         user.fillEnterpriseUser(replaceAttributes);
                     });
@@ -429,9 +389,39 @@ public abstract class AbstractSCIMConnector<
             try {
                 user.fromAttributes(replaceAttributes);
 
+                // SCIM-1 manage groups
+                final Map<String, P> groupPatches = new HashMap<>();
+                if ("PATCH".equalsIgnoreCase(configuration.getUpdateGroupMethod())) {
+                    // calculate groupsToAdd and groupsToRemove
+                    List<String> groups =
+                            Optional.ofNullable(accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS))
+                                    .orElse(Collections.emptyList());
+                    List<String> currentGroups =
+                            client.getUser(user.getId()).getGroups().stream().map(g -> g.getValue())
+                                    .collect(Collectors.toList());
+                    List<String> groupsToAdd =
+                            groups.stream().filter(g -> !currentGroups.contains(g)).collect(Collectors.toList());
+                    List<String> groupsToRemove =
+                            currentGroups.stream().filter(g -> !groups.contains(g)).collect(Collectors.toList());
+                    fillGroupPatches(user, groupPatches, groupsToAdd, groupsToRemove);
+                } else {
+                    List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
+                    if (groups != null && !groups.isEmpty()) {
+                        LOG.info("Updating groups {0} of user {1}", groups, user.getId());
+                        groups.forEach(g -> {
+                            GT group = client.getGroup(g);
+                            if (group == null) {
+                                LOG.error("Unable to add group {0} to the user, group does not exist", g);
+                            } else {
+                                user.getGroups().add(new BaseResourceReference.Builder().value(group.getId())
+                                        .ref("../Groups/" + group.getId()).display(group.getDisplayName()).build());
+                            }
+                        });
+                    }
+                }
+
                 // password
-                GuardedString password = accessor.getPassword() != null
-                        ? accessor.getPassword()
+                GuardedString password = accessor.getPassword() != null ? accessor.getPassword()
                         : accessor.findGuardedString(OperationalAttributes.PASSWORD_NAME);
                 if (password == null) {
                     LOG.info("No password to update");
@@ -441,11 +431,13 @@ public abstract class AbstractSCIMConnector<
                 }
 
                 client.updateUser(user);
+                // SCIM-1 if PATCH is enabled update also group with memberships previously calculated
+                groupPatches.entrySet()
+                        .forEach(patchEntry -> client.updateGroup(patchEntry.getKey(), patchEntry.getValue()));
 
                 returnUid = new Uid(user.getId());
             } catch (Exception e) {
-                SCIMUtils.wrapGeneralError(
-                        "Could not update User " + uid.getUidValue() + " from attributes ", e);
+                SCIMUtils.wrapGeneralError("Could not update User " + uid.getUidValue() + " from attributes ", e);
             }
 
         } else if (ObjectClass.GROUP.equals(objectClass)) {
@@ -464,19 +456,17 @@ public abstract class AbstractSCIMConnector<
 
                 returnUid = new Uid(group.getId());
             } catch (Exception e) {
-                SCIMUtils.wrapGeneralError(
-                        "Could not update Group " + uid.getUidValue() + " from attributes ", e);
+                SCIMUtils.wrapGeneralError("Could not update Group " + uid.getUidValue() + " from attributes ", e);
             }
         } else {
             LOG.warn("Update of type {0} is not supported", objectClass.getObjectClassValue());
-            throw new UnsupportedOperationException("Update of type" + objectClass.getObjectClassValue()
-                    + " is not supported");
+            throw new UnsupportedOperationException(
+                    "Update of type" + objectClass.getObjectClassValue() + " is not supported");
         }
         return returnUid;
     }
 
-    @Override
-    public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
+    @Override public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
         LOG.ok("Connector DELETE object [{0}]", uid);
 
         if (StringUtil.isBlank(uid.getUidValue())) {
@@ -505,25 +495,22 @@ public abstract class AbstractSCIMConnector<
             }
         } else {
             LOG.warn("Delete of type {0} is not supported", objectClass.getObjectClassValue());
-            throw new UnsupportedOperationException("Delete of type" + objectClass.getObjectClassValue()
-                    + " is not supported");
+            throw new UnsupportedOperationException(
+                    "Delete of type" + objectClass.getObjectClassValue() + " is not supported");
         }
     }
 
-    @Override
-    public FilterTranslator<Filter> createFilterTranslator(
-            final ObjectClass objectClass,
+    @Override public FilterTranslator<Filter> createFilterTranslator(final ObjectClass objectClass,
             final OperationOptions options) {
         return filter -> Collections.singletonList(filter);
     }
 
-    @Override
-    public void test() {
+    @Override public void test() {
         LOG.ok("Connector TEST");
 
         if (configuration != null) {
             if (client != null && client.testService()) {
-                LOG.ok("Test was successfull");
+                LOG.ok("Test was successful");
             } else {
                 SCIMUtils.handleGeneralError("Test error. Problems with client service");
             }
@@ -588,8 +575,7 @@ public abstract class AbstractSCIMConnector<
         return builder.build();
     }
 
-    @Override
-    public Configuration getConfiguration() {
+    @Override public Configuration getConfiguration() {
         return configuration;
     }
 
@@ -600,5 +586,8 @@ public abstract class AbstractSCIMConnector<
     protected abstract ST getClient();
 
     protected abstract ST buildSCIMClient(SCIMConnectorConfiguration configuration);
+
+    protected abstract void fillGroupPatches(UT user, Map<String, P> groupPatches, List<String> groupsToAdd,
+            List<String> groupsToRemove);
 
 }
