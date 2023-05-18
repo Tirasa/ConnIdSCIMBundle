@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
@@ -82,8 +83,7 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
     @Override
     protected String getAttributeName(final String id, final Field field) {
         return id.concat(".")
-                .concat(type.toString())
-                .concat(".")
+                .concat(type == null ? StringUtils.EMPTY : type.toString().concat("."))
                 .concat(field.getName());
     }
 

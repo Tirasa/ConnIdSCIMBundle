@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public class SCIMUserAddress {
@@ -134,8 +135,7 @@ public class SCIMUserAddress {
                 attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
                         field.get(this),
                         SCIMAttributeUtils.SCIM_USER_ADDRESSES.concat(".")
-                                .concat(type.name())
-                                .concat(".")
+                                .concat(type == null ? StringUtils.EMPTY : type.name().concat("."))
                                 .concat(field.getName()),
                         field.getType()).build());
             }
