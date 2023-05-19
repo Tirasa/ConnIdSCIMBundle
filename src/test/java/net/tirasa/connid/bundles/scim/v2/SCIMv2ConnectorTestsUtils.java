@@ -108,8 +108,8 @@ public final class SCIMv2ConnectorTestsUtils {
                 case "auth.customAttributesJSON":
                     connectorConfiguration.setCustomAttributesJSON(entry.getValue());
                     break;
-                case "auth.updateMethod":
-                    connectorConfiguration.setUpdateMethod(entry.getValue());
+                case "auth.updateUserMethod":
+                    connectorConfiguration.setUpdateUserMethod(entry.getValue());
                     break;
                 case "auth.updateGroupMethod":
                     connectorConfiguration.setUpdateGroupMethod(entry.getValue());

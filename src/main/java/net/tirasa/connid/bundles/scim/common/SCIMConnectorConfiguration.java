@@ -49,7 +49,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String customAttributesJSON;
 
-    private String updateMethod = "PUT";
+    private String updateUserMethod = "PUT";
     
     private String updateGroupMethod = "PUT";
 
@@ -161,14 +161,14 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.customAttributesJSON = customAttributesJSON;
     }
 
-    @ConfigurationProperty(displayMessageKey = "updateMethod.display",
-            helpMessageKey = "updateMethod.help", order = 10)
-    public String getUpdateMethod() {
-        return updateMethod;
+    @ConfigurationProperty(displayMessageKey = "updateUserMethod.display",
+            helpMessageKey = "updateUserMethod.help", order = 10)
+    public String getUpdateUserMethod() {
+        return updateUserMethod;
     }
 
-    public void setUpdateMethod(final String updateMethod) {
-        this.updateMethod = updateMethod;
+    public void setUpdateUserMethod(final String updateUserMethod) {
+        this.updateUserMethod = updateUserMethod;
     }
     
     @ConfigurationProperty(displayMessageKey = "updateGroupMethod.display",
@@ -263,9 +263,9 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
                         + "Resource Schema Representation JSON.");
             }
         }
-        if (StringUtil.isNotBlank(updateMethod)
-                && !updateMethod.equalsIgnoreCase("PATCH")
-                && !updateMethod.equalsIgnoreCase("PUT")) {
+        if (StringUtil.isNotBlank(updateUserMethod)
+                && !updateUserMethod.equalsIgnoreCase("PATCH")
+                && !updateUserMethod.equalsIgnoreCase("PUT")) {
             failValidation("Update method is not valid; must be 'PUT' or 'PATCH'.");
         }
     }

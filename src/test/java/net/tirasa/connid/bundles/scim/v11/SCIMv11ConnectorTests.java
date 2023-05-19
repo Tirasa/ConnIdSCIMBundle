@@ -103,7 +103,7 @@ public class SCIMv11ConnectorTests {
             configurationParameters.put(name, PROPS.getProperty(name));
         }
         CONF = SCIMv11ConnectorTestsUtils.buildConfiguration(configurationParameters);
-        CONF.setUpdateMethod("PATCH");
+        CONF.setUpdateUserMethod("PATCH");
 
         Boolean isValid = SCIMv11ConnectorTestsUtils.isConfigurationValid(CONF);
         if (isValid) {
@@ -151,7 +151,7 @@ public class SCIMv11ConnectorTests {
         assertNotNull(CONF.getUsername());
         assertNotNull(CONF.getAccept());
         assertNotNull(CONF.getContentType());
-        assertNotNull(CONF.getUpdateMethod());
+        assertNotNull(CONF.getUpdateUserMethod());
     }
 
     private static ConnectorFacade newFacade() {
@@ -690,7 +690,7 @@ public class SCIMv11ConnectorTests {
 
             updateUserServiceTest(testUser, client);
 
-            CONF.setUpdateMethod("PUT");
+            CONF.setUpdateUserMethod("PUT");
             updateUserServiceTestPUT(testUser, newClient());
         } catch (Exception e) {
             LOG.error(e, "While running service test");

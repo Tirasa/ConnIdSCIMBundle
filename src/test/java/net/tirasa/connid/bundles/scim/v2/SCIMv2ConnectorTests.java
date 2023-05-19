@@ -163,7 +163,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         assertNotNull(CONF.getUsername());
         assertNotNull(CONF.getAccept());
         assertNotNull(CONF.getContentType());
-        assertNotNull(CONF.getUpdateMethod());
+        assertNotNull(CONF.getUpdateUserMethod());
     }
 
     private static ConnectorFacade newFacade() {
@@ -541,7 +541,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     private static SCIMv2User updateUserServiceTestPATCH(final String userId, final SCIMv2Client client)
             throws IllegalArgumentException {
 
-        CONF.setUpdateMethod("PATCH");
+        CONF.setUpdateUserMethod("PATCH");
         SCIMv2User user = client.getUser(userId);
         LOG.info("Updated User with PATCH: {0}", user);
         return user;

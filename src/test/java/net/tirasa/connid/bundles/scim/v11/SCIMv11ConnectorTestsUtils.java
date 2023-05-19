@@ -98,10 +98,10 @@ public final class SCIMv11ConnectorTestsUtils {
                     connectorConfiguration.setCustomAttributesJSON(entry.getValue());
                     break;
                 case "auth.updateMethod":
-                    connectorConfiguration.setUpdateMethod(entry.getValue());
+                    connectorConfiguration.setUpdateUserMethod(entry.getValue());
                     break;
                 case "auth.defaultEntitlement":
-                    connectorConfiguration.setUpdateMethod(entry.getValue());
+                    connectorConfiguration.setUpdateUserMethod(entry.getValue());
                     break;
                 default:
                     LOG.info("Occurrence of an non defined parameter");

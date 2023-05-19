@@ -193,7 +193,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         JsonNode result = null;
         Response response;
         String payload = null;
-        if (config.getUpdateMethod().equalsIgnoreCase("PATCH")) {
+        if (config.getUpdateUserMethod().equalsIgnoreCase("PATCH")) {
             WebClient.getConfig(webClient).getRequestContext().put("use.async.http.conduit", true);
         }
 
@@ -215,7 +215,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
                 payload = SCIMUtils.MAPPER.writeValueAsString(user);
             }
 
-            if (config.getUpdateMethod().equalsIgnoreCase("PATCH")) {
+            if (config.getUpdateUserMethod().equalsIgnoreCase("PATCH")) {
                 response = webClient.invoke("PATCH", payload);
             } else {
                 response = webClient.put(payload);
@@ -506,7 +506,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
 
         UT updated = null;
         JsonNode node =
-                config.getUpdateMethod().equalsIgnoreCase("PATCH") && !replaceAttributes.isEmpty() ? doUpdatePatch(
+                config.getUpdateUserMethod().equalsIgnoreCase("PATCH") && !replaceAttributes.isEmpty() ? doUpdatePatch(
                         replaceAttributes, getWebclient("Users", null).path(user.getId()))
                         : doUpdate(user, getWebclient("Users", null).path(user.getId()));
         if (node == null) {
@@ -780,7 +780,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         JsonNode result = null;
         Response response;
         String payload = null;
-        if (config.getUpdateMethod().equalsIgnoreCase("PATCH")) {
+        if (config.getUpdateUserMethod().equalsIgnoreCase("PATCH")) {
             WebClient.getConfig(webClient).getRequestContext().put("use.async.http.conduit", true);
         }
 
@@ -788,7 +788,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
             // no custom attributes
             payload = SCIMUtils.MAPPER.writeValueAsString(group);
 
-            if (config.getUpdateMethod().equalsIgnoreCase("PATCH")) {
+            if (config.getUpdateUserMethod().equalsIgnoreCase("PATCH")) {
                 response = webClient.invoke("PATCH", payload);
             } else {
                 response = webClient.put(payload);
