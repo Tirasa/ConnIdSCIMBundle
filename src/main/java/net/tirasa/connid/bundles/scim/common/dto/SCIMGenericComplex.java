@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -81,9 +82,14 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
     }
 
     @Override
-    protected String getAttributeName(final String id, final Field field) {
+    protected String getAttributeName(
+            final String id, final Field field, final SCIMConnectorConfiguration configuration) {
         return id.concat(".")
-                .concat(type == null ? StringUtils.EMPTY : type.toString().concat("."))
+                .concat(type == null
+                        ? (StringUtils.isBlank(configuration.getGenericComplexType())
+                                ? StringUtils.EMPTY
+                                : configuration.getGenericComplexType().concat("."))
+                        : type.toString().concat("."))
                 .concat(field.getName());
     }
 

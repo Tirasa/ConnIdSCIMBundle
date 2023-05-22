@@ -26,7 +26,8 @@ import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.spi.ConnectorClass;
 
 @ConnectorClass(displayNameKey = "SCIMv11Connector.connector.display",
-        configurationClass = SCIMConnectorConfiguration.class)
+        configurationClass = SCIMConnectorConfiguration.class,
+        messageCatalogPaths = {"net.tirasa.connid.bundles.scim.common.Messages"})
 public class SCIMv11Connector extends AbstractSCIMConnector<SCIMv11User, SCIMv11Client> {
 
     private static final Log LOG = Log.getLog(SCIMv11Connector.class);

@@ -17,6 +17,7 @@ package net.tirasa.connid.bundles.scim.common.dto;
 
 import java.io.Serializable;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public interface SCIMComplexAttribute extends Serializable {
@@ -25,5 +26,6 @@ public interface SCIMComplexAttribute extends Serializable {
 
     String getValue();
 
-    Set<Attribute> toAttributes(String id) throws IllegalArgumentException, IllegalAccessException;
+    Set<Attribute> toAttributes(String id, SCIMConnectorConfiguration configuration)
+            throws IllegalArgumentException, IllegalAccessException;
 }

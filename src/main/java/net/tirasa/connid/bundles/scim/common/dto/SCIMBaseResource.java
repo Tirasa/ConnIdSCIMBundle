@@ -17,6 +17,7 @@ package net.tirasa.connid.bundles.scim.common.dto;
 
 import java.io.Serializable;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 
 public interface SCIMBaseResource<AT, MT extends SCIMBaseMeta> extends Serializable {
 
@@ -38,7 +39,8 @@ public interface SCIMBaseResource<AT, MT extends SCIMBaseMeta> extends Serializa
 
     String getBaseSchema();
 
-    Set<AT> toAttributes(Class<?> type) throws IllegalArgumentException, IllegalAccessException;
+    Set<AT> toAttributes(Class<?> type, SCIMConnectorConfiguration configuration)
+            throws IllegalArgumentException, IllegalAccessException;
 
     void fromAttributes(Set<AT> attributes);
 

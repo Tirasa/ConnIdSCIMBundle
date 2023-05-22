@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import org.identityconnectors.framework.common.objects.Attribute;
 
@@ -40,14 +41,15 @@ public abstract class AbstractSCIMComplex implements SCIMComplexAttribute {
     }
 
     @Override
-    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
+    public Set<Attribute> toAttributes(final String id, final SCIMConnectorConfiguration configuration)
+            throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
         for (Field field : getDeclaredFields()) {
             if (!field.isAnnotationPresent(JsonIgnore.class)) {
                 field.setAccessible(true);
                 attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
                         field.get(this),
-                        getAttributeName(id, field),
+                        getAttributeName(id, field, configuration),
                         field.getType()).build());
             }
         }
@@ -56,6 +58,6 @@ public abstract class AbstractSCIMComplex implements SCIMComplexAttribute {
 
     protected abstract List<Field> getDeclaredFields();
 
-    protected abstract String getAttributeName(String id, Field field);
+    protected abstract String getAttributeName(String id, Field field, SCIMConnectorConfiguration configuration);
 
 }
