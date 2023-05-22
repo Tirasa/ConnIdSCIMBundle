@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
@@ -69,27 +68,43 @@ public class SCIMv2Connector extends AbstractSCIMConnector<SCIMv2User, SCIMv2Gro
         return new SCIMv2Group();
     }
 
-    @Override protected void fillGroupPatches(final SCIMv2User user, final Map<String, SCIMv2Patch> groupPatches,
+    @SuppressWarnings({ "unchecked" }) @Override
+    protected void fillGroupPatches(final SCIMv2User user, final Map<String, SCIMv2Patch> groupPatches,
             final List<String> groupsToAdd, final List<String> groupsToRemove) {
-        groupsToAdd.forEach(grp -> groupPatches.put(grp,
-                new SCIMv2PatchImpl.Builder<BaseResourceReference>().operations(Collections.singleton(
-                                new SCIMv2PatchOperation.Builder<BaseResourceReference>()
-                                        .op(SCIMAttributeUtils.SCIM2_ADD)
-                                        .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS).values(Collections.singletonMap(
-                                                "members",
-                                                Collections.singletonList(
-                                                        new SCIMv2PatchValue.Builder<String>()
-                                                                .value(user.getId()).build()))).build()))
-                        .build()));
-        groupsToRemove.forEach(grp -> groupPatches.put(grp,
-                new SCIMv2PatchImpl.Builder<BaseResourceReference>().operations(Collections.singleton(
-                                new SCIMv2PatchOperation.Builder<BaseResourceReference>()
-                                        .op(SCIMAttributeUtils.SCIM2_REMOVE)
-                                        .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS) // in some cases is needed to 
-                                        // append 
-                                        // "[value eq \"" + user.getId() + "\"]" to retrieve the user
-                                        .values(Collections.singletonMap("members", Collections.singletonList(
-                                                new SCIMv2PatchValue.Builder<String>()
-                                                        .value(user.getId()).build()))).build())).build()));
+            // due to the deviation of salesforce from the standard we need to manage the members patch accordingly
+            // https://help.salesforce.com/s/articleView?id=sf.identity_scim_manage_groups.htm&type=5
+            groupsToAdd.forEach(grp -> groupPatches.put(grp,
+                    new SCIMv2PatchImpl.Builder<Map<String, List<SCIMv2PatchValue>>>().operations(Collections.singleton(
+                                    configuration.getBaseAddress().contains("salesforce.com")
+                                            ?
+                                            new SCIMv2PatchOperation.Builder<Map<String, List<SCIMv2PatchValue>>>().op(
+                                                    SCIMAttributeUtils.SCIM2_ADD)
+                                                    .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
+                                            .value(Collections.singletonMap("members", Collections.singletonList(
+                                                    new SCIMv2PatchValue.Builder<String>()
+                                                            .value(user.getId()).build())))
+                                            .build() 
+                                            : new SCIMv2PatchOperation.Builder<SCIMv2PatchValue<String>>().op(
+                                                    SCIMAttributeUtils.SCIM2_ADD)
+                                                    .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
+                                            .value(new SCIMv2PatchValue.Builder<String>().value(user.getId()).build())
+                                                    .build()))
+                            .build()));
+            groupsToRemove.forEach(grp -> groupPatches.put(grp,
+                    new SCIMv2PatchImpl.Builder<Map<String, List<SCIMv2PatchValue>>>().operations(Collections.singleton(
+                            configuration.getBaseAddress().contains("salesforce.com")
+                            ? new SCIMv2PatchOperation.Builder<Map<String, List<SCIMv2PatchValue>>>().op(
+                                            SCIMAttributeUtils.SCIM2_REMOVE).path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
+                                    .value(Collections.singletonMap(SCIMAttributeUtils.SCIM_GROUP_MEMBERS,
+                                            Collections.singletonList(
+                                                    new SCIMv2PatchValue.Builder<String>().value(user.getId())
+                                                            .build()))).build()
+                            : new SCIMv2PatchOperation.Builder<SCIMv2PatchValue<String>>().op(
+                                            SCIMAttributeUtils.SCIM2_REMOVE)
+                                    .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
+                                    // in some cases is needed to
+                                    // append "[value eq \"" + user.getId() + "\"]" to retrieve the user
+                                    .value(new SCIMv2PatchValue.Builder<String>().value(user.getId()).build()).build()))
+                            .build()));
     }
 }

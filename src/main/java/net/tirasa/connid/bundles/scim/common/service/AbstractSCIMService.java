@@ -256,7 +256,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
             result = SCIMUtils.MAPPER.readTree(response.readEntity(String.class));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
-            LOG.error("UPDATE PATCH payload {0}: ", payload);
+            LOG.error(ex, "UPDATE PATCH payload {0}: ", payload);
             SCIMUtils.handleGeneralError("While updating Group with patch", ex);
         }
 

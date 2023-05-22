@@ -15,11 +15,10 @@
  */
 package net.tirasa.connid.bundles.scim.v2.dto;
 
-import java.io.Serializable;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
 
-public interface SCIMv2Patch<T extends Serializable> extends SCIMBasePatch {
+public interface SCIMv2Patch<T> extends SCIMBasePatch {
 
     Set<SCIMv2PatchOperation<T>> getOperations();
     

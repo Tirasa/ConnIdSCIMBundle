@@ -16,12 +16,8 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-public class SCIMv2PatchOperation<T extends Serializable> implements SCIMPatchOperation<T> {
+public class SCIMv2PatchOperation<T> implements SCIMPatchOperation<T> {
 
     private static final long serialVersionUID = -1398745689025351659L;
 
@@ -29,7 +25,7 @@ public class SCIMv2PatchOperation<T extends Serializable> implements SCIMPatchOp
 
     @JsonProperty("path") private String path;
 
-    @JsonProperty("value") private final Map<String, List<SCIMv2PatchValue<T>>> values = new HashMap<>();
+    @JsonProperty("value") private T value;
 
     public String getOp() {
         return op;
@@ -55,30 +51,34 @@ public class SCIMv2PatchOperation<T extends Serializable> implements SCIMPatchOp
         this.path = path;
     }
 
-    public Map<String, List<SCIMv2PatchValue<T>>> getValues() {
-        return values;
+    public T getValue() {
+        return value;
     }
 
-    public static final class Builder<T extends Serializable> {
+    public void setValue(final T value) {
+        this.value = value;
+    }
+
+    public static final class Builder<T> {
         private String op;
         private String path;
-        private Map<String, List<SCIMv2PatchValue<T>>> values;
+        private T value;
 
         public Builder() {
         }
 
-        public Builder op(final String op) {
+        public Builder<T> op(final String op) {
             this.op = op;
             return this;
         }
 
-        public Builder path(final String path) {
+        public Builder<T> path(final String path) {
             this.path = path;
             return this;
         }
 
-        public Builder values(final Map<String, List<SCIMv2PatchValue<T>>> values) {
-            this.values = values;
+        public Builder<T> value(final T value) {
+            this.value = value;
             return this;
         }
 
@@ -86,13 +86,12 @@ public class SCIMv2PatchOperation<T extends Serializable> implements SCIMPatchOp
             SCIMv2PatchOperation sCIMv2PatchOperation = new SCIMv2PatchOperation();
             sCIMv2PatchOperation.setOp(op);
             sCIMv2PatchOperation.setPath(path);
-            sCIMv2PatchOperation.values.clear();
-            sCIMv2PatchOperation.values.putAll(values);
+            sCIMv2PatchOperation.setValue(value);
             return sCIMv2PatchOperation;
         }
     }
 
     @Override public String toString() {
-        return "SCIMv2PatchOperation{" + "op='" + op + '\'' + ", path='" + path + '\'' + ", values=" + values + '}';
+        return "SCIMv2PatchOperation{" + "op='" + op + '\'' + ", path='" + path + '\'' + ", value=" + value + '}';
     }
 }

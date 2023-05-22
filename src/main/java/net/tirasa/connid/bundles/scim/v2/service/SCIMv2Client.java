@@ -118,11 +118,11 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
     @Override protected SCIMv2Patch<String> buildPatchFromAttrs(final Set<Attribute> replaceAttributes) {
         SCIMv2Patch<String> patch = new SCIMv2PatchImpl<>();
         replaceAttributes.stream().filter(attr -> !attr.getValue().isEmpty())
-                .map(attr -> new SCIMv2PatchOperation.Builder<String>().op(SCIMAttributeUtils.SCIM2_REPLACE)
+                .map(attr -> new SCIMv2PatchOperation.Builder<SCIMv2PatchValue<String>>()
+                        .op(SCIMAttributeUtils.SCIM2_REPLACE)
                         .path(attr.getName())
-                        .values(Collections.singletonMap(attr.getName(),
-                                new SCIMv2PatchValue.Builder<String>().value(attr.getValue().get(0).toString())
-                                        .build())).build()).forEach(op -> patch.getOperations().add(op));
+                        .value(new SCIMv2PatchValue.Builder<String>().value(attr.getValue().get(0).toString())
+                                        .build()).build()).forEach(op -> patch.getOperations().add(op));
         return patch;
     }
 }

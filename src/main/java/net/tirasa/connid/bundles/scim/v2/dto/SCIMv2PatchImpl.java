@@ -17,12 +17,11 @@ package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class SCIMv2PatchImpl<T extends Serializable> implements SCIMv2Patch<T> {
+public class SCIMv2PatchImpl<T> implements SCIMv2Patch<T> {
 
     public static final String SCHEMA_URI = "urn:ietf:params:scim:api:messages:2.0:PatchOp";
 
@@ -54,13 +53,13 @@ public class SCIMv2PatchImpl<T extends Serializable> implements SCIMv2Patch<T> {
                 + operations + '}';
     }
 
-    public static final class Builder<T extends Serializable> {
+    public static final class Builder<T> {
         private Set<SCIMv2PatchOperation<T>> operations;
 
         public Builder() {
         }
 
-        public Builder operations(final Set<SCIMv2PatchOperation<T>> operations) {
+        public Builder<T> operations(final Set<SCIMv2PatchOperation<T>> operations) {
             this.operations = operations;
             return this;
         }

@@ -437,6 +437,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
 
                 returnUid = new Uid(user.getId());
             } catch (Exception e) {
+                LOG.error(e, "Could not update User {0} from attributes", uid.getUidValue());
                 SCIMUtils.wrapGeneralError("Could not update User " + uid.getUidValue() + " from attributes ", e);
             }
 
