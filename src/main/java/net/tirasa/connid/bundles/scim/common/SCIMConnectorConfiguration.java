@@ -65,6 +65,10 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String accessTokenContentType = MediaType.APPLICATION_FORM_URLENCODED;
 
+    private String addressesType;
+
+    private String genericComplexType;
+
     @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display",
             helpMessageKey = "baseAddress.help", required = true)
     public String getBaseAddress() {
@@ -193,6 +197,26 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     public void setAccessTokenContentType(final String accessTokenContentType) {
         this.accessTokenContentType = accessTokenContentType;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "addressesType.display",
+            helpMessageKey = "addressesType.help", order = 14)
+    public String getAddressesType() {
+        return addressesType;
+    }
+
+    public void setAddressesType(final String addressesType) {
+        this.addressesType = addressesType;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "genericComplexType.display",
+            helpMessageKey = "genericComplexType.help", order = 15)
+    public String getGenericComplexType() {
+        return genericComplexType;
+    }
+
+    public void setGenericComplexType(final String genericComplexType) {
+        this.genericComplexType = genericComplexType;
     }
 
     @Override

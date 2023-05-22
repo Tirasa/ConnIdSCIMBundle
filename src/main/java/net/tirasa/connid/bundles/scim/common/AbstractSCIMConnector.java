@@ -396,7 +396,7 @@ public abstract class AbstractSCIMConnector<
         builder.setName(user.getUserName());
 
         try {
-            Set<Attribute> userAttributes = user.toAttributes(user.getClass());
+            Set<Attribute> userAttributes = user.toAttributes(user.getClass(), configuration);
 
             for (Attribute toAttribute : userAttributes) {
                 String attributeName = toAttribute.getName();

@@ -18,6 +18,7 @@ package net.tirasa.connid.bundles.scim.common.dto;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
@@ -33,7 +34,8 @@ public class SCIMDefaultComplex extends AbstractSCIMComplex {
     }
 
     @Override
-    protected String getAttributeName(final String id, final Field field) {
+    protected String getAttributeName(
+            final String id, final Field field, final SCIMConnectorConfiguration configuration) {
         return id.concat(".")
                 .concat("default")
                 .concat(".")

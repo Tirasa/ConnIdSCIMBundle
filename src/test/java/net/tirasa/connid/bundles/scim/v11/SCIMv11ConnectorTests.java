@@ -362,7 +362,7 @@ public class SCIMv11ConnectorTests {
         LOG.info("Found User: {0}", user);
 
         // USER TO ATTRIBUTES
-        Set<Attribute> toAttributes = user.toAttributes(user.getClass());
+        Set<Attribute> toAttributes = user.toAttributes(user.getClass(), CONF);
         LOG.info("User to attributes: {0}", toAttributes);
         assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));
@@ -477,7 +477,7 @@ public class SCIMv11ConnectorTests {
         LOG.info("Found User: {0}", user);
 
         // USER TO ATTRIBUTES
-        Set<Attribute> toAttributes = user.toAttributes(user.getClass());
+        Set<Attribute> toAttributes = user.toAttributes(user.getClass(), CONF);
         LOG.info("User to attributes: {0}", toAttributes);
         assertTrue(SCIMv11ConnectorTestsUtils.hasAttribute(toAttributes,
                 SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));

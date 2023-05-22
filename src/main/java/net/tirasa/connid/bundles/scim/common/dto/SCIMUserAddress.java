@@ -20,8 +20,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public class SCIMUserAddress {
@@ -125,7 +127,8 @@ public class SCIMUserAddress {
         this.operation = operation;
     }
 
-    public Set<Attribute> toAttributes() throws IllegalArgumentException, IllegalAccessException {
+    public Set<Attribute> toAttributes(final SCIMConnectorConfiguration configuration)
+            throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
         Field[] fields = this.getClass().getDeclaredFields();
         for (Field field : fields) {
@@ -134,8 +137,11 @@ public class SCIMUserAddress {
                 attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
                         field.get(this),
                         SCIMAttributeUtils.SCIM_USER_ADDRESSES.concat(".")
-                                .concat(type.name())
-                                .concat(".")
+                                .concat(type == null
+                                        ? (StringUtils.isBlank(configuration.getAddressesType())
+                                                ? StringUtils.EMPTY
+                                                : configuration.getAddressesType().concat("."))
+                                        : type.name().concat("."))
                                 .concat(field.getName()),
                         field.getType()).build());
             }
