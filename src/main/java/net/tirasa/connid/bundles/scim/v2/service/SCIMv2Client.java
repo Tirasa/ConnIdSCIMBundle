@@ -115,7 +115,9 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
         });
     }
 
-    @Override protected SCIMv2Patch<String> buildPatchFromAttrs(final Set<Attribute> replaceAttributes) {
+    @SuppressWarnings("unchecked")
+    @Override 
+    protected SCIMv2Patch<String> buildPatchFromAttrs(final Set<Attribute> replaceAttributes) {
         SCIMv2Patch<String> patch = new SCIMv2PatchImpl<>();
         replaceAttributes.stream().filter(attr -> !attr.getValue().isEmpty())
                 .map(attr -> new SCIMv2PatchOperation.Builder<SCIMv2PatchValue<String>>()

@@ -82,6 +82,7 @@ public class SCIMv2PatchOperation<T> implements SCIMPatchOperation<T> {
             return this;
         }
 
+        @SuppressWarnings("unchecked")
         public SCIMv2PatchOperation build() {
             SCIMv2PatchOperation sCIMv2PatchOperation = new SCIMv2PatchOperation();
             sCIMv2PatchOperation.setOp(op);

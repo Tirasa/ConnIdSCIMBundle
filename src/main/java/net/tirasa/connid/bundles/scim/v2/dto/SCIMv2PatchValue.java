@@ -41,6 +41,7 @@ public class SCIMv2PatchValue<T extends Serializable> implements SCIMPatchValue<
             return this;
         }
 
+        @SuppressWarnings("unchecked")
         public SCIMv2PatchValue build() {
             SCIMv2PatchValue sCIMv2PatchValue = new SCIMv2PatchValue();
             sCIMv2PatchValue.setValue(value);
