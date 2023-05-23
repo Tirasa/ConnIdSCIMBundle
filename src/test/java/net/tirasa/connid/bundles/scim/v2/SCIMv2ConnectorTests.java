@@ -883,14 +883,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
             // first group checks
             assertTrue(groupRef1.isPresent());
             assertEquals(createdGroup1.getDisplayName(), groupRef1.get().getDisplay());
-            assertEquals("../Groups/" + createdGroup1.getId(), groupRef1.get().getRef());
+            assertTrue(groupRef1.get().getRef().contains("Groups/" + createdGroup1.getId()));
             // second group checks
             Optional<BaseResourceReference> groupRef2 =
                     createdUser.getGroups().stream().filter(g -> createdGroup2.getId().equals(g.getValue()))
                             .findFirst();
             assertTrue(groupRef2.isPresent());
             assertEquals(createdGroup2.getDisplayName(), groupRef2.get().getDisplay());
-            assertEquals("../Groups/" + createdGroup2.getId(), groupRef2.get().getRef());
+            assertTrue(groupRef2.get().getRef().contains("/Groups/" + createdGroup2.getId()));
 
             // read user through connector APIs
             ConnectorObject createdConnObj = FACADE.getObject(ObjectClass.ACCOUNT, created,

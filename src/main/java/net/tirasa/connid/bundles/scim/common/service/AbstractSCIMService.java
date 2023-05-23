@@ -733,7 +733,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
             if (responseObj.hasNonNull(value)) {
                 group.setId(responseObj.get(value).textValue());
             } else {
-                LOG.error("CREATE payload {0}: ", payload);
+                LOG.error("CREATE payload {0} error {1}", payload, responseAsString);
                 SCIMUtils.handleGeneralError(
                         "While getting " + value + " value for created Group - Response : " + responseAsString);
             }
@@ -755,7 +755,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
 
         GT updated = null;
         JsonNode node =
-                config.getUpdateGroupMethod().equalsIgnoreCase("PATCH") ? doUpdatePatch(patch, replaceAttributes,
+                config.getUpdateGroupMethod().equalsIgnoreCase("PATCH") && patch != null 
+                        ? doUpdatePatch(patch, replaceAttributes,
                         getWebclient("Groups", null).path(group.getId()))
                         : doUpdate(group, getWebclient("Groups", null).path(group.getId()));
         if (node == null) {

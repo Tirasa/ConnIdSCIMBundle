@@ -45,8 +45,8 @@ import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 
-public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
-        CT extends SCIMComplexAttribute, MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser>
+public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT extends SCIMComplexAttribute,
+        MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser>
         extends AbstractSCIMBaseResource<MT> implements SCIMUser<MT, EUT> {
 
     private static final long serialVersionUID = 9147517308573800805L;
@@ -95,16 +95,11 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
 
     protected String externalId;
 
-    @JsonIgnore
-    protected String baseSchema;
+    @JsonIgnore protected final Map<SAT, List<Object>> scimCustomAttributes = new HashMap<>();
 
-    @JsonIgnore
-    protected final Map<SAT, List<Object>> scimCustomAttributes = new HashMap<>();
+    @JsonIgnore protected final Map<String, List<Object>> returnedCustomAttributes = new HashMap<>();
 
-    @JsonIgnore
-    protected final Map<String, List<Object>> returnedCustomAttributes = new HashMap<>();
-
-    protected AbstractSCIMUser() {
+    public AbstractSCIMUser() {
     }
 
     protected AbstractSCIMUser(final String schemaUri, final MT meta) {
@@ -117,8 +112,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
         return active;
     }
 
-    @Override
-    public void setActive(final Boolean active) {
+    @Override public void setActive(final Boolean active) {
         this.active = active;
     }
 
@@ -182,8 +176,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
         return password;
     }
 
-    @Override
-    public void setPassword(final String password) {
+    @Override public void setPassword(final String password) {
         this.password = password;
     }
 
@@ -231,13 +224,11 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
         this.title = title;
     }
 
-    @Override
-    public String getUserName() {
+    @Override public String getUserName() {
         return userName;
     }
 
-    @Override
-    public void setUserName(final String userName) {
+    @Override public void setUserName(final String userName) {
         this.userName = userName;
     }
 
@@ -249,14 +240,11 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
         this.userType = userType;
     }
 
-    @JsonIgnore
-    public Map<SAT, List<Object>> getSCIMCustomAttributes() {
+    @JsonIgnore public Map<SAT, List<Object>> getSCIMCustomAttributes() {
         return scimCustomAttributes;
     }
 
-    @JsonIgnore
-    @Override
-    public Map<String, List<Object>> getReturnedCustomAttributes() {
+    @JsonIgnore @Override public Map<String, List<Object>> getReturnedCustomAttributes() {
         return returnedCustomAttributes;
     }
 
@@ -265,18 +253,15 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
         this.emails = emails;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setEntitlements(final List<CT> entitlements) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setEntitlements(final List<CT> entitlements) {
         this.entitlements = entitlements;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setGroups(final List<BaseResourceReference> groups) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setGroups(final List<BaseResourceReference> groups) {
         this.groups = groups;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setIms(final List<SCIMGenericComplex<IMCanonicalType>> ims) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setIms(final List<SCIMGenericComplex<IMCanonicalType>> ims) {
         this.ims = ims;
     }
 
@@ -290,19 +275,15 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
         this.photos = photos;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setRoles(final List<CT> roles) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setRoles(final List<CT> roles) {
         this.roles = roles;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setX509Certificates(final List<CT> x509Certificates) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setX509Certificates(final List<CT> x509Certificates) {
         this.x509Certificates = x509Certificates;
     }
 
-    @JsonIgnore
-    @Override
-    public void fromAttributes(final Set<Attribute> attributes) {
+    @JsonIgnore @Override public void fromAttributes(final Set<Attribute> attributes) {
         attributes.stream().filter(attribute -> !CollectionUtil.isEmpty(attribute.getValue())).forEach(attribute -> {
             try {
                 doSetAttribute(attribute.getName(), attribute.getValue());
@@ -312,8 +293,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
         });
     }
 
-    @JsonIgnore
-    @SuppressWarnings("unchecked")
+    @JsonIgnore @SuppressWarnings("unchecked")
     private void doSetAttribute(final String name, final List<Object> values) {
         Object value = values.get(0);
 
@@ -387,504 +367,331 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                 break;
 
             case "emails.value":
-                handleSCIMComplexObject(
-                        null,
-                        this.emails,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(null, this.emails, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "emails.primary":
-                handleSCIMComplexObject(
-                        null,
-                        this.emails,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(null, this.emails, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "emails.operation":
-                handleSCIMComplexObject(
-                        null,
-                        this.emails,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(null, this.emails, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "emails.work.value":
-                handleSCIMComplexObject(
-                        EmailCanonicalType.work,
-                        this.emails,
+                handleSCIMComplexObject(EmailCanonicalType.work, this.emails,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "emails.work.primary":
-                handleSCIMComplexObject(
-                        EmailCanonicalType.work,
-                        this.emails,
+                handleSCIMComplexObject(EmailCanonicalType.work, this.emails,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "emails.work.operation":
-                handleSCIMComplexObject(
-                        EmailCanonicalType.work,
-                        this.emails,
+                handleSCIMComplexObject(EmailCanonicalType.work, this.emails,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "emails.home.value":
-                handleSCIMComplexObject(
-                        EmailCanonicalType.home,
-                        this.emails,
+                handleSCIMComplexObject(EmailCanonicalType.home, this.emails,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "emails.home.primary":
-                handleSCIMComplexObject(
-                        EmailCanonicalType.home,
-                        this.emails,
+                handleSCIMComplexObject(EmailCanonicalType.home, this.emails,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "emails.home.operation":
-                handleSCIMComplexObject(
-                        EmailCanonicalType.home,
-                        this.emails,
+                handleSCIMComplexObject(EmailCanonicalType.home, this.emails,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "emails.other.value":
-                handleSCIMComplexObject(
-                        EmailCanonicalType.other,
-                        this.emails,
+                handleSCIMComplexObject(EmailCanonicalType.other, this.emails,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "emails.other.primary":
-                handleSCIMComplexObject(
-                        EmailCanonicalType.other,
-                        this.emails,
+                handleSCIMComplexObject(EmailCanonicalType.other, this.emails,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "emails.other.operation":
-                handleSCIMComplexObject(
-                        EmailCanonicalType.other,
-                        this.emails,
+                handleSCIMComplexObject(EmailCanonicalType.other, this.emails,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.value":
-                handleSCIMComplexObject(
-                        null,
-                        this.phoneNumbers,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(null, this.phoneNumbers, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.primary":
-                handleSCIMComplexObject(
-                        null,
-                        this.phoneNumbers,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(null, this.phoneNumbers, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "phoneNumbers.operation":
-                handleSCIMComplexObject(
-                        null,
-                        this.phoneNumbers,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(null, this.phoneNumbers, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.work.value":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.work,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.work, this.phoneNumbers,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.work.primary":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.work,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.work, this.phoneNumbers,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "phoneNumbers.work.operation":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.work,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.work, this.phoneNumbers,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.home.value":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.home,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.home, this.phoneNumbers,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.home.primary":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.home,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.home, this.phoneNumbers,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "phoneNumbers.home.operation":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.home,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.home, this.phoneNumbers,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.other.value":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.other,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.other, this.phoneNumbers,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.other.primary":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.other,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.other, this.phoneNumbers,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "phoneNumbers.other.operation":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.other,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.other, this.phoneNumbers,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.pager.value":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.pager,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.pager, this.phoneNumbers,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.pager.primary":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.pager,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.pager, this.phoneNumbers,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "phoneNumbers.pager.operation":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.pager,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.pager, this.phoneNumbers,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.fax.value":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.fax,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.fax, this.phoneNumbers,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.fax.primary":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.fax,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.fax, this.phoneNumbers,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "phoneNumbers.fax.operation":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.fax,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.fax, this.phoneNumbers,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.mobile.value":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.mobile,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.mobile, this.phoneNumbers,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "phoneNumbers.mobile.primary":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.mobile,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.mobile, this.phoneNumbers,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "phoneNumbers.mobile.operation":
-                handleSCIMComplexObject(
-                        PhoneNumberCanonicalType.mobile,
-                        this.phoneNumbers,
+                handleSCIMComplexObject(PhoneNumberCanonicalType.mobile, this.phoneNumbers,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "ims.value":
-                handleSCIMComplexObject(
-                        null,
-                        this.ims,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(null, this.ims, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "ims.primary":
-                handleSCIMComplexObject(
-                        null,
-                        this.ims,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(null, this.ims, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "ims.operation":
-                handleSCIMComplexObject(
-                        null,
-                        this.ims,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(null, this.ims, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "ims.aim.value":
-                handleSCIMComplexObject(
-                        IMCanonicalType.aim,
-                        this.ims,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.aim, this.ims, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "ims.aim.primary":
-                handleSCIMComplexObject(
-                        IMCanonicalType.aim,
-                        this.ims,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.aim, this.ims, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "ims.aim.operation":
-                handleSCIMComplexObject(
-                        IMCanonicalType.aim,
-                        this.ims,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.aim, this.ims, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "ims.xmpp.value":
-                handleSCIMComplexObject(
-                        IMCanonicalType.xmpp,
-                        this.ims,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.xmpp, this.ims, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "ims.xmpp.primary":
-                handleSCIMComplexObject(
-                        IMCanonicalType.xmpp,
-                        this.ims,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.xmpp, this.ims, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "ims.xmpp.operation":
-                handleSCIMComplexObject(
-                        IMCanonicalType.xmpp,
-                        this.ims,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.xmpp, this.ims, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "ims.skype.value":
-                handleSCIMComplexObject(
-                        IMCanonicalType.skype,
-                        this.ims,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.skype, this.ims, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "ims.skype.primary":
-                handleSCIMComplexObject(
-                        IMCanonicalType.skype,
-                        this.ims,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.skype, this.ims, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "ims.skype.operation":
-                handleSCIMComplexObject(
-                        IMCanonicalType.skype,
-                        this.ims,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.skype, this.ims, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "ims.qq.value":
-                handleSCIMComplexObject(
-                        IMCanonicalType.qq,
-                        this.ims,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.qq, this.ims, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "ims.qq.primary":
-                handleSCIMComplexObject(
-                        IMCanonicalType.qq,
-                        this.ims,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.qq, this.ims, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "ims.qq.operation":
-                handleSCIMComplexObject(
-                        IMCanonicalType.qq,
-                        this.ims,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.qq, this.ims, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "ims.yahoo.value":
-                handleSCIMComplexObject(
-                        IMCanonicalType.yahoo,
-                        this.ims,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.yahoo, this.ims, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "ims.yahoo.primary":
-                handleSCIMComplexObject(
-                        IMCanonicalType.yahoo,
-                        this.ims,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.yahoo, this.ims, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "ims.yahoo.operation":
-                handleSCIMComplexObject(
-                        IMCanonicalType.yahoo,
-                        this.ims,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.yahoo, this.ims, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "ims.msn.value":
-                handleSCIMComplexObject(
-                        IMCanonicalType.msn,
-                        this.ims,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.msn, this.ims, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "ims.msn.primary":
-                handleSCIMComplexObject(
-                        IMCanonicalType.msn,
-                        this.ims,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.msn, this.ims, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "ims.msn.operation":
-                handleSCIMComplexObject(
-                        IMCanonicalType.msn,
-                        this.ims,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.msn, this.ims, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "ims.icq.value":
-                handleSCIMComplexObject(
-                        IMCanonicalType.icq,
-                        this.ims,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.icq, this.ims, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "ims.icq.primary":
-                handleSCIMComplexObject(
-                        IMCanonicalType.icq,
-                        this.ims,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.icq, this.ims, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "ims.icq.operation":
-                handleSCIMComplexObject(
-                        IMCanonicalType.icq,
-                        this.ims,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.icq, this.ims, s -> s.setOperation(String.class.cast(value)));
                 break;
             case "ims.gtalk.value":
-                handleSCIMComplexObject(
-                        IMCanonicalType.gtalk,
-                        this.ims,
-                        s -> s.setValue(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.gtalk, this.ims, s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "ims.gtalk.primary":
-                handleSCIMComplexObject(
-                        IMCanonicalType.gtalk,
-                        this.ims,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.gtalk, this.ims, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "ims.gtalk.operation":
-                handleSCIMComplexObject(
-                        IMCanonicalType.gtalk,
-                        this.ims,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMComplexObject(IMCanonicalType.gtalk, this.ims, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "photos.photo.value":
-                handleSCIMComplexObject(
-                        PhotoCanonicalType.photo,
-                        this.photos,
+                handleSCIMComplexObject(PhotoCanonicalType.photo, this.photos,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "photos.photo.primary":
-                handleSCIMComplexObject(
-                        PhotoCanonicalType.photo,
-                        this.photos,
+                handleSCIMComplexObject(PhotoCanonicalType.photo, this.photos,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "photos.photo.operation":
-                handleSCIMComplexObject(
-                        PhotoCanonicalType.photo,
-                        this.photos,
+                handleSCIMComplexObject(PhotoCanonicalType.photo, this.photos,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "photos.thumbnail.value":
-                handleSCIMComplexObject(
-                        PhotoCanonicalType.thumbnail,
-                        this.photos,
+                handleSCIMComplexObject(PhotoCanonicalType.thumbnail, this.photos,
                         s -> s.setValue(String.class.cast(value)));
                 break;
 
             case "photos.thumbnail.primary":
-                handleSCIMComplexObject(
-                        PhotoCanonicalType.thumbnail,
-                        this.photos,
+                handleSCIMComplexObject(PhotoCanonicalType.thumbnail, this.photos,
                         s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "photos.thumbnail.operation":
-                handleSCIMComplexObject(
-                        PhotoCanonicalType.thumbnail,
-                        this.photos,
+                handleSCIMComplexObject(PhotoCanonicalType.thumbnail, this.photos,
                         s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "addresses.streetAddress":
-                handleSCIMUserAddressObject(null,
-                        s -> s.setStreetAddress(String.class.cast(value)));
+                handleSCIMUserAddressObject(null, s -> s.setStreetAddress(String.class.cast(value)));
                 break;
 
             case "addresses.locality":
-                handleSCIMUserAddressObject(null,
-                        s -> s.setLocality(String.class.cast(value)));
+                handleSCIMUserAddressObject(null, s -> s.setLocality(String.class.cast(value)));
                 break;
 
             case "addresses.formatted":
-                handleSCIMUserAddressObject(null,
-                        s -> s.setFormatted(String.class.cast(value)));
+                handleSCIMUserAddressObject(null, s -> s.setFormatted(String.class.cast(value)));
                 break;
 
             case "addresses.region":
-                handleSCIMUserAddressObject(null,
-                        s -> s.setRegion(String.class.cast(value)));
+                handleSCIMUserAddressObject(null, s -> s.setRegion(String.class.cast(value)));
                 break;
 
             case "addresses.postalCode":
-                handleSCIMUserAddressObject(null,
-                        s -> s.setPostalCode(String.class.cast(value)));
+                handleSCIMUserAddressObject(null, s -> s.setPostalCode(String.class.cast(value)));
                 break;
 
             case "addresses.country":
-                handleSCIMUserAddressObject(null,
-                        s -> s.setCountry(String.class.cast(value)));
+                handleSCIMUserAddressObject(null, s -> s.setCountry(String.class.cast(value)));
                 break;
 
             case "addresses.primary":
-                handleSCIMUserAddressObject(null,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMUserAddressObject(null, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "addresses.operation":
-                handleSCIMUserAddressObject(null,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMUserAddressObject(null, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "addresses.work.streetAddress":
@@ -893,38 +700,31 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                 break;
 
             case "addresses.work.locality":
-                handleSCIMUserAddressObject(AddressCanonicalType.work,
-                        s -> s.setLocality(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.work, s -> s.setLocality(String.class.cast(value)));
                 break;
 
             case "addresses.work.formatted":
-                handleSCIMUserAddressObject(AddressCanonicalType.work,
-                        s -> s.setFormatted(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.work, s -> s.setFormatted(String.class.cast(value)));
                 break;
 
             case "addresses.work.region":
-                handleSCIMUserAddressObject(AddressCanonicalType.work,
-                        s -> s.setRegion(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.work, s -> s.setRegion(String.class.cast(value)));
                 break;
 
             case "addresses.work.postalCode":
-                handleSCIMUserAddressObject(AddressCanonicalType.work,
-                        s -> s.setPostalCode(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.work, s -> s.setPostalCode(String.class.cast(value)));
                 break;
 
             case "addresses.work.country":
-                handleSCIMUserAddressObject(AddressCanonicalType.work,
-                        s -> s.setCountry(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.work, s -> s.setCountry(String.class.cast(value)));
                 break;
 
             case "addresses.work.primary":
-                handleSCIMUserAddressObject(AddressCanonicalType.work,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.work, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "addresses.work.operation":
-                handleSCIMUserAddressObject(AddressCanonicalType.work,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.work, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "addresses.home.streetAddress":
@@ -933,38 +733,31 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                 break;
 
             case "addresses.home.locality":
-                handleSCIMUserAddressObject(AddressCanonicalType.home,
-                        s -> s.setLocality(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.home, s -> s.setLocality(String.class.cast(value)));
                 break;
 
             case "addresses.home.formatted":
-                handleSCIMUserAddressObject(AddressCanonicalType.home,
-                        s -> s.setFormatted(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.home, s -> s.setFormatted(String.class.cast(value)));
                 break;
 
             case "addresses.home.region":
-                handleSCIMUserAddressObject(AddressCanonicalType.home,
-                        s -> s.setRegion(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.home, s -> s.setRegion(String.class.cast(value)));
                 break;
 
             case "addresses.home.postalCode":
-                handleSCIMUserAddressObject(AddressCanonicalType.home,
-                        s -> s.setPostalCode(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.home, s -> s.setPostalCode(String.class.cast(value)));
                 break;
 
             case "addresses.home.country":
-                handleSCIMUserAddressObject(AddressCanonicalType.home,
-                        s -> s.setCountry(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.home, s -> s.setCountry(String.class.cast(value)));
                 break;
 
             case "addresses.home.primary":
-                handleSCIMUserAddressObject(AddressCanonicalType.home,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.home, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "addresses.home.operation":
-                handleSCIMUserAddressObject(AddressCanonicalType.home,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.home, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "addresses.other.streetAddress":
@@ -973,38 +766,31 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                 break;
 
             case "addresses.other.locality":
-                handleSCIMUserAddressObject(AddressCanonicalType.other,
-                        s -> s.setLocality(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.other, s -> s.setLocality(String.class.cast(value)));
                 break;
 
             case "addresses.other.formatted":
-                handleSCIMUserAddressObject(AddressCanonicalType.other,
-                        s -> s.setFormatted(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.other, s -> s.setFormatted(String.class.cast(value)));
                 break;
 
             case "addresses.other.region":
-                handleSCIMUserAddressObject(AddressCanonicalType.other,
-                        s -> s.setRegion(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.other, s -> s.setRegion(String.class.cast(value)));
                 break;
 
             case "addresses.other.postalCode":
-                handleSCIMUserAddressObject(AddressCanonicalType.other,
-                        s -> s.setPostalCode(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.other, s -> s.setPostalCode(String.class.cast(value)));
                 break;
 
             case "addresses.other.country":
-                handleSCIMUserAddressObject(AddressCanonicalType.other,
-                        s -> s.setCountry(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.other, s -> s.setCountry(String.class.cast(value)));
                 break;
 
             case "addresses.other.primary":
-                handleSCIMUserAddressObject(AddressCanonicalType.other,
-                        s -> s.setPrimary(Boolean.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.other, s -> s.setPrimary(Boolean.class.cast(value)));
                 break;
 
             case "addresses.other.operation":
-                handleSCIMUserAddressObject(AddressCanonicalType.other,
-                        s -> s.setOperation(String.class.cast(value)));
+                handleSCIMUserAddressObject(AddressCanonicalType.other, s -> s.setOperation(String.class.cast(value)));
                 break;
 
             case "roles.default.value":
@@ -1034,9 +820,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
 
     protected abstract void handleEntitlements(Object value);
 
-    @JsonIgnore
-    protected <T extends Serializable> void handleSCIMComplexObject(
-            final T type, final List<SCIMGenericComplex<T>> list, final Consumer<SCIMGenericComplex<T>> setter) {
+    @JsonIgnore protected <T extends Serializable> void handleSCIMComplexObject(final T type,
+            final List<SCIMGenericComplex<T>> list, final Consumer<SCIMGenericComplex<T>> setter) {
 
         SCIMGenericComplex<T> selected = null;
         for (SCIMGenericComplex<T> complex : list) {
@@ -1057,8 +842,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
     }
 
     @JsonIgnore
-    private void handleSCIMUserAddressObject(
-            final AddressCanonicalType type, final Consumer<SCIMUserAddress> setter) {
+    private void handleSCIMUserAddressObject(final AddressCanonicalType type, final Consumer<SCIMUserAddress> setter) {
 
         SCIMUserAddress selected = null;
         for (SCIMUserAddress complex : this.addresses) {
@@ -1081,52 +865,40 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
     @JsonIgnore
     private void addAttribute(final Set<Attribute> toAttrs, final Set<Attribute> attrs, final Class<?> type) {
         for (Attribute toAttribute : toAttrs) {
-            attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(
-                    toAttribute.getValue(),
-                    toAttribute.getName(),
+            attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(toAttribute.getValue(), toAttribute.getName(),
                     type).build());
         }
     }
 
-    @Override
-    @JsonProperty
-    public String getExternalId() {
+    @Override @JsonProperty public String getExternalId() {
         return externalId;
     }
 
-    @Override
-    @JsonProperty
-    public void setExternalId(final String externalId) {
+    @Override @JsonProperty public void setExternalId(final String externalId) {
         this.externalId = externalId;
     }
 
-    @Override
-    public String getBaseSchema() {
+    @Override public String getBaseSchema() {
         return baseSchema;
     }
 
-    @JsonIgnore
-    @Override
-    @SuppressWarnings("unchecked")
+    @JsonIgnore @Override @SuppressWarnings("unchecked")
     public Set<Attribute> toAttributes(final Class<?> type, final SCIMConnectorConfiguration configuration)
             throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
 
-        FieldUtils.getAllFieldsList(type).stream().
-                filter(f -> !"LOG".equals(f.getName())
-                        && !"serialVersionUID".equals(f.getName())
-                        && !"RESOURCE_NAME".equals(f.getName())
-                        && !"SCHEMA_URI".equals(f.getName())).forEach(field -> {
+        FieldUtils.getAllFieldsList(type).stream()
+                .filter(f -> !"LOG".equals(f.getName()) && !"serialVersionUID".equals(f.getName())
+                        && !"RESOURCE_NAME".equals(f.getName()) && !"SCHEMA_URI".equals(f.getName()))
+                .forEach(field -> {
                     try {
                         field.setAccessible(true);
                         // SCIM-3 manage enterprise user
                         if (SCIMEnterpriseUser.class.isAssignableFrom(field.getType()) && getEnterpriseUser() != null) {
                             field.setAccessible(true);
-                            addAttribute(
-                                    getEnterpriseUser().toAttributes(SCIMv2EnterpriseUser.SCHEMA_URI),
-                                    attrs,
+                            addAttribute(getEnterpriseUser().toAttributes(SCIMv2EnterpriseUser.SCHEMA_URI), attrs,
                                     field.getType());
-                        } else if (!field.isAnnotationPresent(JsonIgnore.class)
+                        } else if (!field.isAnnotationPresent(JsonIgnore.class) 
                                 && !SCIMUtils.isEmptyObject(field.get(this))) {
                             Object objInstance = field.get(this);
 
@@ -1137,11 +909,9 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                                         List<SCIMGenericComplex<PhoneNumberCanonicalType>> list =
                                                 (List<SCIMGenericComplex<PhoneNumberCanonicalType>>) objInstance;
                                         for (SCIMGenericComplex<PhoneNumberCanonicalType> complex : list) {
-                                            addAttribute(
-                                                    complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS,
-                                                            configuration),
-                                                    attrs,
-                                                    field.getType());
+                                            addAttribute(complex.toAttributes(
+                                                    SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS, configuration), 
+                                                    attrs, field.getType());
                                         }
                                     } else {
                                         SCIMGenericComplex<PhoneNumberCanonicalType> complex =
@@ -1149,8 +919,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                                         addAttribute(
                                                 complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS,
                                                         configuration),
-                                                attrs,
-                                                field.getType());
+                                                attrs, field.getType());
                                     }
                                 } else if (field.getGenericType().toString()
                                         .contains(IMCanonicalType.class.getName())) {
@@ -1158,20 +927,16 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                                         List<SCIMGenericComplex<IMCanonicalType>> list =
                                                 (List<SCIMGenericComplex<IMCanonicalType>>) objInstance;
                                         for (SCIMGenericComplex<IMCanonicalType> complex : list) {
-                                            addAttribute(
-                                                    complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS,
+                                            addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS,
                                                             configuration),
-                                                    attrs,
-                                                    field.getType());
+                                                    attrs, field.getType());
                                         }
                                     } else {
-                                        SCIMGenericComplex<IMCanonicalType>
-                                                complex = (SCIMGenericComplex<IMCanonicalType>) objInstance;
-                                        addAttribute(
-                                                complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS,
+                                        SCIMGenericComplex<IMCanonicalType> complex =
+                                                (SCIMGenericComplex<IMCanonicalType>) objInstance;
+                                        addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS,
                                                         configuration),
-                                                attrs,
-                                                field.getType());
+                                                attrs, field.getType());
                                     }
                                 } else if (field.getGenericType().toString()
                                         .contains(EmailCanonicalType.class.getName())) {
@@ -1182,17 +947,14 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                                             addAttribute(
                                                     complex.toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS,
                                                             configuration),
-                                                    attrs,
-                                                    field.getType());
+                                                    attrs, field.getType());
                                         }
                                     } else {
                                         SCIMGenericComplex<EmailCanonicalType> complex =
                                                 (SCIMGenericComplex<EmailCanonicalType>) objInstance;
-                                        addAttribute(
-                                                complex.toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS,
+                                        addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS,
                                                         configuration),
-                                                attrs,
-                                                field.getType());
+                                                attrs, field.getType());
                                     }
                                 } else if (field.getGenericType().toString()
                                         .contains(PhotoCanonicalType.class.getName())) {
@@ -1203,17 +965,14 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                                             addAttribute(
                                                     complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS,
                                                             configuration),
-                                                    attrs,
-                                                    field.getType());
+                                                    attrs, field.getType());
                                         }
                                     } else {
                                         SCIMGenericComplex<PhotoCanonicalType> complex =
                                                 (SCIMGenericComplex<PhotoCanonicalType>) objInstance;
-                                        addAttribute(
-                                                complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS,
+                                        addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS,
                                                         configuration),
-                                                attrs,
-                                                field.getType());
+                                                attrs, field.getType());
                                     }
                                 }
                             } else if (field.getGenericType().toString().contains(SCIMUserName.class.getName())) {
@@ -1223,21 +982,18 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                                         addAttribute(scimUserName.toAttributes(), attrs, field.getType());
                                     }
                                 } else {
-                                    addAttribute(
-                                            SCIMUserName.class.cast(objInstance).toAttributes(),
-                                            attrs,
+                                    addAttribute(SCIMUserName.class.cast(objInstance).toAttributes(), attrs,
                                             field.getType());
                                 }
                             } else if (field.getGenericType().toString().contains(SCIMUserAddress.class.getName())) {
                                 if (field.getType().equals(List.class)) {
                                     List<SCIMUserAddress> list = (List<SCIMUserAddress>) objInstance;
                                     for (SCIMUserAddress scimUserAddress : list) {
-                                        addAttribute(scimUserAddress.toAttributes(configuration),
-                                                attrs, field.getType());
+                                        addAttribute(scimUserAddress.toAttributes(configuration), attrs,
+                                                field.getType());
                                     }
                                 } else {
-                                    addAttribute(
-                                            SCIMUserAddress.class.cast(objInstance).toAttributes(configuration),
+                                    addAttribute(SCIMUserAddress.class.cast(objInstance).toAttributes(configuration),
                                             attrs,
                                             field.getType());
                                 }
@@ -1254,8 +1010,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                                             }
                                         }
                                         if (localId != null) {
-                                            addAttribute(ct.toAttributes(localId, configuration),
-                                                    attrs, field.getType());
+                                            addAttribute(ct.toAttributes(localId, configuration), attrs,
+                                                    field.getType());
                                         }
                                     }
                                 } else {
@@ -1271,31 +1027,23 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
                                         }
                                     }
                                     if (localId != null) {
-                                        addAttribute(
-                                                ct.toAttributes(localId, configuration),
-                                                attrs,
-                                                field.getType());
+                                        addAttribute(ct.toAttributes(localId, configuration), attrs, field.getType());
                                     }
                                 }
                             } else if (field.getGenericType().toString().contains(SCIMBaseMeta.class.getName())) {
                                 if (field.getType().equals(List.class)) {
                                     List<MT> list = (List<MT>) objInstance;
                                     for (MT scimMeta : list) {
-                                        addAttribute(
-                                                scimMeta.toAttributes(),
-                                                attrs,
-                                                field.getType());
+                                        addAttribute(scimMeta.toAttributes(), attrs, field.getType());
                                     }
                                 } else {
-                                    addAttribute(
-                                            SCIMBaseMeta.class.cast(objInstance).toAttributes(),
-                                            attrs,
+                                    addAttribute(SCIMBaseMeta.class.cast(objInstance).toAttributes(), attrs,
                                             field.getType());
                                 }
                             } else if (SCIMAttributeUtils.SCIM_USER_GROUPS.equals(field.getName())) {
                                 // SCIM-1 manage groups
                                 List<BaseResourceReference> groupRefs = (List<BaseResourceReference>) objInstance;
-                                attrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, 
+                                attrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS,
                                         groupRefs.stream().map(g -> g.getValue()).collect(Collectors.toList())));
                             } else {
                                 attrs.add(SCIMAttributeUtils.buildAttributeFromClassField(field, this).build());
@@ -1309,30 +1057,14 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>,
         return attrs;
     }
 
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("active", active)
-                .append("addresses", addresses)
-                .append("displayName", displayName)
-                .append("emails", emails)
-                .append("entitlements", entitlements)
-                .append("groups", groups)
-                .append("ims", ims)
-                .append("locale", locale)
-                .append("name", name)
-                .append("nickName", nickName)
-                .append("phoneNumbers", phoneNumbers)
-                .append("photos", photos)
-                .append("profileUrl", profileUrl)
-                .append("preferredLanguage", preferredLanguage)
-                .append("roles", roles)
-                .append("timezone", timezone)
-                .append("title", title)
-                .append("userName", userName)
-                .append("userType", userType)
-                .append("x509Certificates", x509Certificates)
-                .append("scimCustomAttributes", scimCustomAttributes)
-                .toString();
+    @Override public String toString() {
+        return new ToStringBuilder(this).append("active", active).append("addresses", addresses)
+                .append("displayName", displayName).append("emails", emails).append("entitlements", entitlements)
+                .append("groups", groups).append("ims", ims).append("locale", locale).append("name", name)
+                .append("nickName", nickName).append("phoneNumbers", phoneNumbers).append("photos", photos)
+                .append("profileUrl", profileUrl).append("preferredLanguage", preferredLanguage).append("roles", roles)
+                .append("timezone", timezone).append("title", title).append("userName", userName)
+                .append("userType", userType).append("x509Certificates", x509Certificates)
+                .append("scimCustomAttributes", scimCustomAttributes).toString();
     }
 }

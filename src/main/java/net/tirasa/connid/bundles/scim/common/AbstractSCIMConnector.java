@@ -280,18 +280,12 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                 user.setExternalId(externalId != null ? externalId : username);
                 // SCIM-1 manage groups
                 List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
-                if (groups != null && !groups.isEmpty()) {
-                    LOG.info("Adding groups {0} to user {1}", groups, user.getId());
-                    groups.forEach(g -> {
-                        GT group = client.getGroup(g);
-                        if (group == null) {
-                            LOG.error("Unable to add group {0} to the user, group does not exist", g);
-                        } else {
-                            user.getGroups().add(new BaseResourceReference.Builder().value(group.getId())
-                                    .ref("../Groups/" + group.getId()).display(group.getDisplayName()).build());
-                        }
-                    });
-                }
+                LOG.info("Adding groups {0} to user {1}", groups, username);
+                List<GT> scimGroups = groups == null ? Collections.emptyList()
+                        : groups.stream().map(client::getGroup).filter(g -> g != null).collect(Collectors.toList());
+                scimGroups.forEach(g -> user.getGroups().add(new BaseResourceReference.Builder().value(g.getId())
+                        .ref(configuration.getBaseAddress() + "Groups/" + g.getId()).display(g.getDisplayName())
+                        .build()));
 
                 if (password == null) {
                     LOG.warn("Missing password attribute");
@@ -320,11 +314,22 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                         });
 
                 client.createUser(user);
+                // SCIM-1 update also groups, if needed
+                if (!scimGroups.isEmpty() && configuration.getExplicitGroupAddOnCreate()) {
+                    LOG.info("Updating groups {0} explicitly adding user {1}", groups, user.getId());
+                    scimGroups.forEach(g -> {
+                        g.getMembers().add(new BaseResourceReference.Builder().value(user.getId()).build());
+                        client.updateGroup(g);
+                    });
+                }
             } catch (Exception e) {
+                LOG.error(e, "Unable to update user {0}", username);
                 SCIMUtils.wrapGeneralError("Could not create User : " + username, e);
             }
 
-            return new Uid(user.getId());
+            return new
+
+                    Uid(user.getId());
 
         } else if (ObjectClass.GROUP.equals(objectClass)) {
             GT group = buildNewGroupEntity();
@@ -414,7 +419,8 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                                 LOG.error("Unable to add group {0} to the user, group does not exist", g);
                             } else {
                                 user.getGroups().add(new BaseResourceReference.Builder().value(group.getId())
-                                        .ref("../Groups/" + group.getId()).display(group.getDisplayName()).build());
+                                        .ref(configuration.getBaseAddress() + "Groups/" + group.getId())
+                                        .display(group.getDisplayName()).build());
                             }
                         });
                     }

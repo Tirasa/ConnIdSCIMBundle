@@ -15,6 +15,7 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import java.util.TreeSet;
@@ -32,7 +33,11 @@ public abstract class AbstractSCIMBaseResource<MT extends SCIMBaseMeta> implemen
     @JsonProperty
     protected String id;
 
+    @JsonProperty
     protected final Set<String> schemas = new TreeSet<>();
+
+    @JsonIgnore protected String baseSchema;
+    
 
     public AbstractSCIMBaseResource() {
     }

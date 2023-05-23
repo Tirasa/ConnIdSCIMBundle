@@ -16,11 +16,11 @@
 package net.tirasa.connid.bundles.scim.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
@@ -30,15 +30,12 @@ import org.identityconnectors.framework.common.objects.Attribute;
 
 public class AbstractSCIMGroup<MT extends SCIMBaseMeta> extends AbstractSCIMBaseResource<MT> implements SCIMGroup<MT> {
 
+    @JsonProperty
     protected String displayName;
 
     protected List<BaseResourceReference> members = new ArrayList<>();
 
-    protected final Set<String> schemas = new TreeSet<>();
-
-    @JsonIgnore protected String baseSchema;
-
-    protected AbstractSCIMGroup() {
+    public AbstractSCIMGroup() {
     }
 
     protected AbstractSCIMGroup(final String schemaUri, final MT meta) {
@@ -108,9 +105,9 @@ public class AbstractSCIMGroup<MT extends SCIMBaseMeta> extends AbstractSCIMBase
 
     @JsonIgnore @SuppressWarnings("unchecked")
     private void doSetAttribute(final String name, final List<Object> values) {
-        if ("displayName".equals(name)) {
+        if (SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME.equals(name)) {
             this.displayName = String.class.cast(values.get(0));
-        } else if ("members".equals(name)) {
+        } else if (SCIMAttributeUtils.SCIM_GROUP_MEMBERS.equals(name)) {
             values.forEach(value -> members.add(
                     new BaseResourceReference.Builder().value(value.toString()).ref("../Users/" + value).build()));
         }
