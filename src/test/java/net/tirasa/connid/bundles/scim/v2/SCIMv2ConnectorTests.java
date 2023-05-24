@@ -219,7 +219,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOM_OTHER_SCHEMAS));
 
         // SCIM-1 add groups
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, groups));
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, (Object[]) groups));
 
         Uid created = FACADE.create(ObjectClass.ACCOUNT, userAttrs, new OperationOptionsBuilder().build());
         assertNotNull(created);
@@ -233,7 +233,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         Set<Attribute> userAttrs = updateUserAttributes(created, name);
 
         // SCIM-1 change groups
-        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, groups));
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, (Object[]) groups));
 
         Uid updated = FACADE.update(ObjectClass.ACCOUNT, created, userAttrs, new OperationOptionsBuilder().build());
         assertNotNull(updated);
