@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.tirasa.connid.bundles.scim.v11.dto;
+package net.tirasa.connid.bundles.scim.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import java.util.ArrayList;
 import java.util.List;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 
-public class PagedResults<T extends SCIMUser<?, ? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>> {
+public class PagedResults<T extends SCIMBaseResource<? extends SCIMBaseMeta>> {
 
     @JsonProperty
     private int totalResults;
@@ -85,8 +82,12 @@ public class PagedResults<T extends SCIMUser<?, ? extends SCIMBaseMeta, ? extend
 
     @Override
     public String toString() {
-        return "PagedResults{" + "totalResults=" + totalResults + ", itemsPerPage=" + itemsPerPage + ", startIndex="
-                + startIndex + ", schemas=" + schemas + ", resources=" + resources + '}';
+        return "PagedResults{"
+                + "totalResults=" + totalResults
+                + ", itemsPerPage=" + itemsPerPage
+                + ", startIndex=" + startIndex
+                + ", schemas=" + schemas
+                + ", resources=" + resources
+                + '}';
     }
-
 }

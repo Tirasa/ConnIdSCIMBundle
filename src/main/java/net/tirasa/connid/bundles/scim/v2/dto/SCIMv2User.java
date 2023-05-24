@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
-import net.tirasa.connid.bundles.scim.common.dto.ResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
@@ -30,8 +29,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 
 public class SCIMv2User
-        extends AbstractSCIMUser<SCIMv2Attribute, ResourceReference, SCIMGenericComplex<String>, SCIMv2Meta,
-        SCIMv2EnterpriseUser> {
+        extends AbstractSCIMUser<SCIMv2Attribute, SCIMGenericComplex<String>, SCIMv2Meta, SCIMv2EnterpriseUser> {
 
     private static final long serialVersionUID = 7039988195599856857L;
 
@@ -43,7 +41,7 @@ public class SCIMv2User
     protected SCIMv2EnterpriseUser enterpriseUser;
 
     public SCIMv2User() {
-        super(SCHEMA_URI, RESOURCE_NAME, new SCIMv2Meta(RESOURCE_NAME));
+        super(SCHEMA_URI, new SCIMv2Meta(RESOURCE_NAME));
     }
 
     @Override

@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.identityconnectors.common.logging.Log;
 
-public abstract class AbstractSCIMBaseResource<AT, MT extends SCIMBaseMeta> implements SCIMBaseResource<AT, MT> {
+public abstract class AbstractSCIMBaseResource<MT extends SCIMBaseMeta> implements SCIMBaseResource<MT> {
 
     private static final long serialVersionUID = 3673404125396687366L;
 
@@ -34,19 +34,15 @@ public abstract class AbstractSCIMBaseResource<AT, MT extends SCIMBaseMeta> impl
     protected String id;
 
     @JsonProperty
-    protected String externalId;
-
-    @JsonIgnore
-    protected String baseSchema;
-
     protected final Set<String> schemas = new TreeSet<>();
+
+    @JsonIgnore protected String baseSchema;
+    
 
     public AbstractSCIMBaseResource() {
     }
 
-    public AbstractSCIMBaseResource(final String baseSchema, final String resourceType, final MT meta) {
-        schemas.add(baseSchema);
-        this.baseSchema = baseSchema;
+    public AbstractSCIMBaseResource(final MT meta) {
         this.meta = meta;
     }
 
@@ -81,18 +77,4 @@ public abstract class AbstractSCIMBaseResource<AT, MT extends SCIMBaseMeta> impl
         this.id = id;
     }
 
-    @Override
-    public String getExternalId() {
-        return externalId;
-    }
-
-    @Override
-    public void setExternalId(final String externalId) {
-        this.externalId = externalId;
-    }
-
-    @Override
-    public String getBaseSchema() {
-        return baseSchema;
-    }
 }

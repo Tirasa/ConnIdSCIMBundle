@@ -17,13 +17,15 @@ package net.tirasa.connid.bundles.scim.common.service;
 
 import java.util.List;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
-import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
-import org.identityconnectors.framework.common.objects.Attribute;
 
-public interface SCIMService<UT extends SCIMUser<Attribute, ? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>> {
+public interface SCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>, 
+        GT extends SCIMGroup<? extends SCIMBaseMeta>, P extends SCIMBasePatch> {
 
     PagedResults<UT> getAllUsers(Integer valueOf, Integer pagesSize, Set<String> attributesToGet);
 
@@ -42,4 +44,20 @@ public interface SCIMService<UT extends SCIMUser<Attribute, ? extends SCIMBaseMe
     void activateUser(String userId);
 
     boolean testService();
+
+    PagedResults<GT> getAllGroups(Integer startIndex, Integer count);
+
+    List<GT> getAllGroups();
+
+    GT getGroup(String groupId);
+
+    List<GT> getAllGroups(String filter);
+
+    GT createGroup(GT group);
+
+    void deleteGroup(String groupId);
+
+    GT updateGroup(GT group);
+
+    GT updateGroup(String groupId, P groupPatch);
 }

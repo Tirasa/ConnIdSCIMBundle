@@ -62,6 +62,8 @@ public final class SCIMv2ConnectorTestsUtils {
     public static final String USER_ATTRIBUTE_PHONE_OTHER_OPERATION = "phoneNumbers.other.operation";
 
     public static final String USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS = "addresses.work.streetAddress";
+    
+    public static final String DISPLAY_NAME = "displayName";
 
     public static SCIMConnectorConfiguration buildConfiguration(
             final Map<String, String> configuration, final int serverPort) {
@@ -106,8 +108,11 @@ public final class SCIMv2ConnectorTestsUtils {
                 case "auth.customAttributesJSON":
                     connectorConfiguration.setCustomAttributesJSON(entry.getValue());
                     break;
-                case "auth.updateMethod":
-                    connectorConfiguration.setUpdateMethod(entry.getValue());
+                case "auth.updateUserMethod":
+                    connectorConfiguration.setUpdateUserMethod(entry.getValue());
+                    break;
+                case "auth.updateGroupMethod":
+                    connectorConfiguration.setUpdateGroupMethod(entry.getValue());
                     break;
                 default:
                     LOG.info("Occurrence of an non defined parameter");

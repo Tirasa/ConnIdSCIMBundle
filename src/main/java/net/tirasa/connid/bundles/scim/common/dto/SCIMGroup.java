@@ -15,28 +15,14 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
-import java.io.Serializable;
-import java.util.Set;
-import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import org.identityconnectors.framework.common.objects.Attribute;
+import java.util.List;
 
-public interface SCIMBaseResource<MT extends SCIMBaseMeta> extends Serializable {
+public interface SCIMGroup<MT extends SCIMBaseMeta> extends SCIMBaseResource<MT> {
 
-    Set<String> getSchemas();
+    String getDisplayName();
 
-    void setSchemas(Set<String> schemas);
+    void setDisplayName(String displayName);
 
-    MT getMeta();
-
-    void setMeta(MT meta);
-
-    String getId();
-
-    void setId(String id);
-
-    Set<Attribute> toAttributes(Class<?> type, SCIMConnectorConfiguration configuration)
-            throws IllegalArgumentException, IllegalAccessException;
-
-    void fromAttributes(Set<Attribute> attributes);
+    List<BaseResourceReference> getMembers();
 
 }

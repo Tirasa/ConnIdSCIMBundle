@@ -34,6 +34,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
@@ -42,7 +43,6 @@ import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
 import net.tirasa.connid.bundles.scim.common.types.PhoneNumberCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
-import net.tirasa.connid.bundles.scim.v11.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;
@@ -103,7 +103,7 @@ public class SCIMv11ConnectorTests {
             configurationParameters.put(name, PROPS.getProperty(name));
         }
         CONF = SCIMv11ConnectorTestsUtils.buildConfiguration(configurationParameters);
-        CONF.setUpdateMethod("PATCH");
+        CONF.setUpdateUserMethod("PATCH");
 
         Boolean isValid = SCIMv11ConnectorTestsUtils.isConfigurationValid(CONF);
         if (isValid) {
@@ -151,7 +151,7 @@ public class SCIMv11ConnectorTests {
         assertNotNull(CONF.getUsername());
         assertNotNull(CONF.getAccept());
         assertNotNull(CONF.getContentType());
-        assertNotNull(CONF.getUpdateMethod());
+        assertNotNull(CONF.getUpdateUserMethod());
     }
 
     private static ConnectorFacade newFacade() {
@@ -427,7 +427,7 @@ public class SCIMv11ConnectorTests {
 
     private static Set<String> testAttributesToGet() {
         Set<String> attributesToGet = new HashSet<>();
-        attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_ID);
+        attributesToGet.add(SCIMAttributeUtils.ATTRIBUTE_ID);
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_PASSWORD);
         attributesToGet.add(SCIMv11ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME);
@@ -690,7 +690,7 @@ public class SCIMv11ConnectorTests {
 
             updateUserServiceTest(testUser, client);
 
-            CONF.setUpdateMethod("PUT");
+            CONF.setUpdateUserMethod("PUT");
             updateUserServiceTestPUT(testUser, newClient());
         } catch (Exception e) {
             LOG.error(e, "While running service test");

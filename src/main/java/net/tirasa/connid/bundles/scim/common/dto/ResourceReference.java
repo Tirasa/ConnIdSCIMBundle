@@ -15,9 +15,7 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
-import java.io.Serializable;
-
-public class ResourceReference implements Serializable {
+public class ResourceReference extends BaseResourceReference {
 
     private static final long serialVersionUID = 9126588075353486789L;
 
@@ -29,37 +27,7 @@ public class ResourceReference implements Serializable {
 
     }
 
-    private String value;
-
-    private String ref;
-
-    private String display;
-
     private ReferenceType type;
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(final String value) {
-        this.value = value;
-    }
-
-    public String getRef() {
-        return ref;
-    }
-
-    public void setRef(final String ref) {
-        this.ref = ref;
-    }
-
-    public String getDisplay() {
-        return display;
-    }
-
-    public void setDisplay(final String display) {
-        this.display = display;
-    }
 
     public ReferenceType getType() {
         return type;

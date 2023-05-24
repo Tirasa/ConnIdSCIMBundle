@@ -29,10 +29,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
-
-public class SCIMv11User
-        extends
-        AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultComplex, SCIMDefaultComplex, SCIMv11Meta, SCIMv11EnterpriseUser> {
+public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultComplex, SCIMv11Meta,
+        SCIMv11EnterpriseUser> {
 
     private static final long serialVersionUID = -6868285123690771711L;
 

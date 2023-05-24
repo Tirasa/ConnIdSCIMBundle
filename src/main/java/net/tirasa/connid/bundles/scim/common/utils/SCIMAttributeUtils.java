@@ -18,6 +18,7 @@ package net.tirasa.connid.bundles.scim.common.utils;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
@@ -27,6 +28,7 @@ import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
 import org.identityconnectors.common.StringUtil;
+import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Name;
@@ -39,7 +41,7 @@ import org.identityconnectors.framework.common.objects.SchemaBuilder;
 
 public final class SCIMAttributeUtils {
 
-    public static final String USER_ATTRIBUTE_ID = "id";
+    public static final String ATTRIBUTE_ID = "id";
 
     public static final String USER_ATTRIBUTE_USERNAME = "userName";
 
@@ -71,6 +73,18 @@ public final class SCIMAttributeUtils {
 
     public static final String SCIM_USER_GROUPS = "groups";
 
+    public static final String SCIM_USER_GROUPS_TO_ADD = "groupsToAdd";
+
+    public static final String SCIM_USER_GROUPS_TO_REMOVE = "groupsToRemove";
+
+    public static final String SCIM11_REMOVE = "delete";
+
+    public static final String SCIM2_REMOVE = "remove";
+
+    public static final String SCIM2_ADD = "add";
+
+    public static final String SCIM2_REPLACE = "replace";
+    
     public static final String SCIM_USER_PHOTOS = "photos";
 
     public static final String SCIM_USER_SCHEMAS = "schemas";
@@ -85,10 +99,14 @@ public final class SCIMAttributeUtils {
 
     public static final String SCIM_ENTERPRISE_EMPLOYEE_MANAGER_REF = "manager.ref";
 
-    public static final String SCIM_ENTERPRISE_EMPLOYEE_MANAGER_DISPLAY_NAMER = "manager.displayName";
+    public static final String SCIM_ENTERPRISE_EMPLOYEE_MANAGER_DISPLAY_NAME = "manager.displayName";
 
-    public static <T extends SCIMBaseAttribute<T>> Schema buildSchema(
-            final String customAttributes, final Class<T> attrType) {
+    public static final String SCIM_GROUP_DISPLAY_NAME = "displayName";
+
+    public static final String SCIM_GROUP_MEMBERS = "members";
+
+    public static <T extends SCIMBaseAttribute<T>> Schema buildSchema(final String customAttributes,
+            final Class<T> attrType) {
 
         SchemaBuilder builder = new SchemaBuilder(AbstractSCIMConnector.class);
 
@@ -96,9 +114,8 @@ public final class SCIMAttributeUtils {
         ObjectClassInfo user;
 
         userBuilder.addAttributeInfo(Name.INFO);
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define(USER_ATTRIBUTE_ID).build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("externalId")
-                .setUpdateable(false).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define(ATTRIBUTE_ID).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("externalId").setUpdateable(false).build());
 
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("userName").setRequired(true).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("name.formatted").build());
@@ -109,8 +126,7 @@ public final class SCIMAttributeUtils {
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("name.honorificSuffix").build());
 
         userBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("active")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("active").setType(Boolean.class).build());
 
         userBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
 
@@ -126,79 +142,69 @@ public final class SCIMAttributeUtils {
 
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.work.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.home.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("emails.other.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("emails.other.primary").setType(Boolean.class).build());
 
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.work.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.work.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.work.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("phoneNumbers.work.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.other.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.other.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.other.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("phoneNumbers.other.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.pager.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.pager.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.pager.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("phoneNumbers.pager.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.fax.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.fax.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.fax.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("phoneNumbers.fax.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.mobile.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.mobile.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("phoneNumbers.mobile.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("phoneNumbers.mobile.primary").setType(Boolean.class).build());
 
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.aim.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.aim.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.aim.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.aim.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.xmpp.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.xmpp.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.xmpp.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.xmpp.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.skype.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.skype.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.skype.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.skype.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.qq.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.qq.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.qq.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.qq.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.yahoo.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.yahoo.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.yahoo.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.yahoo.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.msn.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.msn.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.msn.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.msn.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.icq.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.icq.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.icq.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.icq.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.gtalk.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.gtalk.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.gtalk.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("ims.gtalk.primary").setType(Boolean.class).build());
 
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("photos.photo.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("photos.photo.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("photos.photo.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("photos.photo.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("photos.thumbnail.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("photos.thumbnail.operation").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("photos.thumbnail.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("photos.thumbnail.primary").setType(Boolean.class).build());
 
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.streetAddress").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.locality").build());
@@ -206,44 +212,37 @@ public final class SCIMAttributeUtils {
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.postalCode").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.country").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.formatted").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.work.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("addresses.work.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.streetAddress").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.locality").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.region").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.postalCode").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.country").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.formatted").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.home.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("addresses.home.primary").setType(Boolean.class).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.streetAddress").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.locality").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.region").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.postalCode").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.country").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.formatted").build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("addresses.other.primary")
-                .setType(Boolean.class).build());
+        userBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define("addresses.other.primary").setType(Boolean.class).build());
 
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.value")
-                .setUpdateable(false).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("groups.default.value").setUpdateable(false).build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("roles.default.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("entitlements.default.value").build());
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("x509Certificates.default.value").build());
 
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("schemas")
-                .setMultiValued(true).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("schemas").setMultiValued(true).build());
 
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.created")
-                .setUpdateable(false).build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.lastModified")
-                .setUpdateable(false).build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.location")
-                .setUpdateable(false).build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.version")
-                .setUpdateable(false).build());
-        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.attributes")
-                .setMultiValued(true).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.created").setUpdateable(false).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.lastModified").setUpdateable(false).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.location").setUpdateable(false).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.version").setUpdateable(false).build());
+        userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.attributes").setMultiValued(true).build());
 
         // custom attributes
         if (StringUtil.isNotBlank(customAttributes)) {
@@ -251,18 +250,16 @@ public final class SCIMAttributeUtils {
             if (scimSchema != null && !scimSchema.getAttributes().isEmpty()) {
                 for (T attribute : scimSchema.getAttributes()) {
                     AttributeInfoBuilder attributeInfoBuilder = AttributeInfoBuilder.define(
-                            attribute instanceof SCIMv11Attribute
-                                    ? SCIMv11Attribute.class.cast(attribute).getSchema()
-                                    .concat(".")
-                                    .concat(attribute.getName())
-                                    : SCIMv2Attribute.class.cast(attribute).getExtensionSchema()
-                                    .concat(".")
-                                    .concat(attribute.getName()));
-                    attributeInfoBuilder.setMultiValued(attribute.getMultiValued())
-                            .setRequired(attribute.getRequired())
-                            .setUpdateable(attribute instanceof SCIMv11Attribute
-                                    ? !SCIMv11Attribute.class.cast(attribute).getReadOnly()
-                                    : Mutability.readWrite == SCIMv2Attribute.class.cast(attribute).getMutability());
+                            attribute instanceof SCIMv11Attribute ? SCIMv11Attribute.class.cast(attribute).getSchema()
+                                    .concat(".").concat(attribute.getName())
+                                    : SCIMv2Attribute.class.cast(attribute).getExtensionSchema().concat(".")
+                                            .concat(attribute.getName()));
+                    attributeInfoBuilder.setMultiValued(attribute.getMultiValued()).setRequired(attribute.getRequired())
+                            .setUpdateable(
+                                    attribute instanceof SCIMv11Attribute ? !SCIMv11Attribute.class.cast(attribute)
+                                            .getReadOnly()
+                                            : Mutability.readWrite == SCIMv2Attribute.class.cast(attribute)
+                                                    .getMutability());
                     switch (attribute.getType()) {
                         case "boolean":
                             attributeInfoBuilder.setType(Boolean.class);
@@ -283,23 +280,22 @@ public final class SCIMAttributeUtils {
                     AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber")
                             .setMultiValued(false).build());
             userBuilder.addAttributeInfo(
-                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".costCenter")
-                            .setMultiValued(false).build());
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".costCenter").setMultiValued(false)
+                            .build());
             userBuilder.addAttributeInfo(
-                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".organization")
-                            .setMultiValued(false).build());
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".organization").setMultiValued(false)
+                            .build());
             userBuilder.addAttributeInfo(
-                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".division")
-                            .setMultiValued(false).build());
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".division").setMultiValued(false)
+                            .build());
             userBuilder.addAttributeInfo(
-                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".department")
-                            .setMultiValued(false).build());
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".department").setMultiValued(false)
+                            .build());
+            userBuilder.addAttributeInfo(AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")
+                    .setMultiValued(false).build());
             userBuilder.addAttributeInfo(
-                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")
-                            .setMultiValued(false).build());
-            userBuilder.addAttributeInfo(
-                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.ref")
-                            .setMultiValued(false).build());
+                    AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.ref").setMultiValued(false)
+                            .build());
             userBuilder.addAttributeInfo(
                     AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.displayName")
                             .setMultiValued(false).build());
@@ -318,18 +314,23 @@ public final class SCIMAttributeUtils {
         user = userBuilder.build();
         builder.defineObjectClass(user);
 
+        // SCIM-1 Group
+        ObjectClassInfoBuilder groupBuilder = new ObjectClassInfoBuilder().setType(ObjectClass.GROUP_NAME);
+        groupBuilder.addAttributeInfo(
+                AttributeInfoBuilder.define(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME).setMultiValued(false).build());
+        builder.defineObjectClass(groupBuilder.build());
+
         return builder.build();
     }
 
-    public static AttributeBuilder buildAttributeFromClassField(final Field field,
-                                                                final Object that)
+    public static AttributeBuilder buildAttributeFromClassField(final Field field, final Object that)
             throws IllegalArgumentException, IllegalAccessException {
 
         return doBuildAttributeFromClassField(field.get(that), field.getName(), field.getType());
     }
 
     public static AttributeBuilder doBuildAttributeFromClassField(final Object value, final String name,
-                                                                  final Class<?> clazz) {
+            final Class<?> clazz) {
 
         AttributeBuilder attributeBuilder = new AttributeBuilder();
         if (value != null) {
@@ -355,11 +356,14 @@ public final class SCIMAttributeUtils {
     }
 
     public static String defaultAttributesToGet() {
-        return USER_ATTRIBUTE_USERNAME
-                .concat(",")
-                .concat(USER_ATTRIBUTE_ID)
-                .concat(",")
-                .concat(SCIM_USER_NAME);
+        return USER_ATTRIBUTE_USERNAME.concat(",").concat(ATTRIBUTE_ID).concat(",").concat(SCIM_USER_NAME);
+    }
+
+    public static void addAttribute(final Set<Attribute> toAttrs, final Set<Attribute> attrs, final Class<?> type) {
+        for (Attribute toAttribute : toAttrs) {
+            attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(toAttribute.getValue(), toAttribute.getName(),
+                    type).build());
+        }
     }
 
     private SCIMAttributeUtils() {

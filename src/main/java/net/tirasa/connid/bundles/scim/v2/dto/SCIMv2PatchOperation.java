@@ -16,49 +16,83 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
-import java.util.List;
 
-public class SCIMv2PatchOperation implements Serializable {
+public class SCIMv2PatchOperation<T> implements SCIMPatchOperation<T> {
 
     private static final long serialVersionUID = -1398745689025351659L;
 
-    @JsonProperty("op")
-    private String op;
+    @JsonProperty("op") private String op;
 
-    @JsonProperty("path")
-    private String path;
+    @JsonProperty("path") private String path;
 
-    @JsonProperty("value")
-    private List<SCIMv2PatchOperationValue> value;
+    @JsonProperty("value") private T value;
 
-    @JsonProperty("op")
     public String getOp() {
         return op;
     }
 
-    @JsonProperty("op")
     public void setOp(final String op) {
         this.op = op;
     }
 
-    @JsonProperty("path")
+    @JsonProperty("op") @Override public String getOperation() {
+        return op;
+    }
+
+    @JsonProperty("op") @Override public void setOperation(final String op) {
+        this.op = op;
+    }
+
     public String getPath() {
         return path;
     }
 
-    @JsonProperty("path")
     public void setPath(final String path) {
         this.path = path;
     }
 
-    @JsonProperty("value")
-    public List<SCIMv2PatchOperationValue> getValue() {
+    public T getValue() {
         return value;
     }
 
-    @JsonProperty("value")
-    public void setValue(final List<SCIMv2PatchOperationValue> value) {
+    public void setValue(final T value) {
         this.value = value;
+    }
+
+    public static final class Builder<T> {
+        private String op;
+        private String path;
+        private T value;
+
+        public Builder() {
+        }
+
+        public Builder<T> op(final String op) {
+            this.op = op;
+            return this;
+        }
+
+        public Builder<T> path(final String path) {
+            this.path = path;
+            return this;
+        }
+
+        public Builder<T> value(final T value) {
+            this.value = value;
+            return this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public SCIMv2PatchOperation build() {
+            SCIMv2PatchOperation sCIMv2PatchOperation = new SCIMv2PatchOperation();
+            sCIMv2PatchOperation.setOp(op);
+            sCIMv2PatchOperation.setPath(path);
+            sCIMv2PatchOperation.setValue(value);
+            return sCIMv2PatchOperation;
+        }
+    }
+
+    @Override public String toString() {
+        return "SCIMv2PatchOperation{" + "op='" + op + '\'' + ", path='" + path + '\'' + ", value=" + value + '}';
     }
 }

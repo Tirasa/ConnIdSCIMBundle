@@ -140,8 +140,8 @@ public final class SCIMUtils {
         if (!result.contains(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + ",")) {
             result += SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME.concat(",");
         }
-        if (!result.contains(SCIMAttributeUtils.USER_ATTRIBUTE_ID + ",")) {
-            result += SCIMAttributeUtils.USER_ATTRIBUTE_ID.concat(",");
+        if (!result.contains(SCIMAttributeUtils.ATTRIBUTE_ID + ",")) {
+            result += SCIMAttributeUtils.ATTRIBUTE_ID.concat(",");
         }
         if (!result.contains(SCIMAttributeUtils.SCIM_USER_NAME + ",")) {
             result += SCIMAttributeUtils.SCIM_USER_NAME.concat(",");

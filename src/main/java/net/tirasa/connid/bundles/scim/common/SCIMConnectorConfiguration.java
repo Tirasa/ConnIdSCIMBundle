@@ -49,7 +49,11 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String customAttributesJSON;
 
-    private String updateMethod = "PUT";
+    private String updateUserMethod = "PUT";
+
+    private String updateGroupMethod = "PUT";
+
+    private Boolean explicitGroupAddOnCreate = false;
 
     private String accept = MediaType.APPLICATION_JSON;
 
@@ -69,9 +73,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String genericComplexType;
 
-    @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display",
-            helpMessageKey = "baseAddress.help", required = true)
-    public String getBaseAddress() {
+    @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display", helpMessageKey = "baseAddress.help",
+            required = true) public String getBaseAddress() {
         return baseAddress;
     }
 
@@ -79,9 +82,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.baseAddress = baseAddress;
     }
 
-    @ConfigurationProperty(displayMessageKey = "accept.display",
-            helpMessageKey = "accept.help", order = 2, required = true)
-    public String getAccept() {
+    @ConfigurationProperty(displayMessageKey = "accept.display", helpMessageKey = "accept.help", order = 2,
+            required = true) public String getAccept() {
         return accept;
     }
 
@@ -89,9 +91,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.accept = accept;
     }
 
-    @ConfigurationProperty(displayMessageKey = "contentType.display",
-            helpMessageKey = "contentType.help", order = 3, required = true)
-    public String getContentType() {
+    @ConfigurationProperty(displayMessageKey = "contentType.display", helpMessageKey = "contentType.help", order = 3,
+            required = true) public String getContentType() {
         return contentType;
     }
 
@@ -99,8 +100,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.contentType = contentType;
     }
 
-    @ConfigurationProperty(displayMessageKey = "username.display",
-            helpMessageKey = "username.help", order = 4)
+    @ConfigurationProperty(displayMessageKey = "username.display", helpMessageKey = "username.help", order = 4)
     public String getUsername() {
         return username;
     }
@@ -109,9 +109,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.username = username;
     }
 
-    @ConfigurationProperty(displayMessageKey = "password.display",
-            helpMessageKey = "password.help", order = 5, confidential = true)
-    public GuardedString getPassword() {
+    @ConfigurationProperty(displayMessageKey = "password.display", helpMessageKey = "password.help", order = 5,
+            confidential = true) public GuardedString getPassword() {
         return password;
     }
 
@@ -119,9 +118,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.password = password;
     }
 
-    @ConfigurationProperty(displayMessageKey = "bearerToken.display",
-            helpMessageKey = "bearerToken.help", order = 6, confidential = true)
-    public String getBearerToken() {
+    @ConfigurationProperty(displayMessageKey = "bearerToken.display", helpMessageKey = "bearerToken.help", order = 6,
+            confidential = true) public String getBearerToken() {
         return bearerToken;
     }
 
@@ -129,8 +127,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.bearerToken = bearerToken;
     }
 
-    @ConfigurationProperty(displayMessageKey = "clientId.display",
-            helpMessageKey = "clientId.help", order = 7)
+    @ConfigurationProperty(displayMessageKey = "clientId.display", helpMessageKey = "clientId.help", order = 7)
     public String getCliendId() {
         return clientId;
     }
@@ -139,9 +136,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.clientId = clientId;
     }
 
-    @ConfigurationProperty(displayMessageKey = "clientSecret.display",
-            helpMessageKey = "clientSecret.help", order = 8, confidential = true)
-    public String getClientSecret() {
+    @ConfigurationProperty(displayMessageKey = "clientSecret.display", helpMessageKey = "clientSecret.help", order = 8,
+            confidential = true) public String getClientSecret() {
         return clientSecret;
     }
 
@@ -150,8 +146,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "customAttributesJSON.display",
-            helpMessageKey = "customAttributesJSON.help", order = 9)
-    public String getCustomAttributesJSON() {
+            helpMessageKey = "customAttributesJSON.help", order = 9) public String getCustomAttributesJSON() {
         return customAttributesJSON;
     }
 
@@ -159,18 +154,37 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.customAttributesJSON = customAttributesJSON;
     }
 
-    @ConfigurationProperty(displayMessageKey = "updateMethod.display",
-            helpMessageKey = "updateMethod.help", order = 10)
-    public String getUpdateMethod() {
-        return updateMethod;
+    @ConfigurationProperty(displayMessageKey = "updateUserMethod.display", helpMessageKey = "updateUserMethod.help",
+            order = 10) public String getUpdateUserMethod() {
+        return updateUserMethod;
     }
 
-    public void setUpdateMethod(final String updateMethod) {
-        this.updateMethod = updateMethod;
+    public void setUpdateUserMethod(final String updateUserMethod) {
+        this.updateUserMethod = updateUserMethod;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "updateGroupMethod.display", helpMessageKey = "updateGroupMethod.help",
+            order = 10) public String getUpdateGroupMethod() {
+        return updateGroupMethod;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "updateGroupMethod.display", helpMessageKey = "updateGroupMethod.help",
+            order = 10) public void setUpdateGroupMethod(final String updateGroupMethod) {
+        this.updateGroupMethod = updateGroupMethod;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "explicitGroupAddOnCreate.display", 
+            helpMessageKey = "explicitGroupAddOnCreate.help", order = 11)
+    public Boolean getExplicitGroupAddOnCreate() {
+        return explicitGroupAddOnCreate;
+    }
+    
+    public void setExplicitGroupAddOnCreate(final Boolean explicitGroupAddOnCreate) {
+        this.explicitGroupAddOnCreate = explicitGroupAddOnCreate;
     }
 
     @ConfigurationProperty(displayMessageKey = "accessTokenNodeId.display",
-            helpMessageKey = "accessTokenNodeId.help", order = 11)
+            helpMessageKey = "accessTokenNodeId.help", order = 12)
     public String getAccessTokenNodeId() {
         return accessTokenNodeId;
     }
@@ -180,8 +194,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "accessTokenBaseAddress.display",
-            helpMessageKey = "accessTokenBaseAddress.help", order = 12)
-    public String getAccessTokenBaseAddress() {
+            helpMessageKey = "accessTokenBaseAddress.help", order = 13) public String getAccessTokenBaseAddress() {
         return accessTokenBaseAddress;
     }
 
@@ -190,8 +203,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "accessTokenContentType.display",
-            helpMessageKey = "accessTokenContentType.help", order = 13)
-    public String getAccessTokenContentType() {
+            helpMessageKey = "accessTokenContentType.help", order = 14) public String getAccessTokenContentType() {
         return accessTokenContentType;
     }
 
@@ -199,9 +211,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.accessTokenContentType = accessTokenContentType;
     }
 
-    @ConfigurationProperty(displayMessageKey = "addressesType.display",
-            helpMessageKey = "addressesType.help", order = 14)
-    public String getAddressesType() {
+    @ConfigurationProperty(displayMessageKey = "addressesType.display", helpMessageKey = "addressesType.help",
+            order = 15) public String getAddressesType() {
         return addressesType;
     }
 
@@ -209,9 +220,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.addressesType = addressesType;
     }
 
-    @ConfigurationProperty(displayMessageKey = "genericComplexType.display",
-            helpMessageKey = "genericComplexType.help", order = 15)
-    public String getGenericComplexType() {
+    @ConfigurationProperty(displayMessageKey = "genericComplexType.display", helpMessageKey = "genericComplexType.help",
+            order = 16) public String getGenericComplexType() {
         return genericComplexType;
     }
 
@@ -219,8 +229,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.genericComplexType = genericComplexType;
     }
 
-    @Override
-    public void validate() {
+    @Override public void validate() {
         if (StringUtil.isBlank(baseAddress)) {
             failValidation("Base address cannot be null or empty.");
         }
@@ -230,36 +239,32 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             LOG.error(e, "While validating baseAddress");
             failValidation("Base address must be a valid URL.");
         }
-        if (StringUtil.isBlank(username)
-                && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
-            failValidation(
-                    "Username cannot be null or empty. Since clientId, clientSecret, "
-                            + "accessTokenNodeId and accessTokenBaseAddress are blank");
+        if (StringUtil.isBlank(username) && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId,
+                accessTokenBaseAddress)) {
+            failValidation("Username cannot be null or empty. Since clientId, clientSecret, "
+                    + "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
-        if (password != null && StringUtil.isBlank(SecurityUtil.decrypt(password))
-                && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
-            failValidation(
-                    "Password Id cannot be null or empty.  Since clientId, clientSecret, "
-                            + "accessTokenNodeId and accessTokenBaseAddress are blank");
+        if (password != null && StringUtil.isBlank(SecurityUtil.decrypt(password)) && StringUtils.isAllBlank(clientId,
+                clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
+            failValidation("Password Id cannot be null or empty.  Since clientId, clientSecret, "
+                    + "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
         if (StringUtil.isNotBlank(customAttributesJSON)) {
             try {
                 SCIMUtils.MAPPER.readValue(customAttributesJSON, SCIMSchema.class);
             } catch (IOException e) {
                 LOG.error(e, "While validating customAttributesJSON");
-                failValidation("'customAttributesJSON' parameter must be a valid "
-                        + "Resource Schema Representation JSON.");
+                failValidation(
+                        "'customAttributesJSON' parameter must be a valid " + "Resource Schema Representation JSON.");
             }
         }
-        if (StringUtil.isNotBlank(updateMethod)
-                && !updateMethod.equalsIgnoreCase("PATCH")
-                && !updateMethod.equalsIgnoreCase("PUT")) {
+        if (StringUtil.isNotBlank(updateUserMethod) && !updateUserMethod.equalsIgnoreCase("PATCH")
+                && !updateUserMethod.equalsIgnoreCase("PUT")) {
             failValidation("Update method is not valid; must be 'PUT' or 'PATCH'.");
         }
     }
 
-    @Override
-    public void release() {
+    @Override public void release() {
     }
 
     private void failValidation(final String key, final Object... args) {
