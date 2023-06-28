@@ -91,7 +91,7 @@ public final class SCIMv2ConnectorTestsUtils {
                     connectorConfiguration.setAccept(entry.getValue());
                     break;
                 case "auth.clientId":
-                    connectorConfiguration.setCliendId(entry.getValue());
+                    connectorConfiguration.setClientId(entry.getValue());
                     break;
                 case "auth.clientSecret":
                     connectorConfiguration.setClientSecret(entry.getValue());

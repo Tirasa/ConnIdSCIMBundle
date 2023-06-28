@@ -128,11 +128,11 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "clientId.display", helpMessageKey = "clientId.help", order = 7)
-    public String getCliendId() {
+    public String getClientId() {
         return clientId;
     }
 
-    public void setCliendId(final String clientId) {
+    public void setClientId(final String clientId) {
         this.clientId = clientId;
     }
 

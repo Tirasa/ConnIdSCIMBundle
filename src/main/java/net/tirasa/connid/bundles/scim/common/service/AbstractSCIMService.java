@@ -70,7 +70,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
 
     protected WebClient getWebclient(final String path, final Map<String, String> params) {
         WebClient webClient;
-        if (StringUtil.isNotBlank(config.getBearerToken()) || (StringUtil.isNotBlank(config.getCliendId())
+        if (StringUtil.isNotBlank(config.getBearerToken()) || (StringUtil.isNotBlank(config.getClientId())
                 && StringUtil.isNotBlank(config.getClientSecret()) && StringUtil.isNotBlank(
                 config.getAccessTokenBaseAddress()) && StringUtil.isNotBlank(config.getAccessTokenNodeId()))) {
             webClient =
@@ -104,7 +104,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
                 WebClient.create(config.getAccessTokenBaseAddress()).type(config.getAccessTokenContentType())
                         .accept(config.getAccept());
 
-        String contentUri = new StringBuilder("&client_id=").append(config.getCliendId()).append("&client_secret=")
+        String contentUri = new StringBuilder("&client_id=").append(config.getClientId()).append("&client_secret=")
                 .append(config.getClientSecret()).append("&username=").append(config.getUsername()).append("&password=")
                 .append(SecurityUtil.decrypt(config.getPassword())).toString();
         String token = null;

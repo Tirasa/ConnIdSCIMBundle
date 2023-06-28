@@ -80,7 +80,7 @@ public final class SCIMv11ConnectorTestsUtils {
                     connectorConfiguration.setAccept(entry.getValue());
                     break;
                 case "auth.clientId":
-                    connectorConfiguration.setCliendId(entry.getValue());
+                    connectorConfiguration.setClientId(entry.getValue());
                     break;
                 case "auth.clientSecret":
                     connectorConfiguration.setClientSecret(entry.getValue());
