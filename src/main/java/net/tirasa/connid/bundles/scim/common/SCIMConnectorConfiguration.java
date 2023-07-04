@@ -74,7 +74,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String genericComplexType;
 
     @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display", helpMessageKey = "baseAddress.help",
-            required = true) public String getBaseAddress() {
+            required = true)
+    public String getBaseAddress() {
         return baseAddress;
     }
 
@@ -83,7 +84,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "accept.display", helpMessageKey = "accept.help", order = 2,
-            required = true) public String getAccept() {
+            required = true)
+    public String getAccept() {
         return accept;
     }
 
@@ -92,7 +94,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "contentType.display", helpMessageKey = "contentType.help", order = 3,
-            required = true) public String getContentType() {
+            required = true)
+    public String getContentType() {
         return contentType;
     }
 
@@ -110,7 +113,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "password.display", helpMessageKey = "password.help", order = 5,
-            confidential = true) public GuardedString getPassword() {
+            confidential = true)
+    public GuardedString getPassword() {
         return password;
     }
 
@@ -119,7 +123,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "bearerToken.display", helpMessageKey = "bearerToken.help", order = 6,
-            confidential = true) public String getBearerToken() {
+            confidential = true)
+    public String getBearerToken() {
         return bearerToken;
     }
 
@@ -137,7 +142,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "clientSecret.display", helpMessageKey = "clientSecret.help", order = 8,
-            confidential = true) public String getClientSecret() {
+            confidential = true)
+    public String getClientSecret() {
         return clientSecret;
     }
 
@@ -146,7 +152,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "customAttributesJSON.display",
-            helpMessageKey = "customAttributesJSON.help", order = 9) public String getCustomAttributesJSON() {
+            helpMessageKey = "customAttributesJSON.help", order = 9)
+    public String getCustomAttributesJSON() {
         return customAttributesJSON;
     }
 
@@ -155,7 +162,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "updateUserMethod.display", helpMessageKey = "updateUserMethod.help",
-            order = 10) public String getUpdateUserMethod() {
+            order = 10)
+    public String getUpdateUserMethod() {
         return updateUserMethod;
     }
 
@@ -164,21 +172,23 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "updateGroupMethod.display", helpMessageKey = "updateGroupMethod.help",
-            order = 10) public String getUpdateGroupMethod() {
+            order = 10)
+    public String getUpdateGroupMethod() {
         return updateGroupMethod;
     }
 
     @ConfigurationProperty(displayMessageKey = "updateGroupMethod.display", helpMessageKey = "updateGroupMethod.help",
-            order = 10) public void setUpdateGroupMethod(final String updateGroupMethod) {
+            order = 10)
+    public void setUpdateGroupMethod(final String updateGroupMethod) {
         this.updateGroupMethod = updateGroupMethod;
     }
 
-    @ConfigurationProperty(displayMessageKey = "explicitGroupAddOnCreate.display", 
+    @ConfigurationProperty(displayMessageKey = "explicitGroupAddOnCreate.display",
             helpMessageKey = "explicitGroupAddOnCreate.help", order = 11)
     public Boolean getExplicitGroupAddOnCreate() {
         return explicitGroupAddOnCreate;
     }
-    
+
     public void setExplicitGroupAddOnCreate(final Boolean explicitGroupAddOnCreate) {
         this.explicitGroupAddOnCreate = explicitGroupAddOnCreate;
     }
@@ -194,7 +204,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "accessTokenBaseAddress.display",
-            helpMessageKey = "accessTokenBaseAddress.help", order = 13) public String getAccessTokenBaseAddress() {
+            helpMessageKey = "accessTokenBaseAddress.help", order = 13)
+    public String getAccessTokenBaseAddress() {
         return accessTokenBaseAddress;
     }
 
@@ -203,7 +214,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "accessTokenContentType.display",
-            helpMessageKey = "accessTokenContentType.help", order = 14) public String getAccessTokenContentType() {
+            helpMessageKey = "accessTokenContentType.help", order = 14)
+    public String getAccessTokenContentType() {
         return accessTokenContentType;
     }
 
@@ -212,7 +224,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "addressesType.display", helpMessageKey = "addressesType.help",
-            order = 15) public String getAddressesType() {
+            order = 15)
+    public String getAddressesType() {
         return addressesType;
     }
 
@@ -221,7 +234,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "genericComplexType.display", helpMessageKey = "genericComplexType.help",
-            order = 16) public String getGenericComplexType() {
+            order = 16)
+    public String getGenericComplexType() {
         return genericComplexType;
     }
 
@@ -229,7 +243,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.genericComplexType = genericComplexType;
     }
 
-    @Override public void validate() {
+    @Override
+    public void validate() {
         if (StringUtil.isBlank(baseAddress)) {
             failValidation("Base address cannot be null or empty.");
         }
@@ -264,7 +279,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         }
     }
 
-    @Override public void release() {
+    @Override
+    public void release() {
     }
 
     private void failValidation(final String key, final Object... args) {

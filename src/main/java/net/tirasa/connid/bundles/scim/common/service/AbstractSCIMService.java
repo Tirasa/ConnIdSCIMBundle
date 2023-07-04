@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -51,8 +51,9 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>,
-        GT extends SCIMGroup<? extends SCIMBaseMeta>, P extends SCIMBasePatch>
+public abstract class AbstractSCIMService<UT extends SCIMUser<
+        ? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, GT extends SCIMGroup<
+        ? extends SCIMBaseMeta>, P extends SCIMBasePatch>
         implements SCIMService<UT, GT, P> {
 
     protected static final Log LOG = Log.getLog(AbstractSCIMService.class);
@@ -69,52 +70,52 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
 
     protected WebClient getWebclient(final String path, final Map<String, String> params) {
         WebClient webClient;
-        if (StringUtil.isNotBlank(config.getBearerToken()) || (StringUtil.isNotBlank(config.getClientId())
-                && StringUtil.isNotBlank(config.getClientSecret()) && StringUtil.isNotBlank(
-                config.getAccessTokenBaseAddress()) && StringUtil.isNotBlank(config.getAccessTokenNodeId()))) {
-            webClient =
-                    WebClient.create(config.getBaseAddress()).type(config.getAccept()).accept(config.getContentType())
-                            .path(path);
-            webClient.header(HttpHeaders.AUTHORIZATION, "Bearer " + generateToken());
+        if (StringUtil.isNotBlank(config.getBearerToken())
+                || (StringUtil.isNotBlank(config.getClientId())
+                && StringUtil.isNotBlank(config.getClientSecret())
+                && StringUtil.isNotBlank(config.getAccessTokenBaseAddress())
+                && StringUtil.isNotBlank(config.getAccessTokenNodeId()))) {
+
+            webClient = WebClient.create(config.getBaseAddress()).
+                    header(HttpHeaders.AUTHORIZATION, "Bearer " + getBearerToken());
         } else {
-            webClient = WebClient.create(config.getBaseAddress(), config.getUsername(),
-                    config.getPassword() == null ? null : SecurityUtil.decrypt(config.getPassword()), null)
-                    .type(config.getAccept()).accept(config.getContentType()).path(path);
+            webClient = WebClient.create(
+                    config.getBaseAddress(),
+                    config.getUsername(),
+                    config.getPassword() == null ? null : SecurityUtil.decrypt(config.getPassword()),
+                    null);
         }
 
-        // set content-type and accept headers
-        webClient.header(HttpHeaders.ACCEPT, "application/scim+json");
-        webClient.header(HttpHeaders.CONTENT_TYPE, "application/scim+json");
+        webClient.type(config.getContentType()).accept(config.getAccept()).path(path);
 
-        if (params != null) {
-            for (Entry<String, String> entry : params.entrySet()) {
-                webClient.query(entry.getKey(), entry.getValue()); // will encode parameter
-            }
-        }
+        Optional.ofNullable(params).ifPresent(p -> p.forEach((k, v) -> webClient.query(k, v)));
 
         return webClient;
     }
 
-    private String generateToken() {
+    protected String getBearerToken() {
         if (StringUtil.isNotBlank(config.getBearerToken())) {
             return config.getBearerToken();
         }
-        WebClient webClient =
-                WebClient.create(config.getAccessTokenBaseAddress()).type(config.getAccessTokenContentType())
-                        .accept(config.getAccept());
 
-        String contentUri = new StringBuilder("&client_id=").append(config.getClientId()).append("&client_secret=")
-                .append(config.getClientSecret()).append("&username=").append(config.getUsername()).append("&password=")
-                .append(SecurityUtil.decrypt(config.getPassword())).toString();
+        WebClient webClient = WebClient.create(config.getAccessTokenBaseAddress()).
+                type(config.getAccessTokenContentType()).accept(config.getAccept());
+
+        String contentUri = new StringBuilder("&client_id=").append(config.getClientId()).
+                append("&client_secret=").append(config.getClientSecret()).
+                append("&username=").append(config.getUsername()).
+                append("&password=").append(SecurityUtil.decrypt(config.getPassword())).toString();
+
         String token = null;
         try {
             Response response = webClient.post(contentUri);
-            String responseAsString = response.readEntity(String.class);
-            JsonNode result = SCIMUtils.MAPPER.readTree(responseAsString);
+            String body = response.readEntity(String.class);
+            JsonNode result = SCIMUtils.MAPPER.readTree(body);
             if (result == null || !result.hasNonNull(config.getAccessTokenNodeId())) {
-                SCIMUtils.handleGeneralError("No access token found - " + responseAsString);
+                SCIMUtils.handleGeneralError("No access token found - " + body);
             }
             token = result.get(config.getAccessTokenNodeId()).textValue();
+            config.setBearerToken(token);
         } catch (Exception ex) {
             SCIMUtils.handleGeneralError("While obtaining authentication token", ex);
         }
@@ -291,7 +292,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         }
     }
 
-    private void checkServiceErrors(final Response response) {
+    protected void checkServiceErrors(final Response response) {
         if (response == null) {
             SCIMUtils.handleGeneralError("While executing request - no response");
         }
@@ -306,14 +307,14 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         }
     }
 
-    private void checkServiceResultErrors(final JsonNode node, final Response response) {
+    protected void checkServiceResultErrors(final JsonNode node, final Response response) {
         if (node.has(RESPONSE_ERRORS)) {
             SCIMUtils.handleGeneralError(response.readEntity(String.class));
         }
     }
 
     @SuppressWarnings("rawtypes")
-    private JsonNode buildCustomAttributesNode(final String customAttributesJSON, final UT user) {
+    protected JsonNode buildCustomAttributesNode(final String customAttributesJSON, final UT user) {
         JsonNode rootNode = null;
         if (StringUtil.isNotBlank(customAttributesJSON) && !user.getSCIMCustomAttributes().isEmpty()) {
             rootNode = SCIMUtils.MAPPER.createObjectNode();
@@ -332,8 +333,11 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         return rootNode;
     }
 
-    private void buildCustomSimpleAttributeNode(final JsonNode rootNode,
-            final SCIMBaseAttribute<? extends SCIMBaseAttribute> scimAttribute, final UT user) {
+    protected void buildCustomSimpleAttributeNode(
+            final JsonNode rootNode,
+            final SCIMBaseAttribute<? extends SCIMBaseAttribute<?>> scimAttribute,
+            final UT user) {
+
         ObjectNode newNode = SCIMUtils.MAPPER.createObjectNode();
         List<Object> values = user.getSCIMCustomAttributes().get(scimAttribute);
         Object value = null;
@@ -363,7 +367,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         }
     }
 
-    private JsonNode mergeNodes(final JsonNode mainNode, final JsonNode updateNode) {
+    protected JsonNode mergeNodes(final JsonNode mainNode, final JsonNode updateNode) {
         Iterator<String> fieldNames = updateNode.fieldNames();
 
         while (fieldNames.hasNext()) {

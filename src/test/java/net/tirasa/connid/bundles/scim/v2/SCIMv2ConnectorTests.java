@@ -120,8 +120,8 @@ public class SCIMv2ConnectorTests {
         for (final String name : PROPS.stringPropertyNames()) {
             configurationParameters.put(name, PROPS.getProperty(name));
         }
-        CONF = SCIMv2ConnectorTestsUtils.buildConfiguration(configurationParameters,
-                SCIMPLE_SERVER.getFirstMappedPort());
+        CONF = SCIMv2ConnectorTestsUtils.buildConfiguration(
+                configurationParameters, SCIMPLE_SERVER.getFirstMappedPort());
 
         Boolean isValid = SCIMv2ConnectorTestsUtils.isConfigurationValid(CONF);
         if (isValid) {
