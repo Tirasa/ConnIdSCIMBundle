@@ -23,37 +23,46 @@ import java.util.TreeSet;
 
 public class SCIMv2PatchImpl<T> implements SCIMv2Patch<T> {
 
+    private static final long serialVersionUID = -8309238293109738832L;
+
     public static final String SCHEMA_URI = "urn:ietf:params:scim:api:messages:2.0:PatchOp";
 
     private final Set<String> schemas = new TreeSet<>();
 
-    @JsonIgnore protected String baseSchema;
+    @JsonIgnore
+    protected String baseSchema;
 
-    @JsonProperty("Operations") private final Set<SCIMv2PatchOperation<T>> operations = new HashSet<>();
+    @JsonProperty("Operations")
+    private final Set<SCIMv2PatchOperation<T>> operations = new HashSet<>();
 
     public SCIMv2PatchImpl() {
         this.baseSchema = SCHEMA_URI;
         schemas.add(baseSchema);
     }
 
-    @Override public Set<String> getSchemas() {
+    @Override
+    public Set<String> getSchemas() {
         return schemas;
     }
 
-    @Override public Set<SCIMv2PatchOperation<T>> getOperations() {
+    @Override
+    public Set<SCIMv2PatchOperation<T>> getOperations() {
         return operations;
     }
 
-    @Override public void addOperation(final SCIMv2PatchOperation<T> operation) {
+    @Override
+    public void addOperation(final SCIMv2PatchOperation<T> operation) {
         this.operations.add(operation);
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "SCIMv2Patch{" + "schemas=" + schemas + ", baseSchema='" + baseSchema + '\'' + ", operations="
                 + operations + '}';
     }
 
     public static final class Builder<T> {
+
         private Set<SCIMv2PatchOperation<T>> operations;
 
         public Builder() {
@@ -65,7 +74,7 @@ public class SCIMv2PatchImpl<T> implements SCIMv2Patch<T> {
         }
 
         public SCIMv2PatchImpl<T> build() {
-            SCIMv2PatchImpl<T> sCIMv2PatchImpl = new SCIMv2PatchImpl<T>();
+            SCIMv2PatchImpl<T> sCIMv2PatchImpl = new SCIMv2PatchImpl<>();
             sCIMv2PatchImpl.operations.clear();
             sCIMv2PatchImpl.operations.addAll(operations);
             return sCIMv2PatchImpl;

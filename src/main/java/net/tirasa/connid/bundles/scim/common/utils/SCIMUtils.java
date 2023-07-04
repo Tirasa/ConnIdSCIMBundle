@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
@@ -87,7 +88,7 @@ public final class SCIMUtils {
 
         SCIMSchema<T> customAttributesObj = StringUtil.isBlank(customAttributesJSON)
                 ? null
-                : extractSCIMSchemas(customAttributesJSON, attrType);
+                : extractSCIMSchemas(customAttributesJSON, attrType).orElse(null);
         String result = "";
         for (String attributeToGet : attributesToGet) {
             if (attributeToGet.contains("__")
@@ -118,7 +119,7 @@ public final class SCIMUtils {
                 // SCIM-3
                 result += SCIMv2EnterpriseUser.SCHEMA_URI
                         + (attributeToGet.replace(SCIMv2EnterpriseUser.SCHEMA_URI, StringUtils.EMPTY)
-                        .replaceFirst(".", ":").concat(","));
+                                .replaceFirst(".", ":").concat(","));
             } else if (customAttributesObj == null) {
                 result += attributeToGet.concat(",");
             } else if (!isCustomAttribute(customAttributesObj, attributeToGet)) {
@@ -158,11 +159,11 @@ public final class SCIMUtils {
         for (T customAttribute : customAttributes.getAttributes()) {
             String externalAttributeName = customAttribute instanceof SCIMv11Attribute
                     ? SCIMv11Attribute.class.cast(customAttribute).getSchema()
-                    .concat(".")
-                    .concat(customAttribute.getName())
+                            .concat(".")
+                            .concat(customAttribute.getName())
                     : SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema()
-                    .concat(".")
-                    .concat(customAttribute.getName());
+                            .concat(".")
+                            .concat(customAttribute.getName());
             if (externalAttributeName.equals(attribute)) {
                 return true;
             }
@@ -170,24 +171,30 @@ public final class SCIMUtils {
         return false;
     }
 
-    public static <T extends SCIMBaseAttribute<T>> SCIMSchema<T> extractSCIMSchemas(
+    public static <T extends SCIMBaseAttribute<T>> Optional<SCIMSchema<T>> extractSCIMSchemas(
             final String json, final Class<T> attrType) {
 
+        if (StringUtil.isBlank(json)) {
+            return Optional.empty();
+        }
+
         try {
-            SCIMSchema<T> scimSchema = MAPPER.readValue(json,
+            SCIMSchema<T> scimSchema = SCIMUtils.MAPPER.readValue(json,
                     SCIMUtils.MAPPER.getTypeFactory().constructParametricType(SCIMSchema.class, attrType));
-            // if SCIMv2Attribute populate transient field extensionSchema of the attribute since from SCIM 2.0 schema
-            // has been removed from attribute fields,
+            // if SCIMv2Attribute populate transient field extensionSchema of the attribute since from SCIM 2.0 "schema"
+            // attribute has been removed
             // refer to https://datatracker.ietf.org/doc/html/rfc7643#section-8.7.1
             if (SCIMv2Attribute.class.equals(attrType)) {
                 scimSchema.getAttributes()
                         .forEach(attr -> SCIMv2Attribute.class.cast(attr).setExtensionSchema(scimSchema.getId()));
             }
-            return scimSchema;
+
+            return scimSchema.getAttributes().isEmpty() ? Optional.empty() : Optional.of(scimSchema);
         } catch (IOException ex) {
             LOG.error(ex, "While parsing custom attributes JSON object, taken from connector configuration");
         }
-        return null;
+
+        return Optional.empty();
     }
 
     private SCIMUtils() {

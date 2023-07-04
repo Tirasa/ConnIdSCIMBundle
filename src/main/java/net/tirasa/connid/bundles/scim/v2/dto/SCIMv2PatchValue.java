@@ -20,36 +20,41 @@ import java.io.Serializable;
 
 public class SCIMv2PatchValue<T extends Serializable> implements SCIMPatchValue<T> {
 
-    @JsonProperty private T value;
+    @JsonProperty
+    private T value;
 
+    @Override
     public T getValue() {
         return value;
     }
 
+    @Override
     public void setValue(final T value) {
         this.value = value;
     }
 
     public static final class Builder<T extends Serializable> {
+
         private T value;
 
         public Builder() {
         }
 
-        public Builder value(final T value) {
+        public Builder<T> value(final T value) {
             this.value = value;
             return this;
         }
 
         @SuppressWarnings("unchecked")
         public SCIMv2PatchValue build() {
-            SCIMv2PatchValue sCIMv2PatchValue = new SCIMv2PatchValue();
-            sCIMv2PatchValue.setValue(value);
-            return sCIMv2PatchValue;
+            SCIMv2PatchValue<T> scimv2PatchValue = new SCIMv2PatchValue<>();
+            scimv2PatchValue.setValue(value);
+            return scimv2PatchValue;
         }
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "SCIMv2PatchValue{" + "value=" + value + '}';
     }
 }

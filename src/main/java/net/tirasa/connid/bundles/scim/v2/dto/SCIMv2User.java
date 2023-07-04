@@ -20,8 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
-import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
@@ -78,9 +77,7 @@ public class SCIMv2User
     @Override
     @JsonIgnore
     public void fillSCIMCustomAttributes(final Set<Attribute> attributes, final String customAttributesJSON) {
-        SCIMSchema<SCIMv2Attribute> customAttributesObj =
-                AbstractSCIMService.extractSCIMSchemas(customAttributesJSON, SCIMv2Attribute.class);
-        if (customAttributesObj != null) {
+        SCIMUtils.extractSCIMSchemas(customAttributesJSON, SCIMv2Attribute.class).ifPresent(customAttributesObj -> {
             for (Attribute attribute : attributes) {
                 if (!CollectionUtil.isEmpty(attribute.getValue())) {
                     for (SCIMv2Attribute customAttribute : customAttributesObj.getAttributes()) {
@@ -94,7 +91,7 @@ public class SCIMv2User
                     }
                 }
             }
-        }
+        });
     }
 
     @Override
@@ -152,7 +149,7 @@ public class SCIMv2User
                             manager.setRef(AttributeUtil.getAsStringValue(a));
                             break;
                         default:
-                            // do nothing
+                        // do nothing
                     }
                 }
         );

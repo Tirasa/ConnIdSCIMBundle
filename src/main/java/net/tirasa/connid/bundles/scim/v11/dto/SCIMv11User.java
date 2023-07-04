@@ -22,15 +22,15 @@ import java.util.Set;
 import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMDefaultComplex;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
-import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
-public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultComplex, SCIMv11Meta,
-        SCIMv11EnterpriseUser> {
+
+public class SCIMv11User extends AbstractSCIMUser<
+        SCIMv11Attribute, SCIMDefaultComplex, SCIMv11Meta, SCIMv11EnterpriseUser> {
 
     private static final long serialVersionUID = -6868285123690771711L;
 
@@ -75,9 +75,7 @@ public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultC
     @JsonIgnore
     @Override
     public void fillSCIMCustomAttributes(final Set<Attribute> attributes, final String customAttributesJSON) {
-        SCIMSchema<SCIMv11Attribute> customAttributesObj =
-                AbstractSCIMService.extractSCIMSchemas(customAttributesJSON, SCIMv11Attribute.class);
-        if (customAttributesObj != null) {
+        SCIMUtils.extractSCIMSchemas(customAttributesJSON, SCIMv11Attribute.class).ifPresent(customAttributesObj -> {
             for (Attribute attribute : attributes) {
                 if (!CollectionUtil.isEmpty(attribute.getValue())) {
                     for (SCIMv11Attribute customAttribute : customAttributesObj.getAttributes()) {
@@ -91,7 +89,7 @@ public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultC
                     }
                 }
             }
-        }
+        });
     }
 
     @Override
@@ -132,7 +130,7 @@ public class SCIMv11User extends AbstractSCIMUser<SCIMv11Attribute, SCIMDefaultC
                             manager.setDisplayName(AttributeUtil.getAsStringValue(a));
                             break;
                         default:
-                            // do nothing
+                        // do nothing
                     }
 
                 }

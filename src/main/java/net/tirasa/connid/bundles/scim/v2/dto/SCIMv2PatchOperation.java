@@ -21,11 +21,14 @@ public class SCIMv2PatchOperation<T> implements SCIMPatchOperation<T> {
 
     private static final long serialVersionUID = -1398745689025351659L;
 
-    @JsonProperty("op") private String op;
+    @JsonProperty("op")
+    private String op;
 
-    @JsonProperty("path") private String path;
+    @JsonProperty("path")
+    private String path;
 
-    @JsonProperty("value") private T value;
+    @JsonProperty("value")
+    private T value;
 
     public String getOp() {
         return op;
@@ -35,33 +38,44 @@ public class SCIMv2PatchOperation<T> implements SCIMPatchOperation<T> {
         this.op = op;
     }
 
-    @JsonProperty("op") @Override public String getOperation() {
+    @JsonProperty("op")
+    @Override
+    public String getOperation() {
         return op;
     }
 
-    @JsonProperty("op") @Override public void setOperation(final String op) {
+    @JsonProperty("op")
+    @Override
+    public void setOperation(final String op) {
         this.op = op;
     }
 
+    @Override
     public String getPath() {
         return path;
     }
 
+    @Override
     public void setPath(final String path) {
         this.path = path;
     }
 
+    @Override
     public T getValue() {
         return value;
     }
 
+    @Override
     public void setValue(final T value) {
         this.value = value;
     }
 
     public static final class Builder<T> {
+
         private String op;
+
         private String path;
+
         private T value;
 
         public Builder() {
@@ -83,16 +97,17 @@ public class SCIMv2PatchOperation<T> implements SCIMPatchOperation<T> {
         }
 
         @SuppressWarnings("unchecked")
-        public SCIMv2PatchOperation build() {
-            SCIMv2PatchOperation sCIMv2PatchOperation = new SCIMv2PatchOperation();
-            sCIMv2PatchOperation.setOp(op);
-            sCIMv2PatchOperation.setPath(path);
-            sCIMv2PatchOperation.setValue(value);
-            return sCIMv2PatchOperation;
+        public SCIMv2PatchOperation<T> build() {
+            SCIMv2PatchOperation<T> scimv2PatchOperation = new SCIMv2PatchOperation<>();
+            scimv2PatchOperation.setOp(op);
+            scimv2PatchOperation.setPath(path);
+            scimv2PatchOperation.setValue(value);
+            return scimv2PatchOperation;
         }
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "SCIMv2PatchOperation{" + "op='" + op + '\'' + ", path='" + path + '\'' + ", value=" + value + '}';
     }
 }

@@ -32,6 +32,8 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 
 public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager> {
 
+    private static final long serialVersionUID = -8540303884204701777L;
+
     public static final String SCHEMA_URI = "urn:scim:schemas:extension:enterprise:1.0";
 
     @JsonProperty("employeeNumber")
@@ -64,7 +66,7 @@ public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11Enterpri
     public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
         for (Field field : FieldUtils.getAllFieldsList(this.getClass()).stream().
-                filter(f -> !"SCHEMA_URI" .equals(f.getName()) && !"serialVersionUID" .equals(f.getName()))
+                filter(f -> !"SCHEMA_URI".equals(f.getName()) && !"serialVersionUID".equals(f.getName()))
                 .collect(Collectors.toList())) {
             if (SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager.class.equals(
                     field.getType()) && this.manager != null) {
@@ -102,7 +104,6 @@ public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11Enterpri
         public void setDisplayName(final String displayName) {
             this.displayName = displayName;
         }
-
 
         public SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager value(final String value) {
             this.managerId = value;

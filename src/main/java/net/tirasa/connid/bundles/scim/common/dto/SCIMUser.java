@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser> extends SCIMBaseUser<MT> {
+public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser<?>> extends SCIMBaseUser<MT> {
 
     String getUserName();
 
@@ -43,5 +43,4 @@ public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUse
     void setEnterpriseUser(EUT enterpriseUser);
 
     List<BaseResourceReference> getGroups();
-
 }

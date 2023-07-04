@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import java.util.List;
@@ -21,6 +20,8 @@ import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 
 public class SCIMv2Group extends AbstractSCIMGroup<SCIMv2Meta> {
+
+    private static final long serialVersionUID = -4821376864305003206L;
 
     public static final String SCHEMA_URI = "urn:ietf:params:scim:schemas:core:2.0:Group";
 
@@ -31,9 +32,13 @@ public class SCIMv2Group extends AbstractSCIMGroup<SCIMv2Meta> {
     }
 
     public static final class Builder {
+
         private SCIMv2Meta meta;
+
         private String id;
+
         private String displayName;
+
         private List<BaseResourceReference> members;
 
         public Builder() {
@@ -69,8 +74,14 @@ public class SCIMv2Group extends AbstractSCIMGroup<SCIMv2Meta> {
         }
     }
 
-    @Override public String toString() {
-        return "SCIMv2Group{" + "displayName='" + displayName + ", members=" + members + ", schemas=" + schemas
-                + ", baseSchema='" + baseSchema + ", meta=" + meta + ", id='" + id + '}';
+    @Override
+    public String toString() {
+        return "SCIMv2Group{"
+                + "displayName='" + displayName
+                + ", members=" + members
+                + ", schemas=" + schemas
+                + ", baseSchema='" + baseSchema
+                + ", meta=" + meta
+                + ", id='" + id + '}';
     }
 }

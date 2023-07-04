@@ -21,7 +21,10 @@ import java.util.List;
 
 public class SCIMv11GroupPatch extends SCIMv11BasePatch {
 
-    @JsonProperty("members") private final List<Scimv11GroupPatchOperation> members = new ArrayList<>();
+    private static final long serialVersionUID = -8123835603218705518L;
+
+    @JsonProperty("members")
+    private final List<Scimv11GroupPatchOperation> members = new ArrayList<>();
 
     public List<Scimv11GroupPatchOperation> getMembers() {
         return members;
@@ -31,11 +34,13 @@ public class SCIMv11GroupPatch extends SCIMv11BasePatch {
         super();
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "SCIMv11GroupPatch{" + "members=" + members + ", baseSchema='" + baseSchema + '\'' + '}';
     }
 
     public static final class Builder {
+
         private List<Scimv11GroupPatchOperation> members;
 
         public Builder() {
@@ -48,7 +53,7 @@ public class SCIMv11GroupPatch extends SCIMv11BasePatch {
 
         public SCIMv11GroupPatch build() {
             SCIMv11GroupPatch sCIMv11GroupPatch = new SCIMv11GroupPatch();
-            sCIMv11GroupPatch.members .clear();
+            sCIMv11GroupPatch.members.clear();
             sCIMv11GroupPatch.members.addAll(members);
             return sCIMv11GroupPatch;
         }

@@ -46,7 +46,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 
 public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT extends SCIMComplexAttribute,
-        MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser>
+        MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser<?>>
         extends AbstractSCIMBaseResource<MT> implements SCIMUser<MT, EUT> {
 
     private static final long serialVersionUID = 9147517308573800805L;
@@ -95,9 +95,11 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
 
     protected String externalId;
 
-    @JsonIgnore protected final Map<SAT, List<Object>> scimCustomAttributes = new HashMap<>();
+    @JsonIgnore
+    protected final Map<SAT, List<Object>> scimCustomAttributes = new HashMap<>();
 
-    @JsonIgnore protected final Map<String, List<Object>> returnedCustomAttributes = new HashMap<>();
+    @JsonIgnore
+    protected final Map<String, List<Object>> returnedCustomAttributes = new HashMap<>();
 
     public AbstractSCIMUser() {
     }
@@ -112,7 +114,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         return active;
     }
 
-    @Override public void setActive(final Boolean active) {
+    @Override
+    public void setActive(final Boolean active) {
         this.active = active;
     }
 
@@ -140,6 +143,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         return entitlements;
     }
 
+    @Override
     public List<BaseResourceReference> getGroups() {
         return groups;
     }
@@ -176,7 +180,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         return password;
     }
 
-    @Override public void setPassword(final String password) {
+    @Override
+    public void setPassword(final String password) {
         this.password = password;
     }
 
@@ -224,11 +229,13 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         this.title = title;
     }
 
-    @Override public String getUserName() {
+    @Override
+    public String getUserName() {
         return userName;
     }
 
-    @Override public void setUserName(final String userName) {
+    @Override
+    public void setUserName(final String userName) {
         this.userName = userName;
     }
 
@@ -240,11 +247,15 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         this.userType = userType;
     }
 
-    @JsonIgnore public Map<SAT, List<Object>> getSCIMCustomAttributes() {
+    @JsonIgnore
+    @Override
+    public Map<SAT, List<Object>> getSCIMCustomAttributes() {
         return scimCustomAttributes;
     }
 
-    @JsonIgnore @Override public Map<String, List<Object>> getReturnedCustomAttributes() {
+    @JsonIgnore
+    @Override
+    public Map<String, List<Object>> getReturnedCustomAttributes() {
         return returnedCustomAttributes;
     }
 
@@ -253,15 +264,18 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         this.emails = emails;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setEntitlements(final List<CT> entitlements) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setEntitlements(final List<CT> entitlements) {
         this.entitlements = entitlements;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setGroups(final List<BaseResourceReference> groups) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setGroups(final List<BaseResourceReference> groups) {
         this.groups = groups;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setIms(final List<SCIMGenericComplex<IMCanonicalType>> ims) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setIms(final List<SCIMGenericComplex<IMCanonicalType>> ims) {
         this.ims = ims;
     }
 
@@ -275,15 +289,19 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         this.photos = photos;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setRoles(final List<CT> roles) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setRoles(final List<CT> roles) {
         this.roles = roles;
     }
 
-    @JsonSetter(nulls = Nulls.AS_EMPTY) public void setX509Certificates(final List<CT> x509Certificates) {
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    public void setX509Certificates(final List<CT> x509Certificates) {
         this.x509Certificates = x509Certificates;
     }
 
-    @JsonIgnore @Override public void fromAttributes(final Set<Attribute> attributes) {
+    @JsonIgnore
+    @Override
+    public void fromAttributes(final Set<Attribute> attributes) {
         attributes.stream().filter(attribute -> !CollectionUtil.isEmpty(attribute.getValue())).forEach(attribute -> {
             try {
                 doSetAttribute(attribute.getName(), attribute.getValue());
@@ -293,7 +311,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         });
     }
 
-    @JsonIgnore @SuppressWarnings("unchecked")
+    @JsonIgnore
+    @SuppressWarnings("unchecked")
     private void doSetAttribute(final String name, final List<Object> values) {
         Object value = values.get(0);
 
@@ -820,7 +839,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
 
     protected abstract void handleEntitlements(Object value);
 
-    @JsonIgnore protected <T extends Serializable> void handleSCIMComplexObject(final T type,
+    @JsonIgnore
+    protected <T extends Serializable> void handleSCIMComplexObject(final T type,
             final List<SCIMGenericComplex<T>> list, final Consumer<SCIMGenericComplex<T>> setter) {
 
         SCIMGenericComplex<T> selected = null;
@@ -870,26 +890,33 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         }
     }
 
-    @Override @JsonProperty public String getExternalId() {
+    @Override
+    @JsonProperty
+    public String getExternalId() {
         return externalId;
     }
 
-    @Override @JsonProperty public void setExternalId(final String externalId) {
+    @Override
+    @JsonProperty
+    public void setExternalId(final String externalId) {
         this.externalId = externalId;
     }
 
-    @Override public String getBaseSchema() {
+    @Override
+    public String getBaseSchema() {
         return baseSchema;
     }
 
-    @JsonIgnore @Override @SuppressWarnings("unchecked")
+    @JsonIgnore
+    @Override
+    @SuppressWarnings("unchecked")
     public Set<Attribute> toAttributes(final Class<?> type, final SCIMConnectorConfiguration configuration)
             throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
 
         FieldUtils.getAllFieldsList(type).stream()
                 .filter(f -> !"LOG".equals(f.getName()) && !"serialVersionUID".equals(f.getName())
-                        && !"RESOURCE_NAME".equals(f.getName()) && !"SCHEMA_URI".equals(f.getName()))
+                && !"RESOURCE_NAME".equals(f.getName()) && !"SCHEMA_URI".equals(f.getName()))
                 .forEach(field -> {
                     try {
                         field.setAccessible(true);
@@ -898,7 +925,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                             field.setAccessible(true);
                             addAttribute(getEnterpriseUser().toAttributes(SCIMv2EnterpriseUser.SCHEMA_URI), attrs,
                                     field.getType());
-                        } else if (!field.isAnnotationPresent(JsonIgnore.class) 
+                        } else if (!field.isAnnotationPresent(JsonIgnore.class)
                                 && !SCIMUtils.isEmptyObject(field.get(this))) {
                             Object objInstance = field.get(this);
 
@@ -910,7 +937,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                                 (List<SCIMGenericComplex<PhoneNumberCanonicalType>>) objInstance;
                                         for (SCIMGenericComplex<PhoneNumberCanonicalType> complex : list) {
                                             addAttribute(complex.toAttributes(
-                                                    SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS, configuration), 
+                                                    SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS, configuration),
                                                     attrs, field.getType());
                                         }
                                     } else {
@@ -928,14 +955,14 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                                 (List<SCIMGenericComplex<IMCanonicalType>>) objInstance;
                                         for (SCIMGenericComplex<IMCanonicalType> complex : list) {
                                             addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS,
-                                                            configuration),
+                                                    configuration),
                                                     attrs, field.getType());
                                         }
                                     } else {
                                         SCIMGenericComplex<IMCanonicalType> complex =
                                                 (SCIMGenericComplex<IMCanonicalType>) objInstance;
                                         addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS,
-                                                        configuration),
+                                                configuration),
                                                 attrs, field.getType());
                                     }
                                 } else if (field.getGenericType().toString()
@@ -953,7 +980,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                         SCIMGenericComplex<EmailCanonicalType> complex =
                                                 (SCIMGenericComplex<EmailCanonicalType>) objInstance;
                                         addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS,
-                                                        configuration),
+                                                configuration),
                                                 attrs, field.getType());
                                     }
                                 } else if (field.getGenericType().toString()
@@ -971,7 +998,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                         SCIMGenericComplex<PhotoCanonicalType> complex =
                                                 (SCIMGenericComplex<PhotoCanonicalType>) objInstance;
                                         addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS,
-                                                        configuration),
+                                                configuration),
                                                 attrs, field.getType());
                                     }
                                 }
@@ -1057,7 +1084,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         return attrs;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return new ToStringBuilder(this).append("active", active).append("addresses", addresses)
                 .append("displayName", displayName).append("emails", emails).append("entitlements", entitlements)
                 .append("groups", groups).append("ims", ims).append("locale", locale).append("name", name)

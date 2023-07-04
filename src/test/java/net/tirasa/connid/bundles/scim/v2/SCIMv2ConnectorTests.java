@@ -86,7 +86,8 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers public class SCIMv2ConnectorTests {
+@Testcontainers
+public class SCIMv2ConnectorTests {
 
     private static final Log LOG = Log.getLog(SCIMv2ConnectorTests.class);
 
@@ -106,11 +107,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
     private static final List<String> CUSTOM_ATTRIBUTES_UPDATE_VALUES = new ArrayList<>();
 
-    @Container private static final GenericContainer<?> SCIMPLE_SERVER =
+    @Container
+    private static final GenericContainer<?> SCIMPLE_SERVER =
             new GenericContainer<>("tirasa/scimple-server:1.0.0").withExposedPorts(8080)
                     .waitingFor(Wait.forLogMessage(".*Started ScimpleSpringBootApplication in.*\\n", 1));
 
-    @BeforeAll public static void setUpConf() throws IOException {
+    @BeforeAll
+    public static void setUpConf() throws IOException {
         PROPS.load(SCIMv2ConnectorTests.class.getResourceAsStream("/net/tirasa/connid/bundles/scim/authv2.properties"));
 
         Map<String, String> configurationParameters = new HashMap<>();
@@ -214,7 +217,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         //        urn:scim:schemas:extension:enterprise:1.0:employeeNumber
         //        urn:scim:schemas:extension:enterprise:1.0:manager.managerId
         //        urn:scim:schemas:extension:enterprise:1.0:manager.displayName
-
         // custom schemas
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_SCHEMAS, CUSTOM_OTHER_SCHEMAS));
 
@@ -723,7 +725,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         return attributesToGet;
     }
 
-    @AfterEach public void cleanup() {
+    @AfterEach
+    public void cleanup() {
         // check that the user has effectively been removed
         try {
             ToListResultsHandler handler = new ToListResultsHandler();
@@ -738,11 +741,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         }
     }
 
-    @Test public void validate() {
+    @Test
+    public void validate() {
         FACADE.validate();
     }
 
-    @Test public void schema() {
+    @Test
+    public void schema() {
         Schema schema = FACADE.schema();
         assertEquals(2, schema.getObjectClassInfo().size());
 
@@ -760,7 +765,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         assertTrue(groupFound);
     }
 
-    @Test public void search() {
+    @Test
+    public void search() {
         // create some sample users
         SCIMv2User user1 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
         SCIMv2User user2 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
@@ -783,19 +789,19 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         // verify keys
         assertTrue(handler.getObjects().stream().anyMatch(
                 su -> user1.getUserName().equals(su.getName().getNameValue()) && BooleanUtils.toBoolean(
-                        su.getAttributeByName("active").getValue().get(0).toString()) && user1.getEmails().get(0)
-                        .getValue().equals(AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
-                        && user2.getName().getFamilyName()
+                su.getAttributeByName("active").getValue().get(0).toString()) && user1.getEmails().get(0)
+                .getValue().equals(AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
+                && user2.getName().getFamilyName()
                         .equals(AttributeUtil.getAsStringValue(su.getAttributeByName("name.familyName")))
-                        && 7 == AttributeUtil.getIntegerValue(
+                && 7 == AttributeUtil.getIntegerValue(
                         su.getAttributeByName("urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber"))
-                        && user1.getEnterpriseUser().getEmployeeNumber().equals(AttributeUtil.getAsStringValue(
+                && user1.getEnterpriseUser().getEmployeeNumber().equals(AttributeUtil.getAsStringValue(
                         su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber")))
-                        && user1.getEnterpriseUser().getManager().getValue().equals(AttributeUtil.getAsStringValue(
+                && user1.getEnterpriseUser().getManager().getValue().equals(AttributeUtil.getAsStringValue(
                         su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")))));
         assertTrue(handler.getObjects().stream().anyMatch(
                 su -> user3.getUserName().equals(su.getName().getNameValue()) && !BooleanUtils.toBoolean(
-                        su.getAttributeByName("active").getValue().get(0).toString())));
+                su.getAttributeByName("active").getValue().get(0).toString())));
         assertTrue(
                 handler.getObjects().stream().anyMatch(su -> user4.getUserName().equals(su.getName().getNameValue())));
         // verify attributes
@@ -815,7 +821,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         assertEquals(-1, result.getRemainingPagedResults());
     }
 
-    @Test public void pagedSearchUser() {
+    @Test
+    public void pagedSearchUser() {
         // create some sample users for pagination
         createUser(UUID.randomUUID());
         createUser(UUID.randomUUID());
@@ -849,7 +856,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         assertTrue(results.size() > 3);
     }
 
-    @Test public void crudUser() {
+    @Test
+    public void crudUser() {
         SCIMv2Client client = newClient();
 
         UUID uid = UUID.randomUUID();
@@ -923,11 +931,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
             assertTrue(user.getPhoneNumbers().stream().noneMatch(pn -> PhoneNumberCanonicalType.other == pn.getType()));
             assertTrue(user.getPhoneNumbers().stream().anyMatch(
                     pn -> PhoneNumberCanonicalType.home == pn.getType() && pn.isPrimary() && "123456789".equals(
-                            pn.getValue())));
+                    pn.getValue())));
 
             assertTrue(user.getEmails().stream().anyMatch(
                     email -> EmailCanonicalType.work == email.getType() && ("updated"
-                            + updatedUser.getUserName()).equals(email.getValue())));
+                    + updatedUser.getUserName()).equals(email.getValue())));
 
             // check delete user
             deleteUser(updated);
@@ -942,7 +950,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         }
     }
 
-    @Test public void searchGroup() {
+    @Test
+    public void searchGroup() {
         // create some sample users
         SCIMv2Client client = newClient();
         SCIMv2Group group1 = createGroupServiceTest(UUID.randomUUID(), client);
@@ -961,8 +970,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         assertFalse(handler.getObjects().isEmpty());
         assertTrue(handler.getObjects().stream().anyMatch(
                 su -> group1.getDisplayName().equals(su.getName().getNameValue())
-                        && su.getAttributeByName(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME) != null
-                        && su.getAttributeByName(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME).getValue()
+                && su.getAttributeByName(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME) != null
+                && su.getAttributeByName(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME).getValue()
                         .contains(group1.getDisplayName())));
         assertTrue(handler.getObjects().stream()
                 .anyMatch(su -> group2.getDisplayName().equals(su.getName().getNameValue())));
@@ -983,7 +992,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
     }
 
-    @Test public void pagedSearchGroup() {
+    @Test
+    public void pagedSearchGroup() {
         // create some sample groups for pagination
         createGroup(UUID.randomUUID(), StringUtils.EMPTY);
         createGroup(UUID.randomUUID(), StringUtils.EMPTY);
@@ -1016,7 +1026,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         assertTrue(results.size() > 3);
     }
 
-    @Test public void crudGroup() {
+    @Test
+    public void crudGroup() {
         SCIMv2Client client = newClient();
 
         try {
@@ -1033,7 +1044,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
             assertEquals("updated_" + createdGroup.getDisplayName(), updatedGroup.getDisplayName());
 
             deleteGroup(updated);
-            assertThrows(NoSuchEntityException.class,
+            assertThrows(
+                    NoSuchEntityException.class,
                     () -> FACADE.getObject(ObjectClass.GROUP, updated, new OperationOptionsBuilder().build()));
         } catch (Exception e) {
             LOG.error(e, "While running crud test");
@@ -1041,7 +1053,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         }
     }
 
-    @Test public void serviceTestUser() {
+    @Test
+    public void serviceTestUser() {
         SCIMv2Client client = newClient();
 
         String testUser;
@@ -1067,7 +1080,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
         }
     }
 
-    @Test public void serviceTestGroup() {
+    @Test
+    public void serviceTestGroup() {
         SCIMv2Client client = newClient();
 
         try {

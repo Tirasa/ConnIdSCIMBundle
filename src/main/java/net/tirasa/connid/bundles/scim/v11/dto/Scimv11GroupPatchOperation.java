@@ -20,11 +20,16 @@ import java.io.Serializable;
 
 public class Scimv11GroupPatchOperation implements Serializable {
 
-    @JsonProperty private String display;
+    private static final long serialVersionUID = 1759455963046916983L;
 
-    @JsonProperty private String value;
+    @JsonProperty
+    private String display;
 
-    @JsonProperty private String operation;
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private String operation;
 
     public String getDisplay() {
         return display;
@@ -51,8 +56,11 @@ public class Scimv11GroupPatchOperation implements Serializable {
     }
 
     public static final class Builder {
+
         private String display;
+
         private String value;
+
         private String operation;
 
         public Builder() {
@@ -82,8 +90,12 @@ public class Scimv11GroupPatchOperation implements Serializable {
         }
     }
 
-    @Override public String toString() {
-        return "Scimv11GroupPatchOperation{" + "display='" + display + '\'' + ", value='" + value + '\''
-                + ", operation='" + operation + '\'' + '}';
+    @Override
+    public String toString() {
+        return "Scimv11GroupPatchOperation{"
+                + "display='" + display + '\''
+                + ", value='" + value + '\''
+                + ", operation='" + operation + '\''
+                + '}';
     }
 }

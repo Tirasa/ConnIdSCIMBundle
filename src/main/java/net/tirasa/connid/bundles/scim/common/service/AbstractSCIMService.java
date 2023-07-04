@@ -39,7 +39,6 @@ import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
@@ -52,7 +51,7 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>,
+public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>,
         GT extends SCIMGroup<? extends SCIMBaseMeta>, P extends SCIMBasePatch>
         implements SCIMService<UT, GT, P> {
 
@@ -79,7 +78,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
             webClient.header(HttpHeaders.AUTHORIZATION, "Bearer " + generateToken());
         } else {
             webClient = WebClient.create(config.getBaseAddress(), config.getUsername(),
-                            config.getPassword() == null ? null : SecurityUtil.decrypt(config.getPassword()), null)
+                    config.getPassword() == null ? null : SecurityUtil.decrypt(config.getPassword()), null)
                     .type(config.getAccept()).accept(config.getContentType()).path(path);
         }
 
@@ -313,19 +312,19 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         }
     }
 
+    @SuppressWarnings("rawtypes")
     private JsonNode buildCustomAttributesNode(final String customAttributesJSON, final UT user) {
         JsonNode rootNode = null;
         if (StringUtil.isNotBlank(customAttributesJSON) && !user.getSCIMCustomAttributes().isEmpty()) {
             rootNode = SCIMUtils.MAPPER.createObjectNode();
-            for (SCIMBaseAttribute<? extends SCIMBaseAttribute> scimAttribute : user.getSCIMCustomAttributes()
-                    .keySet()) {
-                if (scimAttribute.getType().equals(SCIMAttributeUtils.SCIM_SCHEMA_TYPE_COMPLEX)) {
-                    for (SCIMBaseAttribute<? extends SCIMBaseAttribute> scimSubAttribute 
-                            : scimAttribute.getSubAttributes()) {
-                        buildCustomSimpleAttributeNode(rootNode, scimSubAttribute, user);
+
+            for (SCIMBaseAttribute<?> attr : user.getSCIMCustomAttributes().keySet()) {
+                if (attr.getType().equals(SCIMAttributeUtils.SCIM_SCHEMA_TYPE_COMPLEX)) {
+                    for (SCIMBaseAttribute<? extends SCIMBaseAttribute> sub : attr.getSubAttributes()) {
+                        buildCustomSimpleAttributeNode(rootNode, sub, user);
                     }
                 } else {
-                    buildCustomSimpleAttributeNode(rootNode, scimAttribute, user);
+                    buildCustomSimpleAttributeNode(rootNode, attr, user);
                 }
             }
         }
@@ -399,51 +398,34 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         return mainNode;
     }
 
-    public static <T extends SCIMBaseAttribute<T>> SCIMSchema<T> extractSCIMSchemas(final String json,
-            final Class<T> attrType) {
-        try {
-            SCIMSchema<T> scimSchema = SCIMUtils.MAPPER.readValue(json,
-                    SCIMUtils.MAPPER.getTypeFactory().constructParametricType(SCIMSchema.class, attrType));
-            // if SCIMv2Attribute populate transient field extensionSchema of the attribute since from SCIM 2.0 "schema"
-            // attribute has been removed
-            // refer to https://datatracker.ietf.org/doc/html/rfc7643#section-8.7.1
-            if (SCIMv2Attribute.class.equals(attrType)) {
-                scimSchema.getAttributes()
-                        .forEach(attr -> SCIMv2Attribute.class.cast(attr).setExtensionSchema(scimSchema.getId()));
-            }
-            return scimSchema;
-        } catch (IOException ex) {
-            LOG.error(ex, "While parsing custom attributes JSON object, taken from connector configuration");
-        }
-        return null;
-    }
+    protected <T extends SCIMBaseAttribute<T>> void readCustomAttributes(
+            final UT user, final JsonNode node, final Class<T> attrType) {
 
-    protected <T extends SCIMBaseAttribute<T>> void readCustomAttributes(final UT user, final JsonNode node,
-            final Class<T> attrType) {
-        if (StringUtil.isNotBlank(config.getCustomAttributesJSON())) {
-            SCIMSchema<T> scimSchema = extractSCIMSchemas(config.getCustomAttributesJSON(), attrType);
+        SCIMUtils.extractSCIMSchemas(config.getCustomAttributesJSON(), attrType).ifPresent(scimSchema -> {
+            for (T attr : scimSchema.getAttributes()) {
+                List<JsonNode> foundWithSchemaAsKey = node.findValues(
+                        attr instanceof SCIMv2Attribute
+                                ? SCIMv2Attribute.class.cast(attr).getExtensionSchema()
+                                : SCIMv11Attribute.class.cast(attr).getSchema());
+                if (!foundWithSchemaAsKey.isEmpty() && foundWithSchemaAsKey.get(0).has(attr.getName())) {
+                    List<Object> values = new ArrayList<>();
 
-            if (scimSchema != null && !scimSchema.getAttributes().isEmpty()) {
-                for (T attribute : scimSchema.getAttributes()) {
-                    List<JsonNode> foundWithSchemaAsKey = node.findValues(
-                            attribute instanceof SCIMv2Attribute ? SCIMv2Attribute.class.cast(attribute)
-                                    .getExtensionSchema() : SCIMv11Attribute.class.cast(attribute).getSchema());
-                    if (!foundWithSchemaAsKey.isEmpty()) {
-                        List<Object> values = new ArrayList<>();
-                        // manage multiple types
-                        values.add(Type.integer.name().equals(attribute.getType()) ? foundWithSchemaAsKey.get(0)
-                                .get(attribute.getName()).intValue()
-                                : Type.BOOLEAN.name().toLowerCase().equals(attribute.getType())
-                                        ? foundWithSchemaAsKey.get(0).get(attribute.getName()).booleanValue()
-                                        : foundWithSchemaAsKey.get(0).get(attribute.getName()).textValue());
-                        user.getReturnedCustomAttributes()
-                                .put((attribute instanceof SCIMv2Attribute ? SCIMv2Attribute.class.cast(attribute)
-                                        .getExtensionSchema() : SCIMv11Attribute.class.cast(attribute).getSchema())
-                                        + "." + attribute.getName(), values);
-                    }
+                    // manage multiple types
+                    values.add(Type.integer.name().equals(attr.getType())
+                            ? foundWithSchemaAsKey.get(0).get(attr.getName()).intValue()
+                            : Type.BOOLEAN.name().toLowerCase().equals(attr.getType())
+                            ? foundWithSchemaAsKey.get(0).get(attr.getName()).booleanValue()
+                            : foundWithSchemaAsKey.get(0).get(attr.getName()).textValue());
+
+                    user.getReturnedCustomAttributes().put(
+                            (attr instanceof SCIMv2Attribute
+                                    ? SCIMv2Attribute.class.cast(attr).getExtensionSchema()
+                                    : SCIMv11Attribute.class.cast(attr).getSchema())
+                            + "." + attr.getName(),
+                            values);
                 }
             }
-        }
+        });
     }
 
     protected void readCustomAttributes(final PagedResults<UT> resources, final JsonNode node) {
@@ -455,14 +437,16 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
     /**
      * @param userId
      */
-    @Override public void deleteUser(final String userId) {
+    @Override
+    public void deleteUser(final String userId) {
         doDeleteUser(userId, getWebclient("Users", null).path(userId));
     }
 
     /**
      * @param userId
      */
-    @Override public void activateUser(final String userId) {
+    @Override
+    public void activateUser(final String userId) {
         doActivateUser(userId);
     }
 
@@ -507,8 +491,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         UT updated = null;
         JsonNode node =
                 config.getUpdateUserMethod().equalsIgnoreCase("PATCH") && !replaceAttributes.isEmpty() ? doUpdatePatch(
-                        replaceAttributes, getWebclient("Users", null).path(user.getId()))
-                        : doUpdate(user, getWebclient("Users", null).path(user.getId()));
+                replaceAttributes, getWebclient("Users", null).path(user.getId()))
+                : doUpdate(user, getWebclient("Users", null).path(user.getId()));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update on service");
         }
@@ -526,7 +510,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         return updated;
     }
 
-    @Override public boolean testService() {
+    @Override
+    public boolean testService() {
         Set<String> attributesToGet = new HashSet<>();
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
         return getAllUsers(1, 1, attributesToGet) != null;
@@ -536,7 +521,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
      * @param attributesToGet
      * @return List of Users
      */
-    @Override public List<UT> getAllUsers(final Set<String> attributesToGet) {
+    @Override
+    public List<UT> getAllUsers(final Set<String> attributesToGet) {
         Map<String, String> params = new HashMap<>();
         if (!attributesToGet.isEmpty()) {
             params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
@@ -547,11 +533,12 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
     }
 
     /**
-     * @param filterQuery     to filter results
+     * @param filterQuery to filter results
      * @param attributesToGet
      * @return Filtered list of Users
      */
-    @Override public List<UT> getAllUsers(final String filterQuery, final Set<String> attributesToGet) {
+    @Override
+    public List<UT> getAllUsers(final String filterQuery, final Set<String> attributesToGet) {
         Map<String, String> params = new HashMap<>();
         params.put("filter", filterQuery);
         if (!attributesToGet.isEmpty()) {
@@ -568,7 +555,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
      * @param attributesToGet
      * @return Paged list of Users
      */
-    @Override public PagedResults<UT> getAllUsers(final Integer startIndex, final Integer count,
+    @Override
+    public PagedResults<UT> getAllUsers(final Integer startIndex, final Integer count,
             final Set<String> attributesToGet) {
         Map<String, String> params = new HashMap<>();
         params.put("startIndex", String.valueOf(startIndex));
@@ -655,7 +643,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         return group;
     }
 
-    @Override public PagedResults<GT> getAllGroups(final Integer startIndex, final Integer count) {
+    @Override
+    public PagedResults<GT> getAllGroups(final Integer startIndex, final Integer count) {
         Map<String, String> params = new HashMap<>();
         params.put("startIndex", String.valueOf(startIndex));
         if (count != null) {
@@ -665,12 +654,14 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         return doGetAllGroups(webClient);
     }
 
-    @Override public List<GT> getAllGroups() {
+    @Override
+    public List<GT> getAllGroups() {
         WebClient webClient = getWebclient("Groups", Collections.emptyMap());
         return doGetAllGroups(webClient).getResources();
     }
 
-    @Override public List<GT> getAllGroups(final String filterQuery) {
+    @Override
+    public List<GT> getAllGroups(final String filterQuery) {
         Map<String, String> params = new HashMap<>();
         params.put("filter", filterQuery);
         WebClient webClient = getWebclient("Groups", params);
@@ -709,11 +700,12 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
         return pagedResults;
     }
 
-    @Override public void deleteGroup(final String groupId) {
-
+    @Override
+    public void deleteGroup(final String groupId) {
     }
 
-    @Override public GT createGroup(final GT group) {
+    @Override
+    public GT createGroup(final GT group) {
         return doCreateGroup(group);
     }
 
@@ -755,10 +747,10 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
 
         GT updated = null;
         JsonNode node =
-                config.getUpdateGroupMethod().equalsIgnoreCase("PATCH") && patch != null 
-                        ? doUpdatePatch(patch, replaceAttributes,
+                config.getUpdateGroupMethod().equalsIgnoreCase("PATCH") && patch != null
+                ? doUpdatePatch(patch, replaceAttributes,
                         getWebclient("Groups", null).path(group.getId()))
-                        : doUpdate(group, getWebclient("Groups", null).path(group.getId()));
+                : doUpdate(group, getWebclient("Groups", null).path(group.getId()));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update group on service");
         }
@@ -815,6 +807,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<? extends SCIMBase
     }
 
     protected abstract PagedResults<UT> deserializeUserPagedResults(String node) throws JsonProcessingException;
+
     protected abstract PagedResults<GT> deserializeGroupPagedResults(String node) throws JsonProcessingException;
 
 }

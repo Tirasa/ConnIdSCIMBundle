@@ -21,13 +21,11 @@ import java.util.List;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11EnterpriseUser;
 import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
-import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
@@ -84,7 +82,7 @@ public final class SCIMAttributeUtils {
     public static final String SCIM2_ADD = "add";
 
     public static final String SCIM2_REPLACE = "replace";
-    
+
     public static final String SCIM_USER_PHOTOS = "photos";
 
     public static final String SCIM_USER_SCHEMAS = "schemas";
@@ -245,34 +243,30 @@ public final class SCIMAttributeUtils {
         userBuilder.addAttributeInfo(AttributeInfoBuilder.define("meta.attributes").setMultiValued(true).build());
 
         // custom attributes
-        if (StringUtil.isNotBlank(customAttributes)) {
-            SCIMSchema<T> scimSchema = SCIMUtils.extractSCIMSchemas(customAttributes, attrType);
-            if (scimSchema != null && !scimSchema.getAttributes().isEmpty()) {
-                for (T attribute : scimSchema.getAttributes()) {
-                    AttributeInfoBuilder attributeInfoBuilder = AttributeInfoBuilder.define(
-                            attribute instanceof SCIMv11Attribute ? SCIMv11Attribute.class.cast(attribute).getSchema()
-                                    .concat(".").concat(attribute.getName())
-                                    : SCIMv2Attribute.class.cast(attribute).getExtensionSchema().concat(".")
-                                            .concat(attribute.getName()));
-                    attributeInfoBuilder.setMultiValued(attribute.getMultiValued()).setRequired(attribute.getRequired())
-                            .setUpdateable(
-                                    attribute instanceof SCIMv11Attribute ? !SCIMv11Attribute.class.cast(attribute)
-                                            .getReadOnly()
-                                            : Mutability.readWrite == SCIMv2Attribute.class.cast(attribute)
-                                                    .getMutability());
-                    switch (attribute.getType()) {
-                        case "boolean":
-                            attributeInfoBuilder.setType(Boolean.class);
-                            break;
+        SCIMUtils.extractSCIMSchemas(customAttributes, attrType).ifPresent(scimSchema -> {
+            for (T attribute : scimSchema.getAttributes()) {
+                AttributeInfoBuilder attributeInfoBuilder = AttributeInfoBuilder.define(
+                        attribute instanceof SCIMv11Attribute
+                                ? SCIMv11Attribute.class.cast(attribute).getSchema()
+                                        .concat(".").concat(attribute.getName())
+                                : SCIMv2Attribute.class.cast(attribute).getExtensionSchema()
+                                        .concat(".").concat(attribute.getName()));
+                attributeInfoBuilder.setMultiValued(attribute.getMultiValued()).setRequired(attribute.getRequired())
+                        .setUpdateable(attribute instanceof SCIMv11Attribute
+                                ? !SCIMv11Attribute.class.cast(attribute).getReadOnly()
+                                : Mutability.readWrite == SCIMv2Attribute.class.cast(attribute).getMutability());
+                switch (attribute.getType()) {
+                    case "boolean":
+                        attributeInfoBuilder.setType(Boolean.class);
+                        break;
 
-                        case "string":
-                        default:
-                            attributeInfoBuilder.setType(String.class);
-                    }
-                    userBuilder.addAttributeInfo(attributeInfoBuilder.build());
+                    case "string":
+                    default:
+                        attributeInfoBuilder.setType(String.class);
                 }
+                userBuilder.addAttributeInfo(attributeInfoBuilder.build());
             }
-        }
+        });
 
         // SCIM-3 enterprise user
         if (SCIMv2Attribute.class.equals(attrType)) {

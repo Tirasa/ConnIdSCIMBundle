@@ -21,6 +21,8 @@ import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 
 public class SCIMv11Group extends AbstractSCIMGroup<SCIMv11Meta> {
 
+    private static final long serialVersionUID = -7962830213458613351L;
+
     public static final String SCHEMA_URI = "urn:scim:schemas:core:1.0";
 
     public SCIMv11Group() {
@@ -28,9 +30,13 @@ public class SCIMv11Group extends AbstractSCIMGroup<SCIMv11Meta> {
     }
 
     public static final class Builder {
+
         private SCIMv11Meta meta;
+
         private String id;
+
         private String displayName;
+
         private List<BaseResourceReference> members;
 
         public Builder() {

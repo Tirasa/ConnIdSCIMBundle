@@ -32,6 +32,8 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 
 public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager> {
 
+    private static final long serialVersionUID = 8636967543630909790L;
+
     public static final String SCHEMA_URI = "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User";
 
     @JsonProperty("employeeNumber")
@@ -48,7 +50,6 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
 
     @JsonProperty("department")
     private String department;
-
 
     @JsonProperty("manager")
     private SCIMv2EnterpriseUserManager manager;
@@ -167,7 +168,6 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
         public void setDisplayName(final String displayName) {
             this.displayName = displayName;
         }
-
 
         public SCIMv2EnterpriseUserManager value(final String value) {
             this.value = value;

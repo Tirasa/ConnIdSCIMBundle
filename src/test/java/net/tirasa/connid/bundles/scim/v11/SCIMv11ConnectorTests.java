@@ -387,7 +387,7 @@ public class SCIMv11ConnectorTests {
         // GET USER by userName
         List<SCIMv11User> users = client.getAllUsers(
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                        + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
+                + " eq \"" + user.getUserName() + "\"", testAttributesToGet());
         assertNotNull(users);
         assertFalse(users.isEmpty());
         assertNotNull(users.get(0).getId());
@@ -399,7 +399,7 @@ public class SCIMv11ConnectorTests {
     private static void deleteUsersServiceTest(final SCIMv11Client client) {
         PagedResults<SCIMv11User> users = client.getAllUsers(
                 SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME
-                        + " sw \"" + SCIMv11ConnectorTestsUtils.VALUE_USERNAME + "\"", 1, 100, testAttributesToGet());
+                + " sw \"" + SCIMv11ConnectorTestsUtils.VALUE_USERNAME + "\"", 1, 100, testAttributesToGet());
         assertNotNull(users);
         if (!users.getResources().isEmpty()) {
             for (SCIMv11User user : users.getResources()) {
