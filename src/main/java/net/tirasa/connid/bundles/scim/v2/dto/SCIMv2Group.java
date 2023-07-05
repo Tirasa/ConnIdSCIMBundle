@@ -23,55 +23,42 @@ public class SCIMv2Group extends AbstractSCIMGroup<SCIMv2Meta> {
 
     private static final long serialVersionUID = -4821376864305003206L;
 
+    public static final class Builder {
+
+        private final SCIMv2Group instance = new SCIMv2Group();
+
+        public Builder meta(final SCIMv2Meta meta) {
+            instance.setMeta(meta);
+            return this;
+        }
+
+        public Builder id(final String id) {
+            instance.setId(id);
+            return this;
+        }
+
+        public Builder displayName(final String displayName) {
+            instance.setDisplayName(displayName);
+            return this;
+        }
+
+        public Builder members(final List<BaseResourceReference> members) {
+            instance.members.clear();
+            instance.members.addAll(members);
+            return this;
+        }
+
+        public SCIMv2Group build() {
+            return instance;
+        }
+    }
+
     public static final String SCHEMA_URI = "urn:ietf:params:scim:schemas:core:2.0:Group";
 
     public static final String RESOURCE_NAME = "Group";
 
     public SCIMv2Group() {
         super(SCHEMA_URI, new SCIMv2Meta(RESOURCE_NAME));
-    }
-
-    public static final class Builder {
-
-        private SCIMv2Meta meta;
-
-        private String id;
-
-        private String displayName;
-
-        private List<BaseResourceReference> members;
-
-        public Builder() {
-        }
-
-        public Builder meta(final SCIMv2Meta meta) {
-            this.meta = meta;
-            return this;
-        }
-
-        public Builder id(final String id) {
-            this.id = id;
-            return this;
-        }
-
-        public Builder displayName(final String displayName) {
-            this.displayName = displayName;
-            return this;
-        }
-
-        public Builder members(final List<BaseResourceReference> members) {
-            this.members = members;
-            return this;
-        }
-
-        public SCIMv2Group build() {
-            SCIMv2Group sCIMv2Group = new SCIMv2Group();
-            sCIMv2Group.setMeta(meta);
-            sCIMv2Group.setId(id);
-            sCIMv2Group.setDisplayName(displayName);
-            sCIMv2Group.members = this.members;
-            return sCIMv2Group;
-        }
     }
 
     @Override

@@ -21,9 +21,8 @@ import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 
@@ -110,8 +109,7 @@ public class SCIMv2User
         attributes.stream().filter(a -> a.getName().startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)).forEach(
                 a -> {
                     SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager manager = enterpriseUser.getManager();
-                    switch (StringUtils.replace(a.getName(), SCIMv2EnterpriseUser.SCHEMA_URI + ".",
-                            StringUtils.EMPTY)) {
+                    switch (a.getName().replace(SCIMv2EnterpriseUser.SCHEMA_URI + ".", StringUtil.EMPTY)) {
                         case "employeeNumber":
                             enterpriseUser.setEmployeeNumber(AttributeUtil.getAsStringValue(a));
                             break;
@@ -151,12 +149,6 @@ public class SCIMv2User
                         default:
                         // do nothing
                     }
-                }
-        );
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this).appendSuper(super.toString()).build();
+                });
     }
 }

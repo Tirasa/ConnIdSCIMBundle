@@ -21,7 +21,22 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class SCIMv2PatchImpl<T> implements SCIMv2Patch<T> {
+public class SCIMv2PatchImpl implements SCIMv2Patch {
+
+    public static final class Builder {
+
+        private final SCIMv2PatchImpl instance = new SCIMv2PatchImpl();
+
+        public Builder operations(final Set<SCIMv2PatchOperation> operations) {
+            instance.operations.clear();
+            instance.operations.addAll(operations);
+            return this;
+        }
+
+        public SCIMv2PatchImpl build() {
+            return instance;
+        }
+    }
 
     private static final long serialVersionUID = -8309238293109738832L;
 
@@ -33,7 +48,7 @@ public class SCIMv2PatchImpl<T> implements SCIMv2Patch<T> {
     protected String baseSchema;
 
     @JsonProperty("Operations")
-    private final Set<SCIMv2PatchOperation<T>> operations = new HashSet<>();
+    private final Set<SCIMv2PatchOperation> operations = new HashSet<>();
 
     public SCIMv2PatchImpl() {
         this.baseSchema = SCHEMA_URI;
@@ -46,38 +61,21 @@ public class SCIMv2PatchImpl<T> implements SCIMv2Patch<T> {
     }
 
     @Override
-    public Set<SCIMv2PatchOperation<T>> getOperations() {
+    public Set<SCIMv2PatchOperation> getOperations() {
         return operations;
     }
 
     @Override
-    public void addOperation(final SCIMv2PatchOperation<T> operation) {
+    public void addOperation(final SCIMv2PatchOperation operation) {
         this.operations.add(operation);
     }
 
     @Override
     public String toString() {
-        return "SCIMv2Patch{" + "schemas=" + schemas + ", baseSchema='" + baseSchema + '\'' + ", operations="
-                + operations + '}';
-    }
-
-    public static final class Builder<T> {
-
-        private Set<SCIMv2PatchOperation<T>> operations;
-
-        public Builder() {
-        }
-
-        public Builder<T> operations(final Set<SCIMv2PatchOperation<T>> operations) {
-            this.operations = operations;
-            return this;
-        }
-
-        public SCIMv2PatchImpl<T> build() {
-            SCIMv2PatchImpl<T> sCIMv2PatchImpl = new SCIMv2PatchImpl<>();
-            sCIMv2PatchImpl.operations.clear();
-            sCIMv2PatchImpl.operations.addAll(operations);
-            return sCIMv2PatchImpl;
-        }
+        return "SCIMv2Patch{"
+                + "schemas=" + schemas
+                + ", baseSchema='" + baseSchema + '\''
+                + ", operations=" + operations
+                + '}';
     }
 }

@@ -19,8 +19,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.reflect.FieldUtils;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 
 public class SCIMDefaultComplex extends AbstractSCIMComplex {
 
@@ -28,14 +27,17 @@ public class SCIMDefaultComplex extends AbstractSCIMComplex {
 
     @Override
     protected List<Field> getDeclaredFields() {
-        return FieldUtils.getAllFieldsList(this.getClass()).stream().
-                filter(f -> !"LOG".equals(f.getName()) && !"serialVersionUID".equals(f.getName()))
-                .collect(Collectors.toList());
+        return SCIMUtils.getAllFieldsList(getClass()).stream().
+                filter(f -> !"LOG".equals(f.getName()) && !"serialVersionUID".equals(f.getName())).
+                collect(Collectors.toList());
     }
 
     @Override
     protected String getAttributeName(
-            final String id, final Field field, final SCIMConnectorConfiguration configuration) {
+            final String id,
+            final Field field,
+            final SCIMConnectorConfiguration configuration) {
+
         return id.concat(".")
                 .concat("default")
                 .concat(".")
@@ -44,8 +46,8 @@ public class SCIMDefaultComplex extends AbstractSCIMComplex {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("value", value)
-                .toString();
+        return "SCIMDefaultComplex{"
+                + "value=" + value
+                + '}';
     }
 }

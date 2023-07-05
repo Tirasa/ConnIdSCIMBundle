@@ -19,20 +19,87 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.reflect.FieldUtils;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 
 public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager> {
 
     private static final long serialVersionUID = 8636967543630909790L;
+
+    public static class SCIMv2EnterpriseUserManager implements Serializable {
+
+        private static final long serialVersionUID = -7930518578899296192L;
+
+        @JsonProperty("value")
+        private String value;
+
+        @JsonProperty("$ref")
+        private String ref;
+
+        @JsonProperty("displayName")
+        private String displayName;
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(final String value) {
+            this.value = value;
+        }
+
+        public String getRef() {
+            return ref;
+        }
+
+        public void setRef(final String ref) {
+            this.ref = ref;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public void setDisplayName(final String displayName) {
+            this.displayName = displayName;
+        }
+
+        public SCIMv2EnterpriseUserManager value(final String value) {
+            this.value = value;
+            return this;
+        }
+
+        public SCIMv2EnterpriseUserManager ref(final String ref) {
+            this.ref = ref;
+            return this;
+        }
+
+        public SCIMv2EnterpriseUserManager displayName(final String displayName) {
+            this.displayName = displayName;
+            return this;
+        }
+
+        public List<Attribute> toAttributes() {
+            return CollectionUtil.newList(AttributeBuilder.build(SCHEMA_URI + ".manager.value", this.value),
+                    AttributeBuilder.build(SCHEMA_URI + ".manager.ref", this.ref),
+                    AttributeBuilder.build(SCHEMA_URI + ".manager.displayName", this.displayName));
+        }
+
+        @Override
+        public String toString() {
+            return "SCIMv2EnterpriseUserManager{"
+                    + "value=" + value
+                    + ", ref=" + ref
+                    + ", displayName=" + displayName
+                    + '}';
+        }
+    }
 
     public static final String SCHEMA_URI = "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User";
 
@@ -109,16 +176,19 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
     @Override
     public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
-        for (Field field : FieldUtils.getAllFieldsList(this.getClass()).stream().
-                filter(f -> !"SCHEMA_URI".equals(f.getName()) && !"serialVersionUID".equals(f.getName()))
-                .collect(Collectors.toList())) {
-            if (SCIMv2EnterpriseUserManager.class.equals(field.getType()) && this.manager != null) {
-                attrs.addAll(this.manager.toAttributes());
+
+        for (Field field : SCIMUtils.getAllFieldsList(getClass()).stream().
+                filter(f -> !"SCHEMA_URI".equals(f.getName()) && !"serialVersionUID".equals(f.getName())).
+                collect(Collectors.toList())) {
+
+            if (SCIMv2EnterpriseUserManager.class.equals(field.getType()) && manager != null) {
+                attrs.addAll(manager.toAttributes());
             } else if (!field.isAnnotationPresent(JsonIgnore.class)) {
                 field.setAccessible(true);
                 attrs.add(AttributeBuilder.build(id + "." + field.getName(), field.get(this)));
             }
         }
+
         return attrs;
     }
 
@@ -132,83 +202,15 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
         return this;
     }
 
-    public static class SCIMv2EnterpriseUserManager implements Serializable {
-
-        private static final long serialVersionUID = -7930518578899296192L;
-
-        @JsonProperty("value")
-        private String value;
-
-        @JsonProperty("$ref")
-        private String ref;
-
-        @JsonProperty("displayName")
-        private String displayName;
-
-        public String getValue() {
-            return value;
-        }
-
-        public void setValue(final String value) {
-            this.value = value;
-        }
-
-        public String getRef() {
-            return ref;
-        }
-
-        public void setRef(final String ref) {
-            this.ref = ref;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        public void setDisplayName(final String displayName) {
-            this.displayName = displayName;
-        }
-
-        public SCIMv2EnterpriseUserManager value(final String value) {
-            this.value = value;
-            return this;
-        }
-
-        public SCIMv2EnterpriseUserManager ref(final String ref) {
-            this.ref = ref;
-            return this;
-        }
-
-        public SCIMv2EnterpriseUserManager displayName(final String displayName) {
-            this.displayName = displayName;
-            return this;
-        }
-
-        public List<Attribute> toAttributes() {
-            return Arrays.asList(AttributeBuilder.build(SCHEMA_URI + ".manager.value", this.value),
-                    AttributeBuilder.build(SCHEMA_URI + ".manager.ref", this.ref),
-                    AttributeBuilder.build(SCHEMA_URI + ".manager.displayName", this.displayName));
-        }
-
-        @Override
-        public String toString() {
-            return new ToStringBuilder(this)
-                    .append("value", value)
-                    .append("ref", ref)
-                    .append("displayName", displayName)
-                    .toString();
-        }
-    }
-
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("employeeNumber", employeeNumber)
-                .append("costCenter", costCenter)
-                .append("organization", organization)
-                .append("division", division)
-                .append("department", department)
-                .append("manager", manager)
-                .toString();
+        return "SCIMv2EnterpriseUser{"
+                + "employeeNumber=" + employeeNumber
+                + ", costCenter=" + costCenter
+                + ", organization=" + organization
+                + ", division=" + division
+                + ", department=" + department
+                + ", manager=" + manager
+                + '}';
     }
 }

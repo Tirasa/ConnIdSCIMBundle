@@ -19,7 +19,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -28,10 +30,8 @@ import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
-import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 
 public final class SCIMUtils {
@@ -42,9 +42,15 @@ public final class SCIMUtils {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
-    public static GuardedString createProtectedPassword(final String password) {
-        GuardedString guardedString = new GuardedString(password.toCharArray());
-        return guardedString;
+    public static List<Field> getAllFieldsList(final Class<?> cls) {
+        List<Field> allFields = new ArrayList<>();
+        Class<?> currentClass = cls;
+        while (currentClass != null) {
+            Field[] declaredFields = currentClass.getDeclaredFields();
+            Collections.addAll(allFields, declaredFields);
+            currentClass = currentClass.getSuperclass();
+        }
+        return allFields;
     }
 
     public static void handleGeneralError(final String message) {
@@ -118,7 +124,7 @@ public final class SCIMUtils {
             } else if (attributeToGet.startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)) {
                 // SCIM-3
                 result += SCIMv2EnterpriseUser.SCHEMA_URI
-                        + (attributeToGet.replace(SCIMv2EnterpriseUser.SCHEMA_URI, StringUtils.EMPTY)
+                        + (attributeToGet.replace(SCIMv2EnterpriseUser.SCHEMA_URI, StringUtil.EMPTY)
                                 .replaceFirst(".", ":").concat(","));
             } else if (customAttributesObj == null) {
                 result += attributeToGet.concat(",");

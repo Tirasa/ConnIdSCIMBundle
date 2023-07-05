@@ -17,9 +17,33 @@ package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class SCIMv2PatchOperation<T> implements SCIMPatchOperation<T> {
+public class SCIMv2PatchOperation implements SCIMPatchOperation {
 
     private static final long serialVersionUID = -1398745689025351659L;
+
+    public static final class Builder {
+
+        private final SCIMv2PatchOperation instance = new SCIMv2PatchOperation();
+
+        public Builder op(final String op) {
+            instance.setOp(op);
+            return this;
+        }
+
+        public Builder path(final String path) {
+            instance.setPath(path);
+            return this;
+        }
+
+        public Builder value(final Object value) {
+            instance.setValue(value);
+            return this;
+        }
+
+        public SCIMv2PatchOperation build() {
+            return instance;
+        }
+    }
 
     @JsonProperty("op")
     private String op;
@@ -28,7 +52,7 @@ public class SCIMv2PatchOperation<T> implements SCIMPatchOperation<T> {
     private String path;
 
     @JsonProperty("value")
-    private T value;
+    private Object value;
 
     public String getOp() {
         return op;
@@ -61,49 +85,13 @@ public class SCIMv2PatchOperation<T> implements SCIMPatchOperation<T> {
     }
 
     @Override
-    public T getValue() {
+    public Object getValue() {
         return value;
     }
 
     @Override
-    public void setValue(final T value) {
+    public void setValue(final Object value) {
         this.value = value;
-    }
-
-    public static final class Builder<T> {
-
-        private String op;
-
-        private String path;
-
-        private T value;
-
-        public Builder() {
-        }
-
-        public Builder<T> op(final String op) {
-            this.op = op;
-            return this;
-        }
-
-        public Builder<T> path(final String path) {
-            this.path = path;
-            return this;
-        }
-
-        public Builder<T> value(final T value) {
-            this.value = value;
-            return this;
-        }
-
-        @SuppressWarnings("unchecked")
-        public SCIMv2PatchOperation<T> build() {
-            SCIMv2PatchOperation<T> scimv2PatchOperation = new SCIMv2PatchOperation<>();
-            scimv2PatchOperation.setOp(op);
-            scimv2PatchOperation.setPath(path);
-            scimv2PatchOperation.setValue(value);
-            return scimv2PatchOperation;
-        }
     }
 
     @Override

@@ -18,8 +18,8 @@ package net.tirasa.connid.bundles.scim.v11;
 import java.util.Map;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public final class SCIMv11ConnectorTestsUtils {
@@ -68,7 +68,7 @@ public final class SCIMv11ConnectorTestsUtils {
                     connectorConfiguration.setBaseAddress(entry.getValue());
                     break;
                 case "auth.password":
-                    connectorConfiguration.setPassword(SCIMUtils.createProtectedPassword(entry.getValue()));
+                    connectorConfiguration.setPassword(new GuardedString(entry.getValue().toCharArray()));
                     break;
                 case "auth.username":
                     connectorConfiguration.setUsername(entry.getValue());

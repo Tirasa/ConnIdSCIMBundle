@@ -16,7 +16,6 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class SCIMv2Meta extends SCIMBaseMeta {
 
@@ -41,12 +40,12 @@ public class SCIMv2Meta extends SCIMBaseMeta {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("resourceType", resourceType)
-                .append("created", created)
-                .append("lastModified", lastModified)
-                .append("location", location)
-                .append("version", version)
-                .toString();
+        return "SCIMv2Meta{"
+                + "resourceType=" + resourceType
+                + "created=" + created
+                + "lastModified=" + lastModified
+                + "location=" + location
+                + "version=" + version
+                + '}';
     }
 }

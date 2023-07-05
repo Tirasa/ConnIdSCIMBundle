@@ -36,8 +36,8 @@ public abstract class AbstractSCIMBaseResource<MT extends SCIMBaseMeta> implemen
     @JsonProperty
     protected final Set<String> schemas = new TreeSet<>();
 
-    @JsonIgnore protected String baseSchema;
-    
+    @JsonIgnore
+    protected String baseSchema;
 
     public AbstractSCIMBaseResource() {
     }
@@ -76,5 +76,4 @@ public abstract class AbstractSCIMBaseResource<MT extends SCIMBaseMeta> implemen
     public void setId(final String id) {
         this.id = id;
     }
-
 }

@@ -18,9 +18,9 @@ package net.tirasa.connid.bundles.scim.v2;
 import java.util.Map;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public final class SCIMv2ConnectorTestsUtils {
@@ -74,12 +74,12 @@ public final class SCIMv2ConnectorTestsUtils {
 
             switch (entry.getKey()) {
                 case "auth.baseAddress":
-                    connectorConfiguration.setBaseAddress(StringUtils.isBlank(entry.getValue())
+                    connectorConfiguration.setBaseAddress(StringUtil.isBlank(entry.getValue())
                             ? "http://localhost:" + serverPort + "/v2/"
                             : entry.getValue());
                     break;
                 case "auth.password":
-                    connectorConfiguration.setPassword(SCIMUtils.createProtectedPassword(entry.getValue()));
+                    connectorConfiguration.setPassword(new GuardedString(entry.getValue().toCharArray()));
                     break;
                 case "auth.username":
                     connectorConfiguration.setUsername(entry.getValue());

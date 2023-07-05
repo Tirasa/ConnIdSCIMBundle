@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.Nulls;
 import java.util.ArrayList;
 import java.util.List;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class SCIMv11Meta extends SCIMBaseMeta {
 
@@ -41,12 +40,12 @@ public class SCIMv11Meta extends SCIMBaseMeta {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("created", created)
-                .append("lastModified", lastModified)
-                .append("location", location)
-                .append("version", version)
-                .append("attributes", attributes)
-                .toString();
+        return "SCIMv11Meta{"
+                + "created=" + created
+                + "lastModified=" + lastModified
+                + "location=" + location
+                + "version=" + version
+                + "attributes=" + attributes
+                + '}';
     }
 }

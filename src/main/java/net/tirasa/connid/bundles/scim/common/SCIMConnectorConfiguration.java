@@ -21,7 +21,6 @@ import java.net.URL;
 import javax.ws.rs.core.MediaType;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -254,14 +253,22 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             LOG.error(e, "While validating baseAddress");
             failValidation("Base address must be a valid URL.");
         }
-        if (StringUtil.isBlank(username) && StringUtils.isAllBlank(clientId, clientSecret, accessTokenNodeId,
-                accessTokenBaseAddress)) {
-            failValidation("Username cannot be null or empty. Since clientId, clientSecret, "
+        if (StringUtil.isBlank(username)
+                && StringUtil.isBlank(clientId)
+                && StringUtil.isBlank(clientSecret)
+                && StringUtil.isBlank(accessTokenNodeId)
+                && StringUtil.isBlank(accessTokenBaseAddress)) {
+
+            failValidation("Username cannot be null or empty since clientId, clientSecret, "
                     + "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
-        if (password != null && StringUtil.isBlank(SecurityUtil.decrypt(password)) && StringUtils.isAllBlank(clientId,
-                clientSecret, accessTokenNodeId, accessTokenBaseAddress)) {
-            failValidation("Password Id cannot be null or empty.  Since clientId, clientSecret, "
+        if (password != null && StringUtil.isBlank(SecurityUtil.decrypt(password))
+                && StringUtil.isBlank(clientId)
+                && StringUtil.isBlank(clientSecret)
+                && StringUtil.isBlank(accessTokenNodeId)
+                && StringUtil.isBlank(accessTokenBaseAddress)) {
+
+            failValidation("Password cannot be null or empty since clientId, clientSecret, "
                     + "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
         if (StringUtil.isNotBlank(customAttributesJSON)) {
@@ -273,8 +280,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
                         "'customAttributesJSON' parameter must be a valid " + "Resource Schema Representation JSON.");
             }
         }
-        if (StringUtil.isNotBlank(updateUserMethod) && !updateUserMethod.equalsIgnoreCase("PATCH")
-                && !updateUserMethod.equalsIgnoreCase("PUT")) {
+        if (!"PATCH".equalsIgnoreCase(updateUserMethod) && !"PUT".equalsIgnoreCase(updateUserMethod)) {
             failValidation("Update method is not valid; must be 'PUT' or 'PATCH'.");
         }
     }

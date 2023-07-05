@@ -87,5 +87,4 @@ public class SCIMBaseMeta implements Serializable {
         }
         return attrs;
     }
-
 }

@@ -18,10 +18,10 @@ package net.tirasa.connid.bundles.scim.v2.dto;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
 
-public interface SCIMv2Patch<T> extends SCIMBasePatch {
+public interface SCIMv2Patch extends SCIMBasePatch {
 
-    Set<SCIMv2PatchOperation<T>> getOperations();
-    
-    void addOperation(SCIMv2PatchOperation<T> operation);
+    Set<SCIMv2PatchOperation> getOperations();
+
+    void addOperation(SCIMv2PatchOperation operation);
 
 }

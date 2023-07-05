@@ -16,38 +16,31 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
 
-public class SCIMv2PatchValue<T extends Serializable> implements SCIMPatchValue<T> {
+public class SCIMv2PatchValue {
 
     @JsonProperty
-    private T value;
+    private String value;
 
-    @Override
-    public T getValue() {
+    public String getValue() {
         return value;
     }
 
-    @Override
-    public void setValue(final T value) {
+    public void setValue(final String value) {
         this.value = value;
     }
 
-    public static final class Builder<T extends Serializable> {
+    public static final class Builder {
 
-        private T value;
+        private String value;
 
-        public Builder() {
-        }
-
-        public Builder<T> value(final T value) {
+        public Builder value(final String value) {
             this.value = value;
             return this;
         }
 
-        @SuppressWarnings("unchecked")
         public SCIMv2PatchValue build() {
-            SCIMv2PatchValue<T> scimv2PatchValue = new SCIMv2PatchValue<>();
+            SCIMv2PatchValue scimv2PatchValue = new SCIMv2PatchValue();
             scimv2PatchValue.setValue(value);
             return scimv2PatchValue;
         }

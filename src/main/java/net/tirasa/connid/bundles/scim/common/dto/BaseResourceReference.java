@@ -22,6 +22,30 @@ public class BaseResourceReference implements Serializable {
 
     private static final long serialVersionUID = 9126588075353486789L;
 
+    public static final class Builder {
+
+        private final BaseResourceReference instance = new BaseResourceReference();
+
+        public Builder value(final String value) {
+            instance.setValue(value);
+            return this;
+        }
+
+        public Builder ref(final String ref) {
+            instance.setRef(ref);
+            return this;
+        }
+
+        public Builder display(final String display) {
+            instance.setDisplay(display);
+            return this;
+        }
+
+        public BaseResourceReference build() {
+            return instance;
+        }
+    }
+
     protected String value;
 
     @JsonProperty("$ref")
@@ -36,7 +60,6 @@ public class BaseResourceReference implements Serializable {
     public void setValue(final String value) {
         this.value = value;
     }
-
 
     public String getRef() {
         return ref;
@@ -56,44 +79,10 @@ public class BaseResourceReference implements Serializable {
 
     @Override
     public String toString() {
-        return new org.apache.commons.lang3.builder.ToStringBuilder(this)
-                .append("value", value)
-                .append("ref", ref)
-                .append("display", display)
-                .toString();
+        return "BaseResourceReference{"
+                + "value=" + value
+                + ", $ref=" + ref
+                + ", display=" + display
+                + '}';
     }
-
-
-    public static final class Builder {
-        private String value;
-        private String ref;
-        private String display;
-
-        public Builder() {
-        }
-
-        public Builder value(final String value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder ref(final String ref) {
-            this.ref = ref;
-            return this;
-        }
-
-        public Builder display(final String display) {
-            this.display = display;
-            return this;
-        }
-
-        public BaseResourceReference build() {
-            BaseResourceReference baseResourceReference = new BaseResourceReference();
-            baseResourceReference.setValue(value);
-            baseResourceReference.setRef(ref);
-            baseResourceReference.setDisplay(display);
-            return baseResourceReference;
-        }
-    }
-
 }

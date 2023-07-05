@@ -17,7 +17,7 @@ package net.tirasa.connid.bundles.scim.v2.dto;
 
 import java.io.Serializable;
 
-public interface SCIMPatchOperation<T> extends Serializable {
+public interface SCIMPatchOperation extends Serializable {
 
     String getOperation();
 
@@ -27,8 +27,7 @@ public interface SCIMPatchOperation<T> extends Serializable {
 
     void setPath(String path);
 
-    T getValue();
+    Object getValue();
 
-    void setValue(T value);
-
+    void setValue(Object value);
 }

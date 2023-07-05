@@ -43,6 +43,7 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
      * @param userId
      * @return User with userId id
      */
+    @Override
     public SCIMv11User getUser(final String userId) {
         WebClient webClient = getWebclient("Users", null).path(userId);
         return doGetUser(webClient, SCIMv11User.class, SCIMv11Attribute.class);
@@ -52,6 +53,7 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
      * @param user
      * @return Created User
      */
+    @Override
     public SCIMv11User createUser(final SCIMv11User user) {
         return SCIMv11User.class.cast(doCreateUser(user));
     }
@@ -60,6 +62,7 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
      * @param user
      * @return Update User
      */
+    @Override
     public SCIMv11User updateUser(final SCIMv11User user) {
         return doUpdateUser(user, Collections.emptySet(), SCIMv11User.class);
     }
@@ -67,6 +70,7 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
     /**
      * @param userId
      */
+    @Override
     public void deleteUser(final String userId) {
         WebClient webClient = getWebclient("Users", null).path(userId);
         doDeleteUser(userId, webClient);
@@ -75,44 +79,51 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
     /**
      * @param userId
      */
+    @Override
     public void activateUser(final String userId) {
         doActivateUser(userId);
     }
 
+    @Override
     public boolean testService() {
         Set<String> attributesToGet = new HashSet<>();
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
         return getAllUsers(1, 1, attributesToGet) != null;
     }
 
-    @Override public SCIMv11Group getGroup(final String groupId) {
+    @Override
+    public SCIMv11Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv11Group.class);
     }
 
-    @Override public SCIMv11Group updateGroup(final SCIMv11Group group) {
+    @Override
+    public SCIMv11Group updateGroup(final SCIMv11Group group) {
         return doUpdateGroup(group, Collections.emptySet(), null, SCIMv11Group.class);
     }
 
-    @Override public SCIMv11Group updateGroup(final String groupId, final SCIMv11BasePatch groupPatch) {
+    @Override
+    public SCIMv11Group updateGroup(final String groupId, final SCIMv11BasePatch groupPatch) {
         return doUpdateGroup(new SCIMv11Group.Builder().id(groupId).build(), Collections.emptySet(), null,
                 SCIMv11Group.class);
     }
 
-    @Override protected PagedResults<SCIMv11User> deserializeUserPagedResults(final String node)
+    @Override
+    protected PagedResults<SCIMv11User> deserializeUserPagedResults(final String node)
             throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv11User>>() {
         });
     }
 
-    @Override protected PagedResults<SCIMv11Group> deserializeGroupPagedResults(final String node)
+    @Override
+    protected PagedResults<SCIMv11Group> deserializeGroupPagedResults(final String node)
             throws JsonProcessingException {
         return SCIMUtils.MAPPER.readValue(node, new TypeReference<PagedResults<SCIMv11Group>>() {
         });
     }
 
-    @Override protected SCIMv11GroupPatch buildPatchFromAttrs(final Set<Attribute> replaceAttributes) {
+    @Override
+    protected SCIMv11GroupPatch buildPatchFromAttrs(final Set<Attribute> replaceAttributes) {
         // TODO
         return null;
     }
-
 }

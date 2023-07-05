@@ -18,7 +18,6 @@ package net.tirasa.connid.bundles.scim.v11.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class SCIMv11Attribute extends SCIMBaseAttribute<SCIMv11Attribute> {
 
@@ -124,18 +123,18 @@ public class SCIMv11Attribute extends SCIMBaseAttribute<SCIMv11Attribute> {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("multiValuedAttributeChildName", multiValuedAttributeChildName)
-                .append("schema", schema)
-                .append("readOnly", readOnly)
-                .append("type", type)
-                .append("name", name)
-                .append("multiValued", multiValued)
-                .append("description", description)
-                .append("required", required)
-                .append("caseExact", caseExact)
-                .append("canonicalValues", canonicalValues)
-                .append("subAttributes", subAttributes)
-                .toString();
+        return "SCIMv11Attribute{"
+                + "multiValuedAttributeChildName=" + multiValuedAttributeChildName
+                + ", schema=" + schema
+                + ", readOnly=" + readOnly
+                + ", type=" + type
+                + ", name=" + name
+                + ", multiValued=" + multiValued
+                + ", description=" + description
+                + ", required=" + required
+                + ", caseExact=" + caseExact
+                + ", canonicalValues=" + canonicalValues
+                + ", subAttributes=" + subAttributes
+                + '}';
     }
 }

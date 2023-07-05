@@ -23,52 +23,39 @@ public class SCIMv11Group extends AbstractSCIMGroup<SCIMv11Meta> {
 
     private static final long serialVersionUID = -7962830213458613351L;
 
-    public static final String SCHEMA_URI = "urn:scim:schemas:core:1.0";
-
-    public SCIMv11Group() {
-        super(SCHEMA_URI, new SCIMv11Meta());
-    }
-
     public static final class Builder {
 
-        private SCIMv11Meta meta;
-
-        private String id;
-
-        private String displayName;
-
-        private List<BaseResourceReference> members;
-
-        public Builder() {
-        }
+        private final SCIMv11Group instance = new SCIMv11Group();
 
         public Builder meta(final SCIMv11Meta meta) {
-            this.meta = meta;
+            instance.setMeta(meta);
             return this;
         }
 
         public Builder id(final String id) {
-            this.id = id;
+            instance.setId(id);
             return this;
         }
 
         public Builder displayName(final String displayName) {
-            this.displayName = displayName;
+            instance.setDisplayName(displayName);
             return this;
         }
 
         public Builder members(final List<BaseResourceReference> members) {
-            this.members = members;
+            instance.members.clear();
+            instance.members.addAll(members);
             return this;
         }
 
         public SCIMv11Group build() {
-            SCIMv11Group sCIMv11Group = new SCIMv11Group();
-            sCIMv11Group.setMeta(meta);
-            sCIMv11Group.setId(id);
-            sCIMv11Group.setDisplayName(displayName);
-            sCIMv11Group.members = this.members;
-            return sCIMv11Group;
+            return instance;
         }
+    }
+
+    public static final String SCHEMA_URI = "urn:scim:schemas:core:1.0";
+
+    public SCIMv11Group() {
+        super(SCHEMA_URI, new SCIMv11Meta());
     }
 }

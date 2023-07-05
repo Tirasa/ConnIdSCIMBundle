@@ -54,8 +54,6 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import net.tirasa.connid.bundles.scim.v2.dto.Uniqueness;
 import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Client;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -788,7 +786,7 @@ public class SCIMv2ConnectorTests {
         assertFalse(handler.getObjects().isEmpty());
         // verify keys
         assertTrue(handler.getObjects().stream().anyMatch(
-                su -> user1.getUserName().equals(su.getName().getNameValue()) && BooleanUtils.toBoolean(
+                su -> user1.getUserName().equals(su.getName().getNameValue()) && "true".equalsIgnoreCase(
                 su.getAttributeByName("active").getValue().get(0).toString()) && user1.getEmails().get(0)
                 .getValue().equals(AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
                 && user2.getName().getFamilyName()
@@ -800,7 +798,7 @@ public class SCIMv2ConnectorTests {
                 && user1.getEnterpriseUser().getManager().getValue().equals(AttributeUtil.getAsStringValue(
                         su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")))));
         assertTrue(handler.getObjects().stream().anyMatch(
-                su -> user3.getUserName().equals(su.getName().getNameValue()) && !BooleanUtils.toBoolean(
+                su -> user3.getUserName().equals(su.getName().getNameValue()) && "false".equalsIgnoreCase(
                 su.getAttributeByName("active").getValue().get(0).toString())));
         assertTrue(
                 handler.getObjects().stream().anyMatch(su -> user4.getUserName().equals(su.getName().getNameValue())));
@@ -995,11 +993,11 @@ public class SCIMv2ConnectorTests {
     @Test
     public void pagedSearchGroup() {
         // create some sample groups for pagination
-        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
-        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
-        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
-        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
-        createGroup(UUID.randomUUID(), StringUtils.EMPTY);
+        createGroup(UUID.randomUUID(), StringUtil.EMPTY);
+        createGroup(UUID.randomUUID(), StringUtil.EMPTY);
+        createGroup(UUID.randomUUID(), StringUtil.EMPTY);
+        createGroup(UUID.randomUUID(), StringUtil.EMPTY);
+        createGroup(UUID.randomUUID(), StringUtil.EMPTY);
 
         final List<ConnectorObject> results = new ArrayList<>();
         final ResultsHandler handler = results::add;
@@ -1032,7 +1030,7 @@ public class SCIMv2ConnectorTests {
 
         try {
             // SCIM-1 create group
-            Uid group1 = createGroup(UUID.randomUUID(), StringUtils.EMPTY);
+            Uid group1 = createGroup(UUID.randomUUID(), StringUtil.EMPTY);
 
             SCIMv2Group createdGroup = readGroup(group1.getUidValue(), client);
             assertEquals(createdGroup.getId(), group1.getUidValue());

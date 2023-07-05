@@ -23,9 +23,8 @@ import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 
@@ -107,9 +106,8 @@ public class SCIMv11User extends AbstractSCIMUser<
         this.enterpriseUser = new SCIMv11EnterpriseUser();
         attributes.stream().filter(a -> a.getName().startsWith(SCIMv11EnterpriseUser.SCHEMA_URI)).forEach(
                 a -> {
-                    SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager manager = enterpriseUser.getManager();
-                    switch (StringUtils.replace(a.getName(), SCIMv11EnterpriseUser.SCHEMA_URI + ".",
-                            StringUtils.EMPTY)) {
+                    SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager manager;
+                    switch (a.getName().replace(SCIMv11EnterpriseUser.SCHEMA_URI + ".", StringUtil.EMPTY)) {
                         case "employeeNumber":
                             enterpriseUser.setEmployeeNumber(AttributeUtil.getAsStringValue(a));
                             break;
@@ -132,9 +130,7 @@ public class SCIMv11User extends AbstractSCIMUser<
                         default:
                         // do nothing
                     }
-
-                }
-        );
+                });
     }
 
     @JsonIgnore
@@ -154,10 +150,5 @@ public class SCIMv11User extends AbstractSCIMUser<
         }
 
         setter.accept(selected);
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this).appendSuper(super.toString()).build();
     }
 }

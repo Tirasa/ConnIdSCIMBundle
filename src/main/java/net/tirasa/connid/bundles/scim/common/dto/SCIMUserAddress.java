@@ -23,7 +23,7 @@ import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public class SCIMUserAddress {
@@ -138,9 +138,9 @@ public class SCIMUserAddress {
                         field.get(this),
                         SCIMAttributeUtils.SCIM_USER_ADDRESSES.concat(".")
                                 .concat(type == null
-                                        ? (StringUtils.isBlank(configuration.getAddressesType())
-                                                ? StringUtils.EMPTY
-                                                : configuration.getAddressesType().concat("."))
+                                        ? (StringUtil.isBlank(configuration.getAddressesType())
+                                        ? StringUtil.EMPTY
+                                        : configuration.getAddressesType().concat("."))
                                         : type.name().concat("."))
                                 .concat(field.getName()),
                         field.getType()).build());
@@ -151,9 +151,15 @@ public class SCIMUserAddress {
 
     @Override
     public String toString() {
-        return "SCIMUserAddressConf{" + "formatted=" + formatted + ", streetAddress=" + streetAddress + ", locality="
-                + locality + ", region=" + region + ", postalCode=" + postalCode + ", country=" + country + ", type="
-                + type + ", primary=" + primary + '}';
+        return "SCIMUserAddressConf{"
+                + "formatted=" + formatted
+                + ", streetAddress=" + streetAddress
+                + ", locality=" + locality
+                + ", region=" + region
+                + ", postalCode=" + postalCode
+                + ", country=" + country
+                + ", type=" + type
+                + ", primary=" + primary
+                + '}';
     }
-
 }

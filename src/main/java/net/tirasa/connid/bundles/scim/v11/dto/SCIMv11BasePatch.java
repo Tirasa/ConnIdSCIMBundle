@@ -26,15 +26,16 @@ public class SCIMv11BasePatch implements SCIMBasePatch {
 
     private final Set<String> schemas = new TreeSet<>();
 
-    @JsonIgnore protected String baseSchema;
+    @JsonIgnore
+    protected String baseSchema;
 
     public SCIMv11BasePatch() {
         this.baseSchema = SCHEMA_URI;
         schemas.add(baseSchema);
     }
 
-    @Override public Set<String> getSchemas() {
+    @Override
+    public Set<String> getSchemas() {
         return schemas;
     }
-
 }

@@ -66,17 +66,19 @@ import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 
-public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>
-        , GT extends SCIMGroup<? extends SCIMBaseMeta>, P extends SCIMBasePatch, ST extends SCIMService<UT, GT, P>>
+public abstract class AbstractSCIMConnector<
+        UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, GT extends SCIMGroup<
+        ? extends SCIMBaseMeta>, P extends SCIMBasePatch, ST extends SCIMService<UT, GT, P>>
         implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp {
 
-    private static final Log LOG = Log.getLog(AbstractSCIMConnector.class);
+    protected static final Log LOG = Log.getLog(AbstractSCIMConnector.class);
 
     protected SCIMConnectorConfiguration configuration;
 
     protected ST client;
 
-    @Override public void init(final Configuration configuration) {
+    @Override
+    public void init(final Configuration configuration) {
         LOG.ok("Init");
 
         this.configuration = (SCIMConnectorConfiguration) configuration;
@@ -88,23 +90,31 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         LOG.ok("Connector {0} successfully inited", getClass().getName());
     }
 
-    @Override public void dispose() {
+    @Override
+    public void dispose() {
         LOG.ok("Configuration cleanup");
 
         configuration = null;
     }
 
-    @Override public void executeQuery(final ObjectClass objectClass, final Filter query, final ResultsHandler handler,
+    @Override
+    public void executeQuery(
+            final ObjectClass objectClass,
+            final Filter query,
+            final ResultsHandler handler,
             final OperationOptions options) {
 
         LOG.ok("Connector READ");
 
         Attribute key = null;
         if (query instanceof EqualsFilter || query instanceof EqualsIgnoreCaseFilter) {
-            Attribute filterAttr = query instanceof EqualsFilter ? ((EqualsFilter) query).getAttribute()
+            Attribute filterAttr = query instanceof EqualsFilter
+                    ? ((EqualsFilter) query).getAttribute()
                     : ((EqualsIgnoreCaseFilter) query).getAttribute();
-            if (filterAttr instanceof Uid || ObjectClass.ACCOUNT.equals(objectClass) || ObjectClass.GROUP.equals(
-                    objectClass)) {
+
+            if (filterAttr instanceof Uid
+                    || ObjectClass.ACCOUNT.equals(objectClass) || ObjectClass.GROUP.equals(objectClass)) {
+
                 key = filterAttr;
             }
         }
@@ -166,7 +176,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                     try {
                         List<UT> users = client.getAllUsers(
                                 (Name.NAME.equals(key.getName()) ? "username" : key.getName()) + " eq \""
-                                        + AttributeUtil.getAsStringValue(key) + "\"", attributesToGet);
+                                + AttributeUtil.getAsStringValue(key) + "\"", attributesToGet);
                         if (!users.isEmpty()) {
                             result = users.get(0);
                         }
@@ -232,7 +242,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                     try {
                         List<GT> groups = client.getAllGroups(
                                 (Name.NAME.equals(key.getName()) ? SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME
-                                        : key.getName()) + " eq \"" + AttributeUtil.getAsStringValue(key) + "\"");
+                                : key.getName()) + " eq \"" + AttributeUtil.getAsStringValue(key) + "\"");
                         if (!groups.isEmpty()) {
                             result = groups.get(0);
                         }
@@ -253,7 +263,10 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         }
     }
 
-    @Override public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes,
+    @Override
+    public Uid create(
+            final ObjectClass objectClass,
+            final Set<Attribute> createAttributes,
             final OperationOptions options) {
 
         LOG.ok("Connector CREATE");
@@ -327,11 +340,10 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                 SCIMUtils.wrapGeneralError("Could not create User : " + username, e);
             }
 
-            return new
+            return new Uid(user.getId());
+        }
 
-                    Uid(user.getId());
-
-        } else if (ObjectClass.GROUP.equals(objectClass)) {
+        if (ObjectClass.GROUP.equals(objectClass)) {
             GT group = buildNewGroupEntity();
             String displayName = accessor.findString(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME);
             try {
@@ -351,7 +363,11 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         }
     }
 
-    @Override public Uid update(final ObjectClass objectClass, final Uid uid, final Set<Attribute> replaceAttributes,
+    @Override
+    public Uid update(
+            final ObjectClass objectClass,
+            final Uid uid,
+            final Set<Attribute> replaceAttributes,
             final OperationOptions options) {
 
         LOG.ok("Connector UPDATE object [{0}]", uid);
@@ -446,7 +462,6 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                 LOG.error(e, "Could not update User {0} from attributes", uid.getUidValue());
                 SCIMUtils.wrapGeneralError("Could not update User " + uid.getUidValue() + " from attributes ", e);
             }
-
         } else if (ObjectClass.GROUP.equals(objectClass)) {
             String displayName = accessor.findString(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME);
             if (displayName == null) {
@@ -473,7 +488,8 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         return returnUid;
     }
 
-    @Override public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
+    @Override
+    public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
         LOG.ok("Connector DELETE object [{0}]", uid);
 
         if (StringUtil.isBlank(uid.getUidValue())) {
@@ -507,12 +523,14 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         }
     }
 
-    @Override public FilterTranslator<Filter> createFilterTranslator(final ObjectClass objectClass,
+    @Override
+    public FilterTranslator<Filter> createFilterTranslator(final ObjectClass objectClass,
             final OperationOptions options) {
         return filter -> Collections.singletonList(filter);
     }
 
-    @Override public void test() {
+    @Override
+    public void test() {
         LOG.ok("Connector TEST");
 
         if (configuration != null) {
@@ -582,7 +600,8 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         return builder.build();
     }
 
-    @Override public Configuration getConfiguration() {
+    @Override
+    public Configuration getConfiguration() {
         return configuration;
     }
 

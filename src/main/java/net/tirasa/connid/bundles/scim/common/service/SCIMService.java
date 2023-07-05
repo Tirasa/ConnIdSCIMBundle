@@ -24,7 +24,7 @@ import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 
-public interface SCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser>, 
+public interface SCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, 
         GT extends SCIMGroup<? extends SCIMBaseMeta>, P extends SCIMBasePatch> {
 
     PagedResults<UT> getAllUsers(Integer valueOf, Integer pagesSize, Set<String> attributesToGet);

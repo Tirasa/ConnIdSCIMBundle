@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class SCIMv2Attribute extends SCIMBaseAttribute<SCIMv2Attribute> {
 
@@ -83,20 +82,19 @@ public class SCIMv2Attribute extends SCIMBaseAttribute<SCIMv2Attribute> {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("mutability", mutability)
-                .append("returned", returned)
-                .append("uniqueness", uniqueness)
-                .append("referenceTypes", referenceTypes)
-                .append("extensionSchema", extensionSchema)
-                .append("type", type)
-                .append("name", name)
-                .append("multiValued", multiValued)
-                .append("description", description)
-                .append("required", required)
-                .append("caseExact", caseExact)
-                .append("canonicalValues", canonicalValues)
-                .append("subAttributes", subAttributes)
-                .toString();
+        return "SCIMv2Attribute{"
+                + "mutability=" + mutability
+                + ", returned=" + returned
+                + ", uniqueness=" + uniqueness
+                + ", referenceTypes=" + referenceTypes
+                + ", type=" + type
+                + ", name=" + name
+                + ", multiValued=" + multiValued
+                + ", description=" + description
+                + ", required=" + required
+                + ", caseExact=" + caseExact
+                + ", canonicalValues=" + canonicalValues
+                + ", subAttributes=" + subAttributes
+                + '}';
     }
 }

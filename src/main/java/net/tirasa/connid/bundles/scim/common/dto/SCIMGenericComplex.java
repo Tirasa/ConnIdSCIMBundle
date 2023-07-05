@@ -22,9 +22,8 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.reflect.FieldUtils;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
+import org.identityconnectors.common.StringUtil;
 
 public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComplex {
 
@@ -76,9 +75,9 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
 
     @Override
     protected List<Field> getDeclaredFields() {
-        return FieldUtils.getAllFieldsList(this.getClass()).stream().
-                filter(f -> !"LOG".equals(f.getName()) && !"serialVersionUID".equals(f.getName()))
-                .collect(Collectors.toList());
+        return SCIMUtils.getAllFieldsList(this.getClass()).stream().
+                filter(f -> !"LOG".equals(f.getName()) && !"serialVersionUID".equals(f.getName())).
+                collect(Collectors.toList());
     }
 
     @Override
@@ -86,21 +85,21 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
             final String id, final Field field, final SCIMConnectorConfiguration configuration) {
         return id.concat(".")
                 .concat(type == null
-                        ? (StringUtils.isBlank(configuration.getGenericComplexType())
-                                ? StringUtils.EMPTY
-                                : configuration.getGenericComplexType().concat("."))
+                        ? (StringUtil.isBlank(configuration.getGenericComplexType())
+                        ? StringUtil.EMPTY
+                        : configuration.getGenericComplexType().concat("."))
                         : type.toString().concat("."))
                 .concat(field.getName());
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("display", display)
-                .append("type", type)
-                .append("primary", primary)
-                .append("operation", operation)
-                .append("value", value)
-                .toString();
+        return "SCIMGenericComplex{"
+                + "display=" + display
+                + ", type=" + type
+                + ", primary=" + primary
+                + ", operation=" + operation
+                + ", value=" + value
+                + '}';
     }
 }

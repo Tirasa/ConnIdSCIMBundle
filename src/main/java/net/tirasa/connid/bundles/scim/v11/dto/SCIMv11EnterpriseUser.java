@@ -25,59 +25,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.reflect.FieldUtils;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 
 public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager> {
 
     private static final long serialVersionUID = -8540303884204701777L;
-
-    public static final String SCHEMA_URI = "urn:scim:schemas:extension:enterprise:1.0";
-
-    @JsonProperty("employeeNumber")
-    private String employeeNumber;
-
-    @JsonProperty("manager")
-    private SCIMv11EnterpriseUserManager manager;
-
-    @Override
-    public String getEmployeeNumber() {
-        return employeeNumber;
-    }
-
-    @Override
-    public void setEmployeeNumber(final String employeeNumber) {
-        this.employeeNumber = employeeNumber;
-    }
-
-    @Override
-    public SCIMv11EnterpriseUserManager getManager() {
-        return manager;
-    }
-
-    @Override
-    public void setManager(final SCIMv11EnterpriseUserManager manager) {
-        this.manager = manager;
-    }
-
-    @Override
-    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
-        Set<Attribute> attrs = new HashSet<>();
-        for (Field field : FieldUtils.getAllFieldsList(this.getClass()).stream().
-                filter(f -> !"SCHEMA_URI".equals(f.getName()) && !"serialVersionUID".equals(f.getName()))
-                .collect(Collectors.toList())) {
-            if (SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager.class.equals(
-                    field.getType()) && this.manager != null) {
-                attrs.addAll(this.manager.toAttributes());
-            } else if (!field.isAnnotationPresent(JsonIgnore.class)) {
-                field.setAccessible(true);
-                attrs.add(AttributeBuilder.build(id + "." + field.getName(), field.get(this)));
-            }
-        }
-        return attrs;
-    }
 
     public static class SCIMv11EnterpriseUserManager implements Serializable {
 
@@ -122,18 +76,63 @@ public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11Enterpri
 
         @Override
         public String toString() {
-            return new ToStringBuilder(this)
-                    .append("value", managerId)
-                    .append("displayName", displayName)
-                    .toString();
+            return "SCIMv11EnterpriseUserManager{"
+                    + "managerId=" + managerId
+                    + ", displayName=" + displayName + '}';
         }
+    }
+
+    public static final String SCHEMA_URI = "urn:scim:schemas:extension:enterprise:1.0";
+
+    @JsonProperty("employeeNumber")
+    private String employeeNumber;
+
+    @JsonProperty("manager")
+    private SCIMv11EnterpriseUserManager manager;
+
+    @Override
+    public String getEmployeeNumber() {
+        return employeeNumber;
+    }
+
+    @Override
+    public void setEmployeeNumber(final String employeeNumber) {
+        this.employeeNumber = employeeNumber;
+    }
+
+    @Override
+    public SCIMv11EnterpriseUserManager getManager() {
+        return manager;
+    }
+
+    @Override
+    public void setManager(final SCIMv11EnterpriseUserManager manager) {
+        this.manager = manager;
+    }
+
+    @Override
+    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
+        Set<Attribute> attrs = new HashSet<>();
+
+        for (Field field : SCIMUtils.getAllFieldsList(getClass()).stream().
+                filter(f -> !"SCHEMA_URI".equals(f.getName()) && !"serialVersionUID".equals(f.getName())).
+                collect(Collectors.toList())) {
+
+            if (SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager.class.equals(field.getType()) && manager != null) {
+                attrs.addAll(manager.toAttributes());
+            } else if (!field.isAnnotationPresent(JsonIgnore.class)) {
+                field.setAccessible(true);
+                attrs.add(AttributeBuilder.build(id + "." + field.getName(), field.get(this)));
+            }
+        }
+
+        return attrs;
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("employeeNumber", employeeNumber)
-                .append("manager", manager)
-                .toString();
+        return "SCIMv11EnterpriseUser{"
+                + "employeeNumber=" + employeeNumber
+                + ", manager=" + manager + '}';
     }
 }

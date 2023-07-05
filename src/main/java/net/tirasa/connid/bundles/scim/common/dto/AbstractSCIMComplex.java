@@ -32,10 +32,12 @@ public abstract class AbstractSCIMComplex implements SCIMComplexAttribute {
     @JsonProperty
     protected String value;
 
+    @Override
     public void setValue(final String value) {
         this.value = value;
     }
 
+    @Override
     public String getValue() {
         return value;
     }
@@ -43,6 +45,7 @@ public abstract class AbstractSCIMComplex implements SCIMComplexAttribute {
     @Override
     public Set<Attribute> toAttributes(final String id, final SCIMConnectorConfiguration configuration)
             throws IllegalArgumentException, IllegalAccessException {
+
         Set<Attribute> attrs = new HashSet<>();
         for (Field field : getDeclaredFields()) {
             if (!field.isAnnotationPresent(JsonIgnore.class)) {
@@ -59,5 +62,4 @@ public abstract class AbstractSCIMComplex implements SCIMComplexAttribute {
     protected abstract List<Field> getDeclaredFields();
 
     protected abstract String getAttributeName(String id, Field field, SCIMConnectorConfiguration configuration);
-
 }

@@ -37,13 +37,22 @@ public class ResourceReference extends BaseResourceReference {
         this.type = type;
     }
 
+//    @Override
+//    public String toString() {
+//        return new org.apache.commons.lang3.builder.ToStringBuilder(this)
+//                .append("value", value)
+//                .append("ref", ref)
+//                .append("display", display)
+//                .append("type", type)
+//                .toString();
+//    }
     @Override
     public String toString() {
-        return new org.apache.commons.lang3.builder.ToStringBuilder(this)
-                .append("value", value)
-                .append("ref", ref)
-                .append("display", display)
-                .append("type", type)
-                .toString();
+        return "ResourceReference{"
+                + "type=" + type
+                + ", value=" + value
+                + ", $ref=" + ref
+                + ", display=" + display
+                + '}';
     }
 }

@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class SCIMSchema<T extends SCIMBaseAttribute<T>> {
 
@@ -93,13 +92,13 @@ public class SCIMSchema<T extends SCIMBaseAttribute<T>> {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("id", id)
-                .append("name", name)
-                .append("description", description)
-                .append("schema", schema)
-                .append("endpoint", endpoint)
-                .append("attributes", attributes)
-                .toString();
+        return "SCIMSchema{"
+                + "id=" + id
+                + ", name=" + name
+                + ", description=" + description
+                + ", schema=" + schema
+                + ", endpoint=" + endpoint
+                + ", attributes=" + attributes
+                + '}';
     }
 }

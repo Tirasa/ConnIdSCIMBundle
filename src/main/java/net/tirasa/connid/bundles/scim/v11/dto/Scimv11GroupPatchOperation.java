@@ -22,6 +22,30 @@ public class Scimv11GroupPatchOperation implements Serializable {
 
     private static final long serialVersionUID = 1759455963046916983L;
 
+    public static final class Builder {
+
+        private final Scimv11GroupPatchOperation instance = new Scimv11GroupPatchOperation();
+
+        public Builder display(final String display) {
+            instance.setDisplay(display);
+            return this;
+        }
+
+        public Builder value(final String value) {
+            instance.setValue(value);
+            return this;
+        }
+
+        public Builder operation(final String operation) {
+            instance.setOperation(operation);
+            return this;
+        }
+
+        public Scimv11GroupPatchOperation build() {
+            return instance;
+        }
+    }
+
     @JsonProperty
     private String display;
 
@@ -53,41 +77,6 @@ public class Scimv11GroupPatchOperation implements Serializable {
 
     public void setOperation(final String operation) {
         this.operation = operation;
-    }
-
-    public static final class Builder {
-
-        private String display;
-
-        private String value;
-
-        private String operation;
-
-        public Builder() {
-        }
-
-        public Builder display(final String display) {
-            this.display = display;
-            return this;
-        }
-
-        public Builder value(final String value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder operation(final String operation) {
-            this.operation = operation;
-            return this;
-        }
-
-        public Scimv11GroupPatchOperation build() {
-            Scimv11GroupPatchOperation scimv11GroupPatchOperation = new Scimv11GroupPatchOperation();
-            scimv11GroupPatchOperation.setDisplay(display);
-            scimv11GroupPatchOperation.setValue(value);
-            scimv11GroupPatchOperation.setOperation(operation);
-            return scimv11GroupPatchOperation;
-        }
     }
 
     @Override
