@@ -17,6 +17,7 @@ package net.tirasa.connid.bundles.scim.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import org.identityconnectors.common.logging.Log;
@@ -54,7 +55,7 @@ public abstract class AbstractSCIMBaseResource<MT extends SCIMBaseMeta> implemen
     @Override
     public void setSchemas(final Set<String> schemas) {
         this.schemas.clear();
-        this.schemas.addAll(schemas);
+        Optional.ofNullable(schemas).ifPresent(this.schemas::addAll);
     }
 
     @Override
