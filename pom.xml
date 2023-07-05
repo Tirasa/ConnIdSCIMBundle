@@ -28,7 +28,7 @@
     
   <groupId>net.tirasa.connid.bundles</groupId>
   <artifactId>net.tirasa.connid.bundles.scim</artifactId>
-  <version>1.0.2</version>     
+  <version>1.0.3-SNAPSHOT</version>     
 
   <name>ConnId Bundles: SCIM</name>
   
@@ -49,7 +49,7 @@
     <connection>scm:git:git@github.com:Tirasa/ConnIdSCIMBundle.git</connection>
     <url>scm:git:git@github.com:Tirasa/ConnIdSCIMBundle.git</url>
     <developerConnection>scm:git:git@github.com:Tirasa/ConnIdSCIMBundle.git</developerConnection>
-    <tag>net.tirasa.connid.bundles.scim-1.0.2</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
