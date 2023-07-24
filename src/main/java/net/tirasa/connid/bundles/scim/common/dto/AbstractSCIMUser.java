@@ -909,8 +909,9 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
     @JsonIgnore
     @Override
     @SuppressWarnings("unchecked")
-    public Set<Attribute> toAttributes(final Class<?> type, final SCIMConnectorConfiguration configuration)
+    public Set<Attribute> toAttributes(final Class<?> type, final SCIMConnectorConfiguration conf)
             throws IllegalArgumentException, IllegalAccessException {
+
         Set<Attribute> attrs = new HashSet<>();
 
         SCIMUtils.getAllFieldsList(type).stream().
@@ -934,7 +935,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                         (List<SCIMGenericComplex<PhoneNumberCanonicalType>>) objInstance;
                                 for (SCIMGenericComplex<PhoneNumberCanonicalType> complex : list) {
                                     addAttribute(complex.toAttributes(
-                                            SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS, configuration),
+                                            SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS, conf),
                                             attrs, field.getType());
                                 }
                             } else {
@@ -942,7 +943,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                         (SCIMGenericComplex<PhoneNumberCanonicalType>) objInstance;
                                 addAttribute(
                                         complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS,
-                                                configuration),
+                                                conf),
                                         attrs, field.getType());
                             }
                         } else if (field.getGenericType().toString().contains(IMCanonicalType.class.getName())) {
@@ -951,14 +952,14 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                         (List<SCIMGenericComplex<IMCanonicalType>>) objInstance;
                                 for (SCIMGenericComplex<IMCanonicalType> complex : list) {
                                     addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS,
-                                            configuration),
+                                            conf),
                                             attrs, field.getType());
                                 }
                             } else {
                                 SCIMGenericComplex<IMCanonicalType> complex =
                                         (SCIMGenericComplex<IMCanonicalType>) objInstance;
                                 addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_IMS,
-                                        configuration),
+                                        conf),
                                         attrs, field.getType());
                             }
                         } else if (field.getGenericType().toString().contains(EmailCanonicalType.class.getName())) {
@@ -968,14 +969,14 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                 for (SCIMGenericComplex<EmailCanonicalType> complex : list) {
                                     addAttribute(
                                             complex.toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS,
-                                                    configuration),
+                                                    conf),
                                             attrs, field.getType());
                                 }
                             } else {
                                 SCIMGenericComplex<EmailCanonicalType> complex =
                                         (SCIMGenericComplex<EmailCanonicalType>) objInstance;
                                 addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_EMAILS,
-                                        configuration),
+                                        conf),
                                         attrs, field.getType());
                             }
                         } else if (field.getGenericType().toString().contains(PhotoCanonicalType.class.getName())) {
@@ -985,14 +986,14 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                 for (SCIMGenericComplex<PhotoCanonicalType> complex : list) {
                                     addAttribute(
                                             complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS,
-                                                    configuration),
+                                                    conf),
                                             attrs, field.getType());
                                 }
                             } else {
                                 SCIMGenericComplex<PhotoCanonicalType> complex =
                                         (SCIMGenericComplex<PhotoCanonicalType>) objInstance;
                                 addAttribute(complex.toAttributes(SCIMAttributeUtils.SCIM_USER_PHOTOS,
-                                        configuration),
+                                        conf),
                                         attrs, field.getType());
                             }
                         }
@@ -1009,11 +1010,11 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                         if (field.getType().equals(List.class)) {
                             List<SCIMUserAddress> list = (List<SCIMUserAddress>) objInstance;
                             for (SCIMUserAddress scimUserAddress : list) {
-                                addAttribute(scimUserAddress.toAttributes(configuration), attrs, field.getType());
+                                addAttribute(scimUserAddress.toAttributes(conf), attrs, field.getType());
                             }
                         } else {
                             addAttribute(
-                                    SCIMUserAddress.class.cast(objInstance).toAttributes(configuration),
+                                    SCIMUserAddress.class.cast(objInstance).toAttributes(conf),
                                     attrs, field.getType());
                         }
                     } else if (field.getGenericType().toString().contains(SCIMDefaultComplex.class.getName())) {
@@ -1029,7 +1030,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                     }
                                 }
                                 if (localId != null) {
-                                    addAttribute(ct.toAttributes(localId, configuration), attrs, field.getType());
+                                    addAttribute(ct.toAttributes(localId, conf), attrs, field.getType());
                                 }
                             }
                         } else {
@@ -1049,7 +1050,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                 }
                             }
                             if (localId != null) {
-                                addAttribute(ct.toAttributes(localId, configuration), attrs, field.getType());
+                                addAttribute(ct.toAttributes(localId, conf), attrs, field.getType());
                             }
                         }
                     } else if (field.getGenericType().toString().contains(SCIMBaseMeta.class.getName())) {
@@ -1074,18 +1075,21 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                             case SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS:
                                 complexTypeList.forEach(ct -> {
                                     try {
-                                        addAttribute(ct.toAttributes(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS,
-                                                configuration), attrs, field.getType());
+                                        addAttribute(
+                                                ct.toAttributes(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS, conf),
+                                                attrs, field.getType());
                                     } catch (IllegalAccessException e) {
                                         LOG.error("Unable to read by reflection [0]",
                                                 SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS);
                                     }
                                 });
                                 break;
+
                             case SCIMAttributeUtils.SCIM_USER_ROLES:
                                 complexTypeList.forEach(ct -> {
                                     try {
-                                        addAttribute(ct.toAttributes(SCIMAttributeUtils.SCIM_USER_ROLES, configuration),
+                                        addAttribute(
+                                                ct.toAttributes(SCIMAttributeUtils.SCIM_USER_ROLES, conf),
                                                 attrs, field.getType());
                                     } catch (IllegalAccessException e) {
                                         LOG.error("Unable to read by reflection [0]",
@@ -1093,16 +1097,20 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                     }
                                 });
                                 break;
+
                             case SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES:
                                 complexTypeList.forEach(ct -> {
                                     try {
-                                        addAttribute(ct.toAttributes(SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES,
-                                                configuration), attrs, field.getType());
+                                        addAttribute(
+                                                ct.toAttributes(SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES, conf),
+                                                attrs, field.getType());
                                     } catch (IllegalAccessException e) {
                                         LOG.error("Unable to read by reflection [0]",
                                                 SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES);
                                     }
                                 });
+                                break;
+
                             default:
                                 LOG.warn("Unable to match complex type of field [0] with any known type",
                                         field.getName());

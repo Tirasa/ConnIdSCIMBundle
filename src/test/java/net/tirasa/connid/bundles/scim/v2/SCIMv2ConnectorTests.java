@@ -723,7 +723,8 @@ public class SCIMv2ConnectorTests {
         return attributesToGet;
     }
 
-    @AfterEach public void cleanup() {
+    @AfterEach
+    public void cleanup() {
         // check that the user has effectively been removed
         try {
             ToListResultsHandler handler = new ToListResultsHandler();
@@ -786,20 +787,20 @@ public class SCIMv2ConnectorTests {
         // verify keys
         assertTrue(handler.getObjects().stream().anyMatch(
                 su -> user1.getUserName().equals(su.getName().getNameValue()) && "true".equalsIgnoreCase(
-                        su.getAttributeByName("active").getValue().get(0).toString()) && user1.getEmails().get(0)
-                        .getValue().equals(AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
-                        && user2.getName().getFamilyName()
+                su.getAttributeByName("active").getValue().get(0).toString()) && user1.getEmails().get(0)
+                .getValue().equals(AttributeUtil.getAsStringValue(su.getAttributeByName("emails.work.value")))
+                && user2.getName().getFamilyName()
                         .equals(AttributeUtil.getAsStringValue(su.getAttributeByName("name.familyName")))
-                        && 7 == AttributeUtil.getIntegerValue(
+                && 7 == AttributeUtil.getIntegerValue(
                         su.getAttributeByName("urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber"))
-                        && user1.getEnterpriseUser().getEmployeeNumber().equals(AttributeUtil.getAsStringValue(
+                && user1.getEnterpriseUser().getEmployeeNumber().equals(AttributeUtil.getAsStringValue(
                         su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber")))
-                        && user1.getEnterpriseUser().getManager().getValue().equals(AttributeUtil.getAsStringValue(
+                && user1.getEnterpriseUser().getManager().getValue().equals(AttributeUtil.getAsStringValue(
                         su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")))
-                        && !user1.getEntitlements().isEmpty()
-                        && su.getAttributeByName(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE)
-                        != null && su.getAttributeByName(
-                                SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE).getValue()
+                && !user1.getEntitlements().isEmpty()
+                && su.getAttributeByName(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE)
+                != null && su.getAttributeByName(
+                        SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE).getValue()
                         .contains("00e09000000iZP5AAM")));
         assertTrue(handler.getObjects().stream().anyMatch(
                 su -> user3.getUserName().equals(su.getName().getNameValue()) && "false".equalsIgnoreCase(
