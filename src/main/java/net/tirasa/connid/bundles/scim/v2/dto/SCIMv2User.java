@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
+import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
@@ -45,7 +46,7 @@ public class SCIMv2User
     @Override
     protected void handleRoles(final Object value) {
         handleSCIMComplexObject(
-                String.class.cast(value),
+                SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT,
                 this.roles,
                 s -> s.setValue(String.class.cast(value)));
     }
@@ -53,7 +54,7 @@ public class SCIMv2User
     @Override
     protected void handlex509Certificates(final Object value) {
         handleSCIMComplexObject(
-                String.class.cast(value),
+                SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT,
                 this.x509Certificates,
                 s -> s.setValue(String.class.cast(value)));
     }
@@ -61,7 +62,7 @@ public class SCIMv2User
     @Override
     protected void handleEntitlements(final Object value) {
         handleSCIMComplexObject(
-                String.class.cast(value),
+                SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT,
                 this.entitlements,
                 s -> s.setValue(String.class.cast(value)));
     }

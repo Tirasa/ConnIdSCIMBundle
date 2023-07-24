@@ -88,6 +88,8 @@ public final class SCIMAttributeUtils {
     public static final String SCIM_USER_SCHEMAS = "schemas";
 
     public static final String SCIM_SCHEMA_TYPE_COMPLEX = "complex";
+    
+    public static final String SCIM_SCHEMA_TYPE_DEFAULT = "default";
 
     public static final String SCIM_SCHEMA_EXTENSION = "extension";
 

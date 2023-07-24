@@ -358,7 +358,7 @@ public class SCIMv2ConnectorTests {
         if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
                 PROPS.getProperty("auth.defaultEntitlement"))) {
             assertTrue(SCIMv2ConnectorTestsUtils.containsAttribute(toAttributes,
-                    SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + "."));
+                    SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS));
         }
 
         List<ConnectorObject> found = new ArrayList<>();
@@ -608,7 +608,7 @@ public class SCIMv2ConnectorTests {
         if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
                 PROPS.getProperty("auth.defaultEntitlement"))) {
             assertTrue(SCIMv2ConnectorTestsUtils.containsAttribute(toAttributes,
-                    SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + "."));
+                    SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS));
         }
 
         // GET USER by userName
@@ -776,7 +776,7 @@ public class SCIMv2ConnectorTests {
 
         SearchResult result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
                 new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
-                        "displayName", "active",
+                        "displayName", "active", "entitlements.default.value",
                         "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber",
                         SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber",
                         SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value").build());
@@ -796,7 +796,12 @@ public class SCIMv2ConnectorTests {
                 && user1.getEnterpriseUser().getEmployeeNumber().equals(AttributeUtil.getAsStringValue(
                         su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber")))
                 && user1.getEnterpriseUser().getManager().getValue().equals(AttributeUtil.getAsStringValue(
-                        su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")))));
+                        su.getAttributeByName(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value")))
+                && !user1.getEntitlements().isEmpty()
+                && su.getAttributeByName(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE)
+                != null && su.getAttributeByName(
+                        SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE).getValue()
+                        .contains("00e09000000iZP5AAM")));
         assertTrue(handler.getObjects().stream().anyMatch(
                 su -> user3.getUserName().equals(su.getName().getNameValue()) && "false".equalsIgnoreCase(
                 su.getAttributeByName("active").getValue().get(0).toString())));
@@ -897,7 +902,8 @@ public class SCIMv2ConnectorTests {
             assertTrue(groupRef2.isPresent());
             assertEquals(createdGroup2.getDisplayName(), groupRef2.get().getDisplay());
             assertTrue(groupRef2.get().getRef().contains("/Groups/" + createdGroup2.getId()));
-
+            // SCIM-8 check entitlements
+            assertTrue(createdUser.getEntitlements().stream().allMatch(e -> "00e09000000iZP5AAM".equals(e.getValue())));
             // read user through connector APIs
             ConnectorObject createdConnObj = FACADE.getObject(ObjectClass.ACCOUNT, created,
                     new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
