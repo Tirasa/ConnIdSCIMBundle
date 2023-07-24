@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1038,9 +1039,13 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                                 if (entitlements.contains(ct)) {
                                     localId = SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS;
                                 } else if (roles.contains(ct)) {
-                                    localId = SCIMAttributeUtils.SCIM_USER_ROLES;
-                                } else if (groups.contains(ct)) {
-                                    localId = SCIMAttributeUtils.SCIM_USER_GROUPS;
+                                    if (entitlements.contains(ct)) {
+                                        localId = SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES;
+                                    } else if (x509Certificates.contains(ct)) {
+                                        localId = SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES;
+                                    } else if (groups.contains(ct)) {
+                                        localId = SCIMAttributeUtils.SCIM_USER_GROUPS;
+                                    }
                                 }
                             }
                             if (localId != null) {
@@ -1061,6 +1066,47 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                         List<BaseResourceReference> groupRefs = (List<BaseResourceReference>) objInstance;
                         attrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS,
                                 groupRefs.stream().map(g -> g.getValue()).collect(Collectors.toList())));
+                    } else if (field.getType().equals(List.class)
+                            && field.getGenericType() instanceof ParameterizedType) {
+                        // SCIM-8 properly manage lists with parametrized type
+                        List<CT> complexTypeList = (List<CT>) objInstance;
+                        switch (field.getName()) {
+                            case SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS:
+                                complexTypeList.forEach(ct -> {
+                                    try {
+                                        addAttribute(ct.toAttributes(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS,
+                                                configuration), attrs, field.getType());
+                                    } catch (IllegalAccessException e) {
+                                        LOG.error("Unable to read by reflection [0]",
+                                                SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS);
+                                    }
+                                });
+                                break;
+                            case SCIMAttributeUtils.SCIM_USER_ROLES:
+                                complexTypeList.forEach(ct -> {
+                                    try {
+                                        addAttribute(ct.toAttributes(SCIMAttributeUtils.SCIM_USER_ROLES, configuration),
+                                                attrs, field.getType());
+                                    } catch (IllegalAccessException e) {
+                                        LOG.error("Unable to read by reflection [0]",
+                                                SCIMAttributeUtils.SCIM_USER_ROLES);
+                                    }
+                                });
+                                break;
+                            case SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES:
+                                complexTypeList.forEach(ct -> {
+                                    try {
+                                        addAttribute(ct.toAttributes(SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES,
+                                                configuration), attrs, field.getType());
+                                    } catch (IllegalAccessException e) {
+                                        LOG.error("Unable to read by reflection [0]",
+                                                SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES);
+                                    }
+                                });
+                            default:
+                                LOG.warn("Unable to match complex type of field [0] with any known type",
+                                        field.getName());
+                        }
                     } else {
                         attrs.add(SCIMAttributeUtils.buildAttributeFromClassField(field, this).build());
                     }

@@ -99,9 +99,7 @@ public final class SCIMUtils {
         for (String attributeToGet : attributesToGet) {
             if (attributeToGet.contains("__")
                     || attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_META + ".")
-                    || attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + ".")
                     || attributeToGet.toLowerCase().contains("password")) {
-
                 // nothing to do
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_NAME + ".")) {
                 result += SCIMAttributeUtils.SCIM_USER_NAME.concat(",");
@@ -121,6 +119,9 @@ public final class SCIMUtils {
                 result += SCIMAttributeUtils.SCIM_USER_PHOTOS.concat(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES + ".")) {
                 result += SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES.concat(",");
+            // SCIM-8
+            } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + ".")) {
+                result += SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS.concat(",");
             } else if (attributeToGet.startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)) {
                 // SCIM-3
                 result += SCIMv2EnterpriseUser.SCHEMA_URI
