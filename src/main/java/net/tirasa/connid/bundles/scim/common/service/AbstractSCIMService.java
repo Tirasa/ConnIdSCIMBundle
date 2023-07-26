@@ -706,6 +706,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
     @Override
     public void deleteGroup(final String groupId) {
+        doDeleteGroup(groupId, getWebclient("Groups", null).path(groupId));
     }
 
     @Override
