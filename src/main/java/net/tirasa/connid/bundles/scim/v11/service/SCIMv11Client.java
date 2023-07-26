@@ -67,23 +67,6 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
         return doUpdateUser(user, Collections.emptySet(), SCIMv11User.class);
     }
 
-    /**
-     * @param userId
-     */
-    @Override
-    public void deleteUser(final String userId) {
-        WebClient webClient = getWebclient("Users", null).path(userId);
-        doDeleteUser(userId, webClient);
-    }
-
-    /**
-     * @param userId
-     */
-    @Override
-    public void activateUser(final String userId) {
-        doActivateUser(userId);
-    }
-
     @Override
     public boolean testService() {
         Set<String> attributesToGet = new HashSet<>();

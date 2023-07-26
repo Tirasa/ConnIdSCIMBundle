@@ -71,22 +71,6 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
         return doUpdateUser(user, Collections.emptySet(), SCIMv2User.class);
     }
 
-    /**
-     * @param userId
-     */
-    @Override
-    public void deleteUser(final String userId) {
-        doDeleteUser(userId, getWebclient("Users", null).path(userId));
-    }
-
-    /**
-     * @param userId
-     */
-    @Override
-    public void activateUser(final String userId) {
-        doActivateUser(userId);
-    }
-
     @Override
     public SCIMv2Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv2Group.class);
