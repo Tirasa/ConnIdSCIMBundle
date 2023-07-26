@@ -76,6 +76,11 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
         doDeleteUser(userId, webClient);
     }
 
+    @Override
+    public void deleteGroup(final String groupId) {
+        doDeleteGroup(groupId, getWebclient("Groups", null).path(groupId));
+    }
+
     /**
      * @param userId
      */
