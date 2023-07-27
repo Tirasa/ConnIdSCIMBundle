@@ -35,8 +35,8 @@ import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group, SCIMBaseResource<SCIMv11Meta>,
-        SCIMv11BasePatch> {
+public class SCIMv11Client extends AbstractSCIMService<
+        SCIMv11User, SCIMv11Group, SCIMBaseResource<SCIMv11Meta>, SCIMv11BasePatch> {
 
     public SCIMv11Client(final SCIMConnectorConfiguration config) {
         super(config);
@@ -83,11 +83,10 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
     }
 
     @Override
-    @SuppressWarnings({"unchecked"})
     public SCIMBaseResource<SCIMv11Meta> getEntitlement(final String entitlementId) {
         throw new UnsupportedOperationException("getEntitlement is not supported in v11");
     }
-    
+
     @Override
     public SCIMv11Group updateGroup(final SCIMv11Group group) {
         return doUpdateGroup(group, Collections.emptySet(), null, SCIMv11Group.class);

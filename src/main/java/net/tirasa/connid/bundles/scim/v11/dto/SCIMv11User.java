@@ -153,10 +153,12 @@ public class SCIMv11User extends AbstractSCIMUser<
 
         setter.accept(selected);
     }
-    
+
     @JsonIgnore
     private void handleBaseResourceReference(
-            final String value, final List<BaseResourceReference> list, final Consumer<BaseResourceReference> setter) {
+            final String value,
+            final List<BaseResourceReference> list,
+            final Consumer<BaseResourceReference> setter) {
 
         BaseResourceReference selected = null;
         for (BaseResourceReference scimDefault : list) {
@@ -174,8 +176,10 @@ public class SCIMv11User extends AbstractSCIMUser<
     }
 
     @Override
-    protected void entitlementsToAttribute(final List<BaseResourceReference> entitlementRefs,
+    protected void entitlementsToAttribute(
+            final List<BaseResourceReference> entitlementRefs,
             final Set<Attribute> attrs) {
+
         // only manage the default entitlement
         if (!entitlementRefs.isEmpty()) {
             attrs.add(AttributeBuilder.build("entitlements.default.value", entitlementRefs.get(0).getValue()));

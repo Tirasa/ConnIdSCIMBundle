@@ -35,9 +35,8 @@ import org.identityconnectors.framework.spi.ConnectorClass;
 
 @ConnectorClass(displayNameKey = "SCIMv11Connector.connector.display", configurationClass =
         SCIMConnectorConfiguration.class)
-public class SCIMv11Connector
-        extends AbstractSCIMConnector<SCIMv11User, SCIMv11Group, SCIMBaseResource<SCIMv11Meta>, 
-        SCIMv11BasePatch, SCIMv11Client> {
+public class SCIMv11Connector extends AbstractSCIMConnector<
+        SCIMv11User, SCIMv11Group, SCIMBaseResource<SCIMv11Meta>, SCIMv11BasePatch, SCIMv11Client> {
 
     private Schema schema;
 
@@ -51,7 +50,8 @@ public class SCIMv11Connector
         LOG.ok("Building SCHEMA definition");
 
         if (schema == null) {
-            schema = SCIMAttributeUtils.<SCIMv11Attribute>buildSchema(configuration.getCustomAttributesJSON(),
+            schema = SCIMAttributeUtils.<SCIMv11Attribute>buildSchema(
+                    configuration.getCustomAttributesJSON(),
                     configuration.getManageComplexEntitlements(), SCIMv11Attribute.class);
         }
         return schema;

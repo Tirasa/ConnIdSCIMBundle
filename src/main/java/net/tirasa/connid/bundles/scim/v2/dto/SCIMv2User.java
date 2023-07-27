@@ -32,9 +32,8 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 
-public class SCIMv2User extends
-        AbstractSCIMUser<SCIMv2Attribute, SCIMGenericComplex<String>, SCIMv2Entitlement, SCIMv2Meta,
-                SCIMv2EnterpriseUser> {
+public class SCIMv2User extends AbstractSCIMUser<
+        SCIMv2Attribute, SCIMGenericComplex<String>, SCIMv2Entitlement, SCIMv2Meta, SCIMv2EnterpriseUser> {
 
     private static final long serialVersionUID = 7039988195599856857L;
 
@@ -87,9 +86,9 @@ public class SCIMv2User extends
             for (Attribute attribute : attributes) {
                 if (!CollectionUtil.isEmpty(attribute.getValue())) {
                     for (SCIMv2Attribute customAttribute : customAttributesObj.getAttributes()) {
-                        String externalAttributeName =
-                                SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema().concat(".")
-                                        .concat(customAttribute.getName());
+                        String externalAttributeName = SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema()
+                                .concat(".")
+                                .concat(customAttribute.getName());
                         if (externalAttributeName.equals(attribute.getName())) {
                             scimCustomAttributes.put(customAttribute, attribute.getValue());
                             break;

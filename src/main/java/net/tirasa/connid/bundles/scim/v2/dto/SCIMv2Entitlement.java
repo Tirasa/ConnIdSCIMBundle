@@ -22,6 +22,7 @@ public class SCIMv2Entitlement extends BaseResourceReference {
     private static final long serialVersionUID = 9126588075353486789L;
 
     public static final class Builder {
+
         private final SCIMv2Entitlement instance = new SCIMv2Entitlement();
 
         public Builder value(final String value) {
@@ -53,7 +54,7 @@ public class SCIMv2Entitlement extends BaseResourceReference {
             return instance;
         }
     }
-    
+
     private String type;
 
     private Boolean primary;
@@ -76,8 +77,12 @@ public class SCIMv2Entitlement extends BaseResourceReference {
 
     @Override
     public String toString() {
-        return "SCIMv2Entitlement{" + "type='" + type + '\'' + ", primary=" + primary + ", value='" + value + '\''
-                + ", ref='" + ref + '\'' + ", display='" + display + '\'' + '}';
+        return "SCIMv2Entitlement{"
+                + "type='" + type + '\''
+                + ", primary=" + primary
+                + ", value='" + value + '\''
+                + ", ref='" + ref + '\''
+                + ", display='" + display + '\''
+                + '}';
     }
-
 }

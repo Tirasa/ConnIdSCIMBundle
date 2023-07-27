@@ -30,29 +30,30 @@ public class SCIMGenericComplex<T extends Serializable> extends AbstractSCIMComp
     private static final long serialVersionUID = -5982485563252126677L;
 
     public static final class Builder<T extends Serializable> {
-        private final SCIMGenericComplex<T> instance = new SCIMGenericComplex<T>();
 
-        public Builder value(final String value) {
+        private final SCIMGenericComplex<T> instance = new SCIMGenericComplex<>();
+
+        public Builder<T> value(final String value) {
             instance.setValue(value);
             return this;
         }
 
-        public Builder display(final String display) {
+        public Builder<T> display(final String display) {
             instance.setDisplay(display);
             return this;
         }
 
-        public Builder type(final T type) {
+        public Builder<T> type(final T type) {
             instance.setType(type);
             return this;
         }
 
-        public Builder primary(final Boolean primary) {
+        public Builder<T> primary(final Boolean primary) {
             instance.setPrimary(primary);
             return this;
         }
 
-        public Builder operation(final String operation) {
+        public Builder<T> operation(final String operation) {
             instance.setOperation(operation);
             return this;
         }
@@ -61,7 +62,7 @@ public class SCIMGenericComplex<T extends Serializable> extends AbstractSCIMComp
             return instance;
         }
     }
-    
+
     @JsonProperty(access = Access.READ_ONLY)
     private String display;
 
@@ -135,5 +136,4 @@ public class SCIMGenericComplex<T extends Serializable> extends AbstractSCIMComp
                 + ", value=" + value
                 + '}';
     }
-
 }

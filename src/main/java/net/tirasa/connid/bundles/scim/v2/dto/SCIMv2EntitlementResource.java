@@ -36,12 +36,12 @@ public class SCIMv2EntitlementResource extends AbstractSCIMBaseResource<SCIMv2Me
     public static final String RESOURCE_NAME = "Entitlements";
 
     @JsonProperty
-    protected String displayName;
+    private String displayName;
 
     @JsonProperty
-    protected String type;
+    private String type;
 
-    protected final List<BaseResourceReference> members = new ArrayList<>();
+    private final List<BaseResourceReference> members = new ArrayList<>();
 
     public SCIMv2EntitlementResource() {
     }

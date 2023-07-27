@@ -22,7 +22,7 @@ public interface SCIMEntitlement<MT extends SCIMBaseMeta> extends SCIMBaseResour
     String getDisplayName();
 
     void setDisplayName(String displayName);
-    
+
     String getType();
 
     void setType(String type);

@@ -736,7 +736,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
         return entitlement;
     }
-    
+
     protected void doCreate(final GT group, final WebClient webClient) {
         LOG.ok("CREATE: {0}", webClient.getCurrentURI());
         Response response;

@@ -139,6 +139,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         return emails;
     }
 
+    @Override
     public List<ET> getEntitlements() {
         return entitlements;
     }

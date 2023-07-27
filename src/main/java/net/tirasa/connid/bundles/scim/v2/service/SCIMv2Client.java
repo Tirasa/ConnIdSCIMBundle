@@ -79,14 +79,14 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
 
     @Override
     public SCIMv2EntitlementResource getEntitlement(final String entitlementId) {
-        return doGetEntitlement(getWebclient("Entitlements", null).path(entitlementId),
-                SCIMv2EntitlementResource.class);
+        return doGetEntitlement(
+                getWebclient("Entitlements", null).path(entitlementId), SCIMv2EntitlementResource.class);
     }
 
     @Override
     public SCIMv2Group updateGroup(final String groupId, final SCIMv2Patch groupPatch) {
-        return doUpdateGroup(new SCIMv2Group.Builder().id(groupId).build(), Collections.emptySet(), groupPatch,
-                SCIMv2Group.class);
+        return doUpdateGroup(
+                new SCIMv2Group.Builder().id(groupId).build(), Collections.emptySet(), groupPatch, SCIMv2Group.class);
     }
 
     @Override
