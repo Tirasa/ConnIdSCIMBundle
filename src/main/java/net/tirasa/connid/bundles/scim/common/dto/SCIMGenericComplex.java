@@ -29,6 +29,39 @@ public class SCIMGenericComplex<T extends Serializable> extends AbstractSCIMComp
 
     private static final long serialVersionUID = -5982485563252126677L;
 
+    public static final class Builder<T extends Serializable> {
+        private final SCIMGenericComplex<T> instance = new SCIMGenericComplex<T>();
+
+        public Builder value(final String value) {
+            instance.setValue(value);
+            return this;
+        }
+
+        public Builder display(final String display) {
+            instance.setDisplay(display);
+            return this;
+        }
+
+        public Builder type(final T type) {
+            instance.setType(type);
+            return this;
+        }
+
+        public Builder primary(final Boolean primary) {
+            instance.setPrimary(primary);
+            return this;
+        }
+
+        public Builder operation(final String operation) {
+            instance.setOperation(operation);
+            return this;
+        }
+
+        public SCIMGenericComplex<T> build() {
+            return instance;
+        }
+    }
+    
     @JsonProperty(access = Access.READ_ONLY)
     private String display;
 
@@ -103,53 +136,4 @@ public class SCIMGenericComplex<T extends Serializable> extends AbstractSCIMComp
                 + '}';
     }
 
-    public static final class Builder<T extends Serializable> {
-        private String value;
-        private String display;
-        private T type;
-        private Boolean primary;
-        private String operation;
-
-        public Builder() {
-        }
-
-        public static Builder aSCIMGenericComplex() {
-            return new Builder();
-        }
-
-        public Builder value(final String value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder display(final String display) {
-            this.display = display;
-            return this;
-        }
-
-        public Builder type(final T type) {
-            this.type = type;
-            return this;
-        }
-
-        public Builder primary(final Boolean primary) {
-            this.primary = primary;
-            return this;
-        }
-
-        public Builder operation(final String operation) {
-            this.operation = operation;
-            return this;
-        }
-
-        public SCIMGenericComplex build() {
-            SCIMGenericComplex sCIMGenericComplex = new SCIMGenericComplex();
-            sCIMGenericComplex.setValue(value);
-            sCIMGenericComplex.setDisplay(display);
-            sCIMGenericComplex.setType(type);
-            sCIMGenericComplex.setPrimary(primary);
-            sCIMGenericComplex.setOperation(operation);
-            return sCIMGenericComplex;
-        }
-    }
 }

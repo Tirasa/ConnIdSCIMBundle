@@ -16,11 +16,45 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 
 public class SCIMv2Entitlement extends BaseResourceReference {
 
     private static final long serialVersionUID = 9126588075353486789L;
 
+    public static final class Builder {
+        private final SCIMv2Entitlement instance = new SCIMv2Entitlement();
+
+        public Builder value(final String value) {
+            instance.setValue(value);
+            return this;
+        }
+
+        public Builder ref(final String ref) {
+            instance.setRef(ref);
+            return this;
+        }
+
+        public Builder display(final String display) {
+            instance.setDisplay(display);
+            return this;
+        }
+
+        public Builder type(final String type) {
+            instance.setType(type);
+            return this;
+        }
+
+        public Builder primary(final Boolean primary) {
+            instance.setPrimary(primary);
+            return this;
+        }
+
+        public SCIMv2Entitlement build() {
+            return instance;
+        }
+    }
+    
     private String type;
 
     private Boolean primary;
@@ -47,49 +81,4 @@ public class SCIMv2Entitlement extends BaseResourceReference {
                 + ", ref='" + ref + '\'' + ", display='" + display + '\'' + '}';
     }
 
-    public static final class Builder {
-        private String value;
-        private String ref;
-        private String display;
-        private String type;
-        private Boolean primary;
-
-        public Builder() {
-        }
-
-        public Builder value(final String value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder ref(final String ref) {
-            this.ref = ref;
-            return this;
-        }
-
-        public Builder display(final String display) {
-            this.display = display;
-            return this;
-        }
-
-        public Builder type(final String type) {
-            this.type = type;
-            return this;
-        }
-
-        public Builder primary(final Boolean primary) {
-            this.primary = primary;
-            return this;
-        }
-
-        public SCIMv2Entitlement build() {
-            SCIMv2Entitlement sCIMv2Entitlement = new SCIMv2Entitlement();
-            sCIMv2Entitlement.setValue(value);
-            sCIMv2Entitlement.setRef(ref);
-            sCIMv2Entitlement.setDisplay(display);
-            sCIMv2Entitlement.setType(type);
-            sCIMv2Entitlement.setPrimary(primary);
-            return sCIMv2Entitlement;
-        }
-    }
 }
