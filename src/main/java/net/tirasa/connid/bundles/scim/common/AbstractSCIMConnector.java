@@ -299,6 +299,13 @@ public abstract class AbstractSCIMConnector<
                 scimGroups.forEach(g -> user.getGroups().add(new BaseResourceReference.Builder().value(g.getId())
                         .ref(configuration.getBaseAddress() + "Groups/" + g.getId()).display(g.getDisplayName())
                         .build()));
+                
+                if (configuration.getManageComplexEntitlements()) {
+                    // SCIM-10 manage not default entitlements
+                    List<String> entitlements = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS);
+                    LOG.info("Adding entitlements {0} to user {1}", entitlements, username);
+                    manageEntitlements(user, entitlements);
+                }
 
                 if (password == null) {
                     LOG.warn("Missing password attribute");
@@ -442,6 +449,13 @@ public abstract class AbstractSCIMConnector<
                     }
                 }
 
+                if (configuration.getManageComplexEntitlements()) {
+                    // SCIM-10 manage not default entitlements
+                    List<String> entitlements = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS);
+                    LOG.info("Adding entitlements {0} on update to user {1}", entitlements, username);
+                    manageEntitlements(user, entitlements);
+                }
+                
                 // password
                 GuardedString password = accessor.getPassword() != null ? accessor.getPassword()
                         : accessor.findGuardedString(OperationalAttributes.PASSWORD_NAME);
@@ -615,5 +629,7 @@ public abstract class AbstractSCIMConnector<
 
     protected abstract void fillGroupPatches(UT user, Map<String, P> groupPatches, List<String> groupsToAdd,
             List<String> groupsToRemove);
+
+    protected abstract void manageEntitlements(UT user, List<String> values);
 
 }

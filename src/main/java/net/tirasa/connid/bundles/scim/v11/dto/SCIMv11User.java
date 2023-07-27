@@ -21,15 +21,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
+import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 
 public class SCIMv11User extends AbstractSCIMUser<
-        SCIMv11Attribute, SCIMDefaultComplex, SCIMv11Meta, SCIMv11EnterpriseUser> {
+        SCIMv11Attribute, SCIMDefaultComplex, BaseResourceReference, SCIMv11Meta, SCIMv11EnterpriseUser> {
 
     private static final long serialVersionUID = -6868285123690771711L;
 
@@ -57,8 +59,8 @@ public class SCIMv11User extends AbstractSCIMUser<
     }
 
     @Override
-    protected void handleEntitlements(final Object value) {
-        handleSCIMDefaultObject(
+    protected void handleDefaultEntitlement(final Object value) {
+        handleBaseResourceReference(
                 String.class.cast(value),
                 this.entitlements,
                 s -> s.setValue(String.class.cast(value)));
@@ -150,5 +152,33 @@ public class SCIMv11User extends AbstractSCIMUser<
         }
 
         setter.accept(selected);
+    }
+    
+    @JsonIgnore
+    private void handleBaseResourceReference(
+            final String value, final List<BaseResourceReference> list, final Consumer<BaseResourceReference> setter) {
+
+        BaseResourceReference selected = null;
+        for (BaseResourceReference scimDefault : list) {
+            if (scimDefault.getValue().equals(value)) {
+                selected = scimDefault;
+                break;
+            }
+        }
+        if (selected == null) {
+            selected = new BaseResourceReference();
+            list.add(selected);
+        }
+
+        setter.accept(selected);
+    }
+
+    @Override
+    protected void entitlementsToAttribute(final List<BaseResourceReference> entitlementRefs,
+            final Set<Attribute> attrs) {
+        // only manage the default entitlement
+        if (!entitlementRefs.isEmpty()) {
+            attrs.add(AttributeBuilder.build("entitlements.default.value", entitlementRefs.get(0).getValue()));
+        }
     }
 }

@@ -49,7 +49,7 @@ public class SCIMv11Connector
 
         if (schema == null) {
             schema = SCIMAttributeUtils.<SCIMv11Attribute>buildSchema(configuration.getCustomAttributesJSON(),
-                    SCIMv11Attribute.class);
+                    configuration.getManageComplexEntitlements(), SCIMv11Attribute.class);
         }
         return schema;
     }
@@ -80,5 +80,10 @@ public class SCIMv11Connector
                 CollectionUtil.newList(new Scimv11GroupPatchOperation.Builder().
                         operation(SCIMAttributeUtils.SCIM11_REMOVE).
                         display(user.getDisplayName()).value(user.getId()).build())).build()));
+    }
+
+    @Override
+    protected void manageEntitlements(final SCIMv11User user, final List<String> values) {
+        // in v11 only the default entitlement is supported
     }
 }

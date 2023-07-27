@@ -72,6 +72,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String genericComplexType;
 
+    private Boolean manageComplexEntitlements = false;
+
     @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display", helpMessageKey = "baseAddress.help",
             required = true)
     public String getBaseAddress() {
@@ -236,6 +238,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             order = 16)
     public String getGenericComplexType() {
         return genericComplexType;
+    }
+
+    public void setManageComplexEntitlements(final Boolean manageComplexEntitlements) {
+        this.manageComplexEntitlements = manageComplexEntitlements;
+    }
+    
+    @ConfigurationProperty(displayMessageKey = "manageComplexEntitlements.display", 
+            helpMessageKey = "manageComplexEntitlements.help",
+            order = 17)
+    public Boolean getManageComplexEntitlements() {
+        return manageComplexEntitlements;
     }
 
     public void setGenericComplexType(final String genericComplexType) {

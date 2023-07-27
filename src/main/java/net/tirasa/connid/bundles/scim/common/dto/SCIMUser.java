@@ -43,4 +43,6 @@ public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUse
     void setEnterpriseUser(EUT enterpriseUser);
 
     List<BaseResourceReference> getGroups();
+
+    List<? extends BaseResourceReference> getEntitlements();
 }

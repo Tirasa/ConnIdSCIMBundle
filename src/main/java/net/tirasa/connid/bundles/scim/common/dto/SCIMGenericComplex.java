@@ -25,7 +25,7 @@ import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.common.StringUtil;
 
-public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComplex {
+public class SCIMGenericComplex<T extends Serializable> extends AbstractSCIMComplex {
 
     private static final long serialVersionUID = -5982485563252126677L;
 
@@ -33,7 +33,7 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
     private String display;
 
     @JsonProperty
-    private E type;
+    private T type;
 
     @JsonProperty
     private Boolean primary;
@@ -45,7 +45,7 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
         return display;
     }
 
-    public E getType() {
+    public T getType() {
         return type;
     }
 
@@ -57,7 +57,7 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
         this.display = display;
     }
 
-    public void setType(final E type) {
+    public void setType(final T type) {
         this.type = type;
     }
 
@@ -101,5 +101,55 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
                 + ", operation=" + operation
                 + ", value=" + value
                 + '}';
+    }
+
+    public static final class Builder<T extends Serializable> {
+        private String value;
+        private String display;
+        private T type;
+        private Boolean primary;
+        private String operation;
+
+        public Builder() {
+        }
+
+        public static Builder aSCIMGenericComplex() {
+            return new Builder();
+        }
+
+        public Builder value(final String value) {
+            this.value = value;
+            return this;
+        }
+
+        public Builder display(final String display) {
+            this.display = display;
+            return this;
+        }
+
+        public Builder type(final T type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder primary(final Boolean primary) {
+            this.primary = primary;
+            return this;
+        }
+
+        public Builder operation(final String operation) {
+            this.operation = operation;
+            return this;
+        }
+
+        public SCIMGenericComplex build() {
+            SCIMGenericComplex sCIMGenericComplex = new SCIMGenericComplex();
+            sCIMGenericComplex.setValue(value);
+            sCIMGenericComplex.setDisplay(display);
+            sCIMGenericComplex.setType(type);
+            sCIMGenericComplex.setPrimary(primary);
+            sCIMGenericComplex.setOperation(operation);
+            return sCIMGenericComplex;
+        }
     }
 }

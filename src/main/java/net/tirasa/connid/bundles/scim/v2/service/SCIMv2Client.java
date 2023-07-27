@@ -25,6 +25,7 @@ import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EntitlementResource;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Patch;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchImpl;
@@ -74,6 +75,12 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
     @Override
     public SCIMv2Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv2Group.class);
+    }
+
+    @Override
+    public SCIMv2EntitlementResource getEntitlement(final String entitlementId) {
+        return doGetEntitlement(getWebclient("Entitlements", null).path(entitlementId),
+                SCIMv2EntitlementResource.class);
     }
 
     @Override

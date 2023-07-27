@@ -17,7 +17,11 @@ package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.dto.AbstractSCIMUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
@@ -25,10 +29,12 @@ import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 
-public class SCIMv2User
-        extends AbstractSCIMUser<SCIMv2Attribute, SCIMGenericComplex<String>, SCIMv2Meta, SCIMv2EnterpriseUser> {
+public class SCIMv2User extends
+        AbstractSCIMUser<SCIMv2Attribute, SCIMGenericComplex<String>, SCIMv2Entitlement, SCIMv2Meta,
+                SCIMv2EnterpriseUser> {
 
     private static final long serialVersionUID = 7039988195599856857L;
 
@@ -60,11 +66,11 @@ public class SCIMv2User
     }
 
     @Override
-    protected void handleEntitlements(final Object value) {
-        handleSCIMComplexObject(
-                SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT,
-                this.entitlements,
-                s -> s.setValue(String.class.cast(value)));
+    protected void handleDefaultEntitlement(final Object value) {
+        handleSCIMv2Entitlement(this.entitlements, s -> {
+            s.setValue(String.class.cast(value));
+            s.setType(SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT);
+        });
     }
 
     /**
@@ -81,9 +87,9 @@ public class SCIMv2User
             for (Attribute attribute : attributes) {
                 if (!CollectionUtil.isEmpty(attribute.getValue())) {
                     for (SCIMv2Attribute customAttribute : customAttributesObj.getAttributes()) {
-                        String externalAttributeName = SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema()
-                                .concat(".")
-                                .concat(customAttribute.getName());
+                        String externalAttributeName =
+                                SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema().concat(".")
+                                        .concat(customAttribute.getName());
                         if (externalAttributeName.equals(attribute.getName())) {
                             scimCustomAttributes.put(customAttribute, attribute.getValue());
                             break;
@@ -151,5 +157,34 @@ public class SCIMv2User
                         // do nothing
                     }
                 });
+    }
+
+    @JsonIgnore
+    protected <T extends Serializable> void handleSCIMv2Entitlement(final List<SCIMv2Entitlement> list,
+            final Consumer<SCIMv2Entitlement> setter) {
+
+        SCIMv2Entitlement selected = null;
+        for (SCIMv2Entitlement complex : list) {
+            if (complex.getType() != null && complex.getType().equals(SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT)) {
+                selected = complex;
+                break;
+            }
+        }
+        if (selected == null) {
+            selected = new SCIMv2Entitlement();
+            list.add(selected);
+        }
+
+        setter.accept(selected);
+    }
+
+    @Override
+    protected void entitlementsToAttribute(final List<SCIMv2Entitlement> entitlementRefs, final Set<Attribute> attrs) {
+        // manage default entitlement
+        entitlementRefs.stream().filter(e -> SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT.equals(e.getType()))
+                .findFirst()
+                .ifPresent(e -> attrs.add(AttributeBuilder.build("entitlements.default.value", e.getValue())));
+        attrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS,
+                entitlementRefs.stream().map(g -> g.getValue()).collect(Collectors.toList())));
     }
 }

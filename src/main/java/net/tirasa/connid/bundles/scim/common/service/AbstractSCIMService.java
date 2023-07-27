@@ -37,6 +37,7 @@ import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
@@ -714,6 +715,27 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         return doCreateGroup(group);
     }
 
+    protected <ERT extends SCIMBaseResource<? extends SCIMBaseMeta>> ERT doGetEntitlement(final WebClient webClient, 
+            final Class<ERT> entitlementType) {
+        ERT entitlement = null;
+        JsonNode node = doGet(webClient);
+        if (node == null) {
+            SCIMUtils.handleGeneralError("While retrieving Entitlement from service");
+        }
+
+        try {
+            entitlement = SCIMUtils.MAPPER.readValue(node.toString(), entitlementType);
+        } catch (IOException ex) {
+            LOG.error(ex, "While converting from JSON to Entitlement");
+        }
+
+        if (entitlement == null) {
+            SCIMUtils.handleGeneralError("While retrieving Entitlement from service");
+        }
+
+        return entitlement;
+    }
+    
     protected void doCreate(final GT group, final WebClient webClient) {
         LOG.ok("CREATE: {0}", webClient.getCurrentURI());
         Response response;

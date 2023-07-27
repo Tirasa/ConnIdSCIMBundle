@@ -50,6 +50,7 @@ import net.tirasa.connid.bundles.scim.v11.dto.SCIMUserName;
 import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Entitlement;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import net.tirasa.connid.bundles.scim.v2.dto.Uniqueness;
@@ -434,7 +435,8 @@ public class SCIMv2ConnectorTests {
         user.getAddresses().add(userAddress);
         if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
                 PROPS.getProperty("auth.defaultEntitlement"))) {
-            SCIMGenericComplex<String> entitlement = new SCIMGenericComplex<>();
+            SCIMv2Entitlement entitlement = new SCIMv2Entitlement();
+            entitlement.setType(SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT);
             entitlement.setValue(PROPS.getProperty("auth.defaultEntitlement"));
             user.getEntitlements().add(entitlement);
         }
@@ -776,7 +778,7 @@ public class SCIMv2ConnectorTests {
 
         SearchResult result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
                 new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
-                        "displayName", "active", "entitlements.default.value",
+                        "displayName", "active", "entitlements.default.value", "entitlements",
                         "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber",
                         SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber",
                         SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value").build());
