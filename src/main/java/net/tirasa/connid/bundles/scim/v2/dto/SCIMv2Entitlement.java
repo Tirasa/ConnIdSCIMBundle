@@ -16,7 +16,6 @@
 package net.tirasa.connid.bundles.scim.v2.dto;
 
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 
 public class SCIMv2Entitlement extends BaseResourceReference {
 
