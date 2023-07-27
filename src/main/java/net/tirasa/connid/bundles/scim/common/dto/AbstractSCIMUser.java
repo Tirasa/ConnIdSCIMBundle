@@ -45,6 +45,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 
 public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT extends SCIMComplexAttribute,
+        ET extends BaseResourceReference,
         MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUser<?>>
         extends AbstractSCIMBaseResource<MT> implements SCIMUser<MT, EUT> {
 
@@ -58,7 +59,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
 
     protected List<SCIMGenericComplex<EmailCanonicalType>> emails = new ArrayList<>();
 
-    protected List<CT> entitlements = new ArrayList<>();
+    protected List<ET> entitlements = new ArrayList<>();
 
     protected List<BaseResourceReference> groups = new ArrayList<>();
 
@@ -138,7 +139,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         return emails;
     }
 
-    public List<CT> getEntitlements() {
+    @Override
+    public List<ET> getEntitlements() {
         return entitlements;
     }
 
@@ -264,7 +266,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
     }
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    public void setEntitlements(final List<CT> entitlements) {
+    public void setEntitlements(final List<ET> entitlements) {
         this.entitlements = entitlements;
     }
 
@@ -816,7 +818,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                 break;
 
             case "entitlements.default.value":
-                handleEntitlements(value);
+                handleDefaultEntitlement(value);
                 break;
 
             case "x509Certificates.default.value":
@@ -836,7 +838,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
 
     protected abstract void handlex509Certificates(Object value);
 
-    protected abstract void handleEntitlements(Object value);
+    protected abstract void handleDefaultEntitlement(Object value);
 
     @JsonIgnore
     protected <T extends Serializable> void handleSCIMComplexObject(final T type,
@@ -1023,9 +1025,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                             for (CT ct : list) {
                                 String localId = null;
                                 if (StringUtil.isNotBlank(ct.getValue())) {
-                                    if (entitlements.contains(ct)) {
-                                        localId = SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS;
-                                    } else if (roles.contains(ct)) {
+                                    if (roles.contains(ct)) {
                                         localId = SCIMAttributeUtils.SCIM_USER_ROLES;
                                     }
                                 }
@@ -1037,16 +1037,12 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                             CT ct = (CT) objInstance;
                             String localId = null;
                             if (StringUtil.isNotBlank(ct.getValue())) {
-                                if (entitlements.contains(ct)) {
-                                    localId = SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS;
-                                } else if (roles.contains(ct)) {
-                                    if (entitlements.contains(ct)) {
-                                        localId = SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES;
-                                    } else if (x509Certificates.contains(ct)) {
-                                        localId = SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES;
-                                    } else if (groups.contains(ct)) {
-                                        localId = SCIMAttributeUtils.SCIM_USER_GROUPS;
-                                    }
+                                if (roles.contains(ct)) {
+                                    localId = SCIMAttributeUtils.SCIM_USER_ROLES;
+                                } else if (x509Certificates.contains(ct)) {
+                                    localId = SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES;
+                                } else if (groups.contains(ct)) {
+                                    localId = SCIMAttributeUtils.SCIM_USER_GROUPS;
                                 }
                             }
                             if (localId != null) {
@@ -1067,24 +1063,14 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                         List<BaseResourceReference> groupRefs = (List<BaseResourceReference>) objInstance;
                         attrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS,
                                 groupRefs.stream().map(g -> g.getValue()).collect(Collectors.toList())));
+                    } else if (SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS.equals(field.getName())) {
+                        // SCIM-10 manage entitlements
+                        entitlementsToAttribute((List<ET>) objInstance, attrs);
                     } else if (field.getType().equals(List.class)
                             && field.getGenericType() instanceof ParameterizedType) {
                         // SCIM-8 properly manage lists with parametrized type
                         List<CT> complexTypeList = (List<CT>) objInstance;
                         switch (field.getName()) {
-                            case SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS:
-                                complexTypeList.forEach(ct -> {
-                                    try {
-                                        addAttribute(
-                                                ct.toAttributes(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS, conf),
-                                                attrs, field.getType());
-                                    } catch (IllegalAccessException e) {
-                                        LOG.error("Unable to read by reflection [0]",
-                                                SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS);
-                                    }
-                                });
-                                break;
-
                             case SCIMAttributeUtils.SCIM_USER_ROLES:
                                 complexTypeList.forEach(ct -> {
                                     try {
@@ -1126,6 +1112,8 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
 
         return attrs;
     }
+
+    protected abstract void entitlementsToAttribute(List<ET> entitlementRefs, Set<Attribute> attrs);
 
     @Override
     public String toString() {

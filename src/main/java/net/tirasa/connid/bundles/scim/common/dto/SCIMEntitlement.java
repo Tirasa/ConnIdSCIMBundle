@@ -15,35 +15,18 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
-public class ResourceReference extends BaseResourceReference {
+import java.util.List;
 
-    private static final long serialVersionUID = 9126588075353486789L;
+public interface SCIMEntitlement<MT extends SCIMBaseMeta> extends SCIMBaseResource<MT> {
 
-    public enum ReferenceType {
-        direct,
-        indirect,
-        User,
-        Group;
+    String getDisplayName();
 
-    }
+    void setDisplayName(String displayName);
 
-    private ReferenceType type;
+    String getType();
 
-    public ReferenceType getType() {
-        return type;
-    }
+    void setType(String type);
 
-    public void setType(final ReferenceType type) {
-        this.type = type;
-    }
+    List<BaseResourceReference> getMembers();
 
-    @Override
-    public String toString() {
-        return "ResourceReference{"
-                + "type=" + type
-                + ", value=" + value
-                + ", $ref=" + ref
-                + ", display=" + display
-                + '}';
-    }
 }

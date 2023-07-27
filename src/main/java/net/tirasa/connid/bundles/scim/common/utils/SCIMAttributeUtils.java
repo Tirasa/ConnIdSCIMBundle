@@ -90,6 +90,8 @@ public final class SCIMAttributeUtils {
     public static final String SCIM_SCHEMA_TYPE_COMPLEX = "complex";
     
     public static final String SCIM_SCHEMA_TYPE_DEFAULT = "default";
+    
+    public static final String SCIM_SCHEMA_TYPE_PROFILE = "Profile";
 
     public static final String SCIM_SCHEMA_EXTENSION = "extension";
 
@@ -105,7 +107,9 @@ public final class SCIMAttributeUtils {
 
     public static final String SCIM_GROUP_MEMBERS = "members";
 
-    public static <T extends SCIMBaseAttribute<T>> Schema buildSchema(final String customAttributes,
+    public static <T extends SCIMBaseAttribute<T>> Schema buildSchema(
+            final String customAttributes,
+            final Boolean manageComplexEntitlements,
             final Class<T> attrType) {
 
         SchemaBuilder builder = new SchemaBuilder(AbstractSCIMConnector.class);
@@ -295,6 +299,11 @@ public final class SCIMAttributeUtils {
             userBuilder.addAttributeInfo(
                     AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.displayName")
                             .setMultiValued(false).build());
+            if (manageComplexEntitlements) {
+                userBuilder.addAttributeInfo(
+                        AttributeInfoBuilder.define(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS).setMultiValued(false)
+                                .build());
+            }
         } else {
             userBuilder.addAttributeInfo(
                     AttributeInfoBuilder.define(SCIMv11EnterpriseUser.SCHEMA_URI + ".employeeNumber")

@@ -19,11 +19,13 @@ import java.util.List;
 import java.util.Map;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11BasePatch;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Group;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11GroupPatch;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Meta;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.dto.Scimv11GroupPatchOperation;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;
@@ -33,8 +35,8 @@ import org.identityconnectors.framework.spi.ConnectorClass;
 
 @ConnectorClass(displayNameKey = "SCIMv11Connector.connector.display", configurationClass =
         SCIMConnectorConfiguration.class)
-public class SCIMv11Connector
-        extends AbstractSCIMConnector<SCIMv11User, SCIMv11Group, SCIMv11BasePatch, SCIMv11Client> {
+public class SCIMv11Connector extends AbstractSCIMConnector<
+        SCIMv11User, SCIMv11Group, SCIMBaseResource<SCIMv11Meta>, SCIMv11BasePatch, SCIMv11Client> {
 
     private Schema schema;
 
@@ -48,8 +50,9 @@ public class SCIMv11Connector
         LOG.ok("Building SCHEMA definition");
 
         if (schema == null) {
-            schema = SCIMAttributeUtils.<SCIMv11Attribute>buildSchema(configuration.getCustomAttributesJSON(),
-                    SCIMv11Attribute.class);
+            schema = SCIMAttributeUtils.<SCIMv11Attribute>buildSchema(
+                    configuration.getCustomAttributesJSON(),
+                    configuration.getManageComplexEntitlements(), SCIMv11Attribute.class);
         }
         return schema;
     }
@@ -80,5 +83,10 @@ public class SCIMv11Connector
                 CollectionUtil.newList(new Scimv11GroupPatchOperation.Builder().
                         operation(SCIMAttributeUtils.SCIM11_REMOVE).
                         display(user.getDisplayName()).value(user.getId()).build())).build()));
+    }
+
+    @Override
+    protected void manageEntitlements(final SCIMv11User user, final List<String> values) {
+        // in v11 only the default entitlement is supported
     }
 }

@@ -25,15 +25,49 @@ import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.identityconnectors.common.StringUtil;
 
-public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComplex {
+public class SCIMGenericComplex<T extends Serializable> extends AbstractSCIMComplex {
 
     private static final long serialVersionUID = -5982485563252126677L;
+
+    public static final class Builder<T extends Serializable> {
+
+        private final SCIMGenericComplex<T> instance = new SCIMGenericComplex<>();
+
+        public Builder<T> value(final String value) {
+            instance.setValue(value);
+            return this;
+        }
+
+        public Builder<T> display(final String display) {
+            instance.setDisplay(display);
+            return this;
+        }
+
+        public Builder<T> type(final T type) {
+            instance.setType(type);
+            return this;
+        }
+
+        public Builder<T> primary(final Boolean primary) {
+            instance.setPrimary(primary);
+            return this;
+        }
+
+        public Builder<T> operation(final String operation) {
+            instance.setOperation(operation);
+            return this;
+        }
+
+        public SCIMGenericComplex<T> build() {
+            return instance;
+        }
+    }
 
     @JsonProperty(access = Access.READ_ONLY)
     private String display;
 
     @JsonProperty
-    private E type;
+    private T type;
 
     @JsonProperty
     private Boolean primary;
@@ -45,7 +79,7 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
         return display;
     }
 
-    public E getType() {
+    public T getType() {
         return type;
     }
 
@@ -57,7 +91,7 @@ public class SCIMGenericComplex<E extends Serializable> extends AbstractSCIMComp
         this.display = display;
     }
 
-    public void setType(final E type) {
+    public void setType(final T type) {
         this.type = type;
     }
 

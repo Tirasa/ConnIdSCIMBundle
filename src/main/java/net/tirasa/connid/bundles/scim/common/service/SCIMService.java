@@ -20,12 +20,14 @@ import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 
 public interface SCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, 
-        GT extends SCIMGroup<? extends SCIMBaseMeta>, P extends SCIMBasePatch> {
+        GT extends SCIMGroup<? extends SCIMBaseMeta>, ERT extends SCIMBaseResource<? extends SCIMBaseMeta>,
+        P extends SCIMBasePatch> {
 
     PagedResults<UT> getAllUsers(Integer valueOf, Integer pagesSize, Set<String> attributesToGet);
 
@@ -60,4 +62,6 @@ public interface SCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? exten
     GT updateGroup(GT group);
 
     GT updateGroup(String groupId, P groupPatch);
+    
+    ERT getEntitlement(String entitlementId);
 }

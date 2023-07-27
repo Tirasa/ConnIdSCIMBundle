@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
@@ -29,11 +30,13 @@ import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11BasePatch;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Group;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11GroupPatch;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Meta;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group, SCIMv11BasePatch> {
+public class SCIMv11Client extends AbstractSCIMService<
+        SCIMv11User, SCIMv11Group, SCIMBaseResource<SCIMv11Meta>, SCIMv11BasePatch> {
 
     public SCIMv11Client(final SCIMConnectorConfiguration config) {
         super(config);
@@ -77,6 +80,11 @@ public class SCIMv11Client extends AbstractSCIMService<SCIMv11User, SCIMv11Group
     @Override
     public SCIMv11Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv11Group.class);
+    }
+
+    @Override
+    public SCIMBaseResource<SCIMv11Meta> getEntitlement(final String entitlementId) {
+        throw new UnsupportedOperationException("getEntitlement is not supported in v11");
     }
 
     @Override

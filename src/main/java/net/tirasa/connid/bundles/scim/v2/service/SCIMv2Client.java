@@ -25,6 +25,7 @@ import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EntitlementResource;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Patch;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchImpl;
@@ -33,7 +34,7 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchValue;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, SCIMv2Patch> {
+public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, SCIMv2EntitlementResource, SCIMv2Patch> {
 
     public SCIMv2Client(final SCIMConnectorConfiguration config) {
         super(config);
@@ -77,9 +78,15 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
     }
 
     @Override
+    public SCIMv2EntitlementResource getEntitlement(final String entitlementId) {
+        return doGetEntitlement(
+                getWebclient("Entitlements", null).path(entitlementId), SCIMv2EntitlementResource.class);
+    }
+
+    @Override
     public SCIMv2Group updateGroup(final String groupId, final SCIMv2Patch groupPatch) {
-        return doUpdateGroup(new SCIMv2Group.Builder().id(groupId).build(), Collections.emptySet(), groupPatch,
-                SCIMv2Group.class);
+        return doUpdateGroup(
+                new SCIMv2Group.Builder().id(groupId).build(), Collections.emptySet(), groupPatch, SCIMv2Group.class);
     }
 
     @Override

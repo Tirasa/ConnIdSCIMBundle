@@ -37,6 +37,7 @@ import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
@@ -52,9 +53,11 @@ import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public abstract class AbstractSCIMService<UT extends SCIMUser<
-        ? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, GT extends SCIMGroup<
-        ? extends SCIMBaseMeta>, P extends SCIMBasePatch>
-        implements SCIMService<UT, GT, P> {
+        ? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, 
+        GT extends SCIMGroup<? extends SCIMBaseMeta>,
+        ERT extends SCIMBaseResource<? extends SCIMBaseMeta>,
+        P extends SCIMBasePatch>
+        implements SCIMService<UT, GT, ERT, P> {
 
     protected static final Log LOG = Log.getLog(AbstractSCIMService.class);
 
@@ -712,6 +715,26 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     @Override
     public GT createGroup(final GT group) {
         return doCreateGroup(group);
+    }
+
+    protected ERT doGetEntitlement(final WebClient webClient, final Class<ERT> entitlementType) {
+        ERT entitlement = null;
+        JsonNode node = doGet(webClient);
+        if (node == null) {
+            SCIMUtils.handleGeneralError("While retrieving Entitlement from service");
+        }
+
+        try {
+            entitlement = SCIMUtils.MAPPER.readValue(node.toString(), entitlementType);
+        } catch (IOException ex) {
+            LOG.error(ex, "While converting from JSON to Entitlement");
+        }
+
+        if (entitlement == null) {
+            SCIMUtils.handleGeneralError("While retrieving Entitlement from service");
+        }
+
+        return entitlement;
     }
 
     protected void doCreate(final GT group, final WebClient webClient) {

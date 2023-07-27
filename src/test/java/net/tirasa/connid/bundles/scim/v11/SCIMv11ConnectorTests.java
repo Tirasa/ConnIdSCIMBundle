@@ -34,8 +34,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUserAddress;
 import net.tirasa.connid.bundles.scim.common.service.NoSuchEntityException;
@@ -235,7 +235,7 @@ public class SCIMv11ConnectorTests {
         user.getAddresses().add(userAddress);
         if (PROPS.containsKey("auth.defaultEntitlement")
                 && StringUtil.isNotBlank(PROPS.getProperty("auth.defaultEntitlement"))) {
-            SCIMDefaultComplex entitlement = new SCIMDefaultComplex();
+            BaseResourceReference entitlement = new BaseResourceReference();
             entitlement.setValue(PROPS.getProperty("auth.defaultEntitlement"));
             user.getEntitlements().add(entitlement);
         }
