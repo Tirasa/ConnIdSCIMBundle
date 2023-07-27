@@ -34,7 +34,7 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchValue;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import org.identityconnectors.framework.common.objects.Attribute;
 
-public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, SCIMv2Patch> {
+public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, SCIMv2EntitlementResource, SCIMv2Patch> {
 
     public SCIMv2Client(final SCIMConnectorConfiguration config) {
         super(config);

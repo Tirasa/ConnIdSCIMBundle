@@ -53,9 +53,11 @@ import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 
 public abstract class AbstractSCIMService<UT extends SCIMUser<
-        ? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, GT extends SCIMGroup<
-        ? extends SCIMBaseMeta>, P extends SCIMBasePatch>
-        implements SCIMService<UT, GT, P> {
+        ? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, 
+        GT extends SCIMGroup<? extends SCIMBaseMeta>,
+        ERT extends SCIMBaseResource<? extends SCIMBaseMeta>,
+        P extends SCIMBasePatch>
+        implements SCIMService<UT, GT, ERT, P> {
 
     protected static final Log LOG = Log.getLog(AbstractSCIMService.class);
 
@@ -715,8 +717,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         return doCreateGroup(group);
     }
 
-    protected <ERT extends SCIMBaseResource<? extends SCIMBaseMeta>> ERT doGetEntitlement(final WebClient webClient, 
-            final Class<ERT> entitlementType) {
+    protected ERT doGetEntitlement(final WebClient webClient, final Class<ERT> entitlementType) {
         ERT entitlement = null;
         JsonNode node = doGet(webClient);
         if (node == null) {

@@ -19,11 +19,13 @@ import java.util.List;
 import java.util.Map;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11BasePatch;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Group;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11GroupPatch;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Meta;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.dto.Scimv11GroupPatchOperation;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;
@@ -34,7 +36,8 @@ import org.identityconnectors.framework.spi.ConnectorClass;
 @ConnectorClass(displayNameKey = "SCIMv11Connector.connector.display", configurationClass =
         SCIMConnectorConfiguration.class)
 public class SCIMv11Connector
-        extends AbstractSCIMConnector<SCIMv11User, SCIMv11Group, SCIMv11BasePatch, SCIMv11Client> {
+        extends AbstractSCIMConnector<SCIMv11User, SCIMv11Group, SCIMBaseResource<SCIMv11Meta>, 
+        SCIMv11BasePatch, SCIMv11Client> {
 
     private Schema schema;
 

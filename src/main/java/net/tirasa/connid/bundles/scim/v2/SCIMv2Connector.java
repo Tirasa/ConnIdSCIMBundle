@@ -39,7 +39,8 @@ import org.identityconnectors.framework.spi.ConnectorClass;
 @ConnectorClass(displayNameKey = "SCIMv2Connector.connector.display",
         configurationClass = SCIMConnectorConfiguration.class,
         messageCatalogPaths = { "net.tirasa.connid.bundles.scim.common.Messages" })
-public class SCIMv2Connector extends AbstractSCIMConnector<SCIMv2User, SCIMv2Group, SCIMv2Patch, SCIMv2Client> {
+public class SCIMv2Connector extends AbstractSCIMConnector<SCIMv2User, SCIMv2Group, SCIMv2EntitlementResource,
+        SCIMv2Patch, SCIMv2Client> {
 
     private Schema schema;
 

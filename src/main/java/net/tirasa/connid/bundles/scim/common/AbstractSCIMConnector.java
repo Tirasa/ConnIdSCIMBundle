@@ -28,6 +28,7 @@ import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
@@ -67,8 +68,9 @@ import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 
 public abstract class AbstractSCIMConnector<
-        UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, GT extends SCIMGroup<
-        ? extends SCIMBaseMeta>, P extends SCIMBasePatch, ST extends SCIMService<UT, GT, P>>
+        UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, 
+        GT extends SCIMGroup<? extends SCIMBaseMeta>, ERT extends SCIMBaseResource<? extends SCIMBaseMeta>,
+        P extends SCIMBasePatch, ST extends SCIMService<UT, GT, ERT, P>>
         implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp {
 
     protected static final Log LOG = Log.getLog(AbstractSCIMConnector.class);
@@ -455,8 +457,6 @@ public abstract class AbstractSCIMConnector<
                     LOG.info("Adding entitlements {0} on update to user {1}", entitlements, username);
                     manageEntitlements(user, entitlements);
                 }
-                
-                // password
                 GuardedString password = accessor.getPassword() != null ? accessor.getPassword()
                         : accessor.findGuardedString(OperationalAttributes.PASSWORD_NAME);
                 if (password == null) {
