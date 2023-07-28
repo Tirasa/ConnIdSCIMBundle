@@ -801,22 +801,18 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         JsonNode result = null;
         Response response;
         String payload = null;
-        if (config.getUpdateUserMethod().equalsIgnoreCase("PATCH")) {
-            WebClient.getConfig(webClient).getRequestContext().put("use.async.http.conduit", true);
-        }
 
         try {
-            // no custom attributes
+            // this is only for update through PUT method
             payload = SCIMUtils.MAPPER.writeValueAsString(group);
-
-            if (config.getUpdateUserMethod().equalsIgnoreCase("PATCH")) {
-                response = webClient.invoke("PATCH", payload);
-            } else {
-                response = webClient.put(payload);
-            }
+            response = webClient.put(payload);
 
             checkServiceErrors(response);
-            result = SCIMUtils.MAPPER.readTree(response.readEntity(String.class));
+            String responseEntity = response.readEntity(String.class);
+            // some servers like Salesforce return empty response on group update with PUT, thus  a re-read is needed
+            result = StringUtil.isNotBlank(responseEntity)
+                    ? SCIMUtils.MAPPER.readTree(responseEntity)
+                    : doGet(getWebclient("Groups", null).path(group.getId()));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
             LOG.error("UPDATE payload {0}: ", payload);
