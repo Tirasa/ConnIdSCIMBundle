@@ -810,7 +810,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             checkServiceErrors(response);
             String responseEntity = response.readEntity(String.class);
             // some servers like Salesforce return empty response on group update with PUT, thus  a re-read is needed
-            result = StringUtil.isNotBlank(responseEntity) ? SCIMUtils.MAPPER.readTree(responseEntity)
+            result = StringUtil.isNotBlank(responseEntity)
+                    ? SCIMUtils.MAPPER.readTree(responseEntity)
                     : doGet(getWebclient("Groups", null).path(group.getId()));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
