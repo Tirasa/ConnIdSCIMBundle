@@ -345,7 +345,8 @@ public final class SCIMAttributeUtils {
                 ArrayList<?> list = new ArrayList<>((List<?>) value);
                 if (list.size() > 1) {
                     for (Object elem : list) {
-                        doBuildAttributeFromClassField(elem, name, clazz);
+                        attributeBuilder.addValue(
+                            doBuildAttributeFromClassField(elem, name, elem.getClass()).getValue());
                     }
                 } else if (!list.isEmpty() && list.get(0) != null) {
                     attributeBuilder.addValue(list.get(0).toString());
