@@ -243,8 +243,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     public void setManageComplexEntitlements(final Boolean manageComplexEntitlements) {
         this.manageComplexEntitlements = manageComplexEntitlements;
     }
-    
-    @ConfigurationProperty(displayMessageKey = "manageComplexEntitlements.display", 
+
+    @ConfigurationProperty(displayMessageKey = "manageComplexEntitlements.display",
             helpMessageKey = "manageComplexEntitlements.help",
             order = 17)
     public Boolean getManageComplexEntitlements() {
@@ -266,22 +266,24 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             LOG.error(e, "While validating baseAddress");
             failValidation("Base address must be a valid URL.");
         }
-        if (StringUtil.isBlank(username)
+        if (StringUtil.isBlank(bearerToken)
+                && StringUtil.isBlank(username)
                 && StringUtil.isBlank(clientId)
                 && StringUtil.isBlank(clientSecret)
                 && StringUtil.isBlank(accessTokenNodeId)
                 && StringUtil.isBlank(accessTokenBaseAddress)) {
 
-            failValidation("Username cannot be null or empty since clientId, clientSecret, "
+            failValidation("Username cannot be null or empty since bearerToken, clientId, clientSecret, "
                     + "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
-        if (password != null && StringUtil.isBlank(SecurityUtil.decrypt(password))
+        if (StringUtil.isBlank(bearerToken)
+                && password != null && StringUtil.isBlank(SecurityUtil.decrypt(password))
                 && StringUtil.isBlank(clientId)
                 && StringUtil.isBlank(clientSecret)
                 && StringUtil.isBlank(accessTokenNodeId)
                 && StringUtil.isBlank(accessTokenBaseAddress)) {
 
-            failValidation("Password cannot be null or empty since clientId, clientSecret, "
+            failValidation("Password cannot be null or empty since bearerToken, clientId, clientSecret, "
                     + "accessTokenNodeId and accessTokenBaseAddress are blank");
         }
         if (StringUtil.isNotBlank(customAttributesJSON)) {
