@@ -104,14 +104,18 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         WebClient webClient = WebClient.create(config.getAccessTokenBaseAddress()).
                 type(config.getAccessTokenContentType()).accept(config.getAccept());
 
-        String request = new StringBuilder("&client_id=").append(config.getClientId()).
-                append("&client_secret=").append(config.getClientSecret()).
-                append("&username=").append(config.getUsername()).
-                append("&password=").append(SecurityUtil.decrypt(config.getPassword())).toString();
+        StringBuilder requestBuilder =
+                new StringBuilder("&client_id=").append(config.getClientId())
+                        .append("&client_secret=").append(config.getClientSecret());
+        // append also username and password if and only if they're not blank 
+        if (StringUtil.isNotBlank(config.getUsername()) && config.getPassword() != null) {
+            requestBuilder.append("&username=").append(config.getUsername())
+                    .append("&password=").append(SecurityUtil.decrypt(config.getPassword())).toString();
+        }
 
         String token = null;
         try {
-            Response response = webClient.post(request);
+            Response response = webClient.post(requestBuilder.toString());
             String body = response.readEntity(String.class);
             JsonNode result = SCIMUtils.MAPPER.readTree(body);
             if (result == null || !result.hasNonNull(config.getAccessTokenNodeId())) {
