@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.ScimProvider;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Entitlement;
@@ -83,7 +84,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         // due to the deviation of salesforce from the standard we need to manage the members patch accordingly
         // https://help.salesforce.com/s/articleView?id=sf.identity_scim_manage_groups.htm&type=5
         groupsToAdd.forEach(grp -> groupPatches.put(grp, new SCIMv2PatchImpl.Builder().operations(CollectionUtil.newSet(
-                configuration.getBaseAddress().contains("salesforce.com")
+                ScimProvider.SALESFORCE == ScimProvider.valueOf(configuration.getScimProvider().toUpperCase())
                 ? new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM2_ADD)
                         .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
                         .value(CollectionUtil.newMap("members",

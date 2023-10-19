@@ -73,6 +73,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String genericComplexType;
 
     private Boolean manageComplexEntitlements = false;
+    
+    private String scimProvider = ScimProvider.STANDARD.name();
 
     @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display", helpMessageKey = "baseAddress.help",
             required = true)
@@ -253,6 +255,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     public void setGenericComplexType(final String genericComplexType) {
         this.genericComplexType = genericComplexType;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "scimProvider.display",
+            helpMessageKey = "scimProvider.help",
+            order = 18)
+    public String getScimProvider() {
+        return scimProvider;
+    }
+
+    public void setScimProvider(final String scimProvider) {
+        this.scimProvider = scimProvider;
     }
 
     @Override
