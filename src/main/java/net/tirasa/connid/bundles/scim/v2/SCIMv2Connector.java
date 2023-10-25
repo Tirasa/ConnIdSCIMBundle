@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import net.tirasa.connid.bundles.scim.common.ScimProvider;
+import net.tirasa.connid.bundles.scim.common.SCIMProvider;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Entitlement;
@@ -76,21 +76,21 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         return new SCIMv2Group();
     }
 
-     @Override
+    @Override
     protected SCIMv2Patch buildMemberGroupPatch(final SCIMv2User user, final String op) {
         // due to the deviation of salesforce from the standard we need to manage the members patch accordingly
         // https://help.salesforce.com/s/articleView?id=sf.identity_scim_manage_groups.htm&type=5
-         return new SCIMv2PatchImpl.Builder().operations(CollectionUtil.newSet(
-                 ScimProvider.SALESFORCE == ScimProvider.valueOf(configuration.getScimProvider().toUpperCase())
-                         ? new SCIMv2PatchOperation.Builder().op(op)
-                         .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                         .value(CollectionUtil.newMap("members",
-                                 CollectionUtil.newList(buildPatchValue(user))))
-                         .build()
-                         : new SCIMv2PatchOperation.Builder().op(op).path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                                 // in some cases is needed to
-                                 // append "[value eq \"" + user.getId() + "\"]" to retrieve the user
-                                 .value(CollectionUtil.newList(buildPatchValue(user))).build())).build();
+        return new SCIMv2PatchImpl.Builder().operations(CollectionUtil.newSet(
+                SCIMProvider.SALESFORCE == SCIMProvider.valueOf(configuration.getScimProvider().toUpperCase())
+                ? new SCIMv2PatchOperation.Builder().op(op)
+                        .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
+                        .value(CollectionUtil.newMap("members",
+                                CollectionUtil.newList(buildPatchValue(user))))
+                        .build()
+                : new SCIMv2PatchOperation.Builder().op(op).path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
+                        // in some cases is needed to
+                        // append "[value eq \"" + user.getId() + "\"]" to retrieve the user
+                        .value(CollectionUtil.newList(buildPatchValue(user))).build())).build();
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -108,7 +108,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     @Override
     protected SCIMv2Patch buildPatchFromGroup(final SCIMv2Group group) {
         // these information must not be included for some providers like AWS
-        if (ScimProvider.AWS == ScimProvider.valueOf(configuration.getScimProvider())) {
+        if (SCIMProvider.AWS == SCIMProvider.valueOf(configuration.getScimProvider())) {
             group.setMeta(null);
             group.getSchemas().clear();
         }
@@ -129,10 +129,11 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
 
     private SCIMv2PatchValue buildPatchValue(final SCIMv2User user) {
         SCIMv2PatchValue.Builder builder = new SCIMv2PatchValue.Builder();
-        switch (ScimProvider.valueOf(configuration.getScimProvider())) {
+        switch (SCIMProvider.valueOf(configuration.getScimProvider())) {
             case WSO2:
                 builder.value(user.getId()).display(user.getDisplayName());
                 break;
+
             default:
                 builder.value(user.getId());
         }

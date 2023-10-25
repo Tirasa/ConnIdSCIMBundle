@@ -260,7 +260,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             checkServiceErrors(response);
 
             // some providers, like AWS, return no result, thus a new read is needed
-            result = Status.NO_CONTENT.getStatusCode() == response.getStatus() ? doGet(webClient)
+            result = Status.NO_CONTENT.getStatusCode() == response.getStatus()
+                    ? doGet(webClient)
                     : SCIMUtils.MAPPER.readTree(response.readEntity(String.class));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
@@ -308,10 +309,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         String responseAsString = response.readEntity(String.class);
         if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
             throw new NoSuchEntityException(responseAsString);
-        } else if (response.getStatus() != Status.OK.getStatusCode()
-                && response.getStatus() != Status.ACCEPTED.getStatusCode()
-                && response.getStatus() != Status.CREATED.getStatusCode()
-                && response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
+        }
+        if (response.getStatusInfo().getFamily() != Status.Family.SUCCESSFUL) {
             SCIMUtils.handleGeneralError("While executing request: " + responseAsString);
         }
     }

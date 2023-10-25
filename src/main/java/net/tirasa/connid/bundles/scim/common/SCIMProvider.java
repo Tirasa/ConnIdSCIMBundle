@@ -15,7 +15,7 @@
  */
 package net.tirasa.connid.bundles.scim.common;
 
-public enum ScimProvider {
+public enum SCIMProvider {
     
     STANDARD,
     SALESFORCE,

@@ -25,11 +25,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import net.tirasa.connid.bundles.scim.common.ScimProvider;
+import net.tirasa.connid.bundles.scim.common.SCIMProvider;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
-import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
@@ -209,21 +207,21 @@ public final class SCIMUtils {
         return Optional.empty();
     }
 
-    public static <UT extends SCIMUser<? extends SCIMBaseMeta, 
-            ? extends SCIMEnterpriseUser<?>>> BaseResourceReference buildGroupMember(
-            final UT user,
-            final ScimProvider scimProvider) {
+    public static <UT extends SCIMUser<?, ?>> BaseResourceReference buildGroupMember(
+            final UT user, final SCIMProvider scimProvider) {
+
         BaseResourceReference.Builder groupMemberBuilder = new BaseResourceReference.Builder();
         switch (scimProvider) {
             case WSO2:
                 groupMemberBuilder.value(user.getId()).display(user.getDisplayName());
                 break;
+
             default:
                 groupMemberBuilder.value(user.getId());
         }
         return groupMemberBuilder.build();
     }
-    
+
     private SCIMUtils() {
         // private constructor for static utility class
     }
