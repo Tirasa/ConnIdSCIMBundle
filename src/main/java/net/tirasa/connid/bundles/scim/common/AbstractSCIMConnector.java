@@ -301,7 +301,7 @@ public abstract class AbstractSCIMConnector<
                 scimGroups.forEach(g -> user.getGroups().add(new BaseResourceReference.Builder().value(g.getId())
                         .ref(configuration.getBaseAddress() + "Groups/" + g.getId()).display(g.getDisplayName())
                         .build()));
-                
+
                 if (configuration.getManageComplexEntitlements()) {
                     // SCIM-10 manage not default entitlements
                     List<String> entitlements = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS);
@@ -339,9 +339,16 @@ public abstract class AbstractSCIMConnector<
                 // SCIM-1 update also groups, if needed
                 if (!scimGroups.isEmpty() && configuration.getExplicitGroupAddOnCreate()) {
                     LOG.info("Updating groups {0} explicitly adding user {1}", groups, user.getId());
-                    scimGroups.forEach(g -> {
-                        g.getMembers().add(new BaseResourceReference.Builder().value(user.getId()).build());
-                        client.updateGroup(g);
+                    scimGroups.forEach(group -> {
+                        group.getMembers().add(SCIMUtils.buildGroupMember(
+                                user,
+                                SCIMProvider.valueOf(configuration.getScimProvider().toUpperCase())));
+                        if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
+                            client.updateGroup(
+                                    group.getId(), buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD));
+                        } else {
+                            client.updateGroup(group);
+                        }
                     });
                 }
             } catch (Exception e) {
@@ -485,10 +492,13 @@ public abstract class AbstractSCIMConnector<
             GT group = buildNewGroupEntity();
             group.setId(uid.getUidValue());
             group.setDisplayName(displayName);
-
             try {
                 group.fromAttributes(replaceAttributes);
-                client.updateGroup(group);
+                if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
+                    client.updateGroup(uid.getUidValue(), buildPatchFromGroup(group));
+                } else {
+                    client.updateGroup(group);
+                }
 
                 returnUid = new Uid(group.getId());
             } catch (Exception e) {
@@ -629,6 +639,10 @@ public abstract class AbstractSCIMConnector<
 
     protected abstract void fillGroupPatches(UT user, Map<String, P> groupPatches, List<String> groupsToAdd,
             List<String> groupsToRemove);
+
+    protected abstract P buildMemberGroupPatch(UT user, String op);
+
+    protected abstract P buildPatchFromGroup(GT group);
 
     protected abstract void manageEntitlements(UT user, List<String> values);
 

@@ -74,6 +74,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private Boolean manageComplexEntitlements = false;
 
+    private String scimProvider = SCIMProvider.STANDARD.name();
+
     @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display", helpMessageKey = "baseAddress.help",
             required = true)
     public String getBaseAddress() {
@@ -255,6 +257,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.genericComplexType = genericComplexType;
     }
 
+    @ConfigurationProperty(displayMessageKey = "scimProvider.display",
+            helpMessageKey = "scimProvider.help",
+            order = 18)
+    public String getScimProvider() {
+        return scimProvider;
+    }
+
+    public void setScimProvider(final String scimProvider) {
+        this.scimProvider = scimProvider;
+    }
+
     @Override
     public void validate() {
         if (StringUtil.isBlank(baseAddress)) {
@@ -297,6 +310,11 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         }
         if (!"PATCH".equalsIgnoreCase(updateUserMethod) && !"PUT".equalsIgnoreCase(updateUserMethod)) {
             failValidation("Update method is not valid; must be 'PUT' or 'PATCH'.");
+        }
+        try {
+            SCIMProvider.valueOf(scimProvider.toUpperCase());
+        } catch (Exception e) {
+            failValidation("Unsupported SCIM provider: " + scimProvider);
         }
     }
 

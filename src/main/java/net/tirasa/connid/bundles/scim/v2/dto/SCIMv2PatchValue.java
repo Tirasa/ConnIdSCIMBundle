@@ -15,12 +15,17 @@
  */
 package net.tirasa.connid.bundles.scim.v2.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SCIMv2PatchValue {
 
     @JsonProperty
     private String value;
+
+    @JsonProperty
+    private String display;
 
     public String getValue() {
         return value;
@@ -30,24 +35,40 @@ public class SCIMv2PatchValue {
         this.value = value;
     }
 
+    public String getDisplay() {
+        return display;
+    }
+
+    public void setDisplay(final String display) {
+        this.display = display;
+    }
+
     public static final class Builder {
 
         private String value;
+        
+        private String display;
 
         public Builder value(final String value) {
             this.value = value;
+            return this;
+        }
+        
+        public Builder display(final String display) {
+            this.display = display;
             return this;
         }
 
         public SCIMv2PatchValue build() {
             SCIMv2PatchValue scimv2PatchValue = new SCIMv2PatchValue();
             scimv2PatchValue.setValue(value);
+            scimv2PatchValue.setDisplay(display);
             return scimv2PatchValue;
         }
     }
 
     @Override
     public String toString() {
-        return "SCIMv2PatchValue{" + "value=" + value + '}';
+        return "SCIMv2PatchValue{" + "value='" + value + '\'' + ", display='" + display + '\'' + '}';
     }
 }

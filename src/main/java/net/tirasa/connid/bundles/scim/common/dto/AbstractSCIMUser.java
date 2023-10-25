@@ -127,10 +127,12 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
         this.addresses = addresses;
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
+    @Override
     public void setDisplayName(final String displayName) {
         this.displayName = displayName;
     }

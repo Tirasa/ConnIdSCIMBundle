@@ -76,13 +76,22 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     protected void fillGroupPatches(final SCIMv11User user, final Map<String, SCIMv11BasePatch> groupPatches,
             final List<String> groupsToAdd, final List<String> groupsToRemove) {
         // on group add SCIM v1.1 omits the operation 
-        groupsToAdd.forEach(grp -> groupPatches.put(grp, new SCIMv11GroupPatch.Builder().members(
+        groupsToAdd.forEach(grp -> groupPatches.put(grp, buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD)));
+        groupsToRemove.forEach(grp -> groupPatches.put(grp,
+                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_REMOVE)));
+    }
+
+    @Override
+    protected SCIMv11BasePatch buildMemberGroupPatch(final SCIMv11User user, final String op) {
+        return new SCIMv11GroupPatch.Builder().members(
                 CollectionUtil.newList(new Scimv11GroupPatchOperation.Builder().
-                        display(user.getDisplayName()).value(user.getId()).build())).build()));
-        groupsToRemove.forEach(grp -> groupPatches.put(grp, new SCIMv11GroupPatch.Builder().members(
-                CollectionUtil.newList(new Scimv11GroupPatchOperation.Builder().
-                        operation(SCIMAttributeUtils.SCIM11_REMOVE).
-                        display(user.getDisplayName()).value(user.getId()).build())).build()));
+                        operation(SCIMAttributeUtils.SCIM2_ADD).
+                        display(user.getDisplayName()).value(user.getId()).build())).build();
+    }
+
+    @Override
+    protected SCIMv11BasePatch buildPatchFromGroup(final SCIMv11Group group) {
+       throw new IllegalArgumentException("Not implemented, yet");
     }
 
     @Override
