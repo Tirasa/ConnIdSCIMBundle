@@ -492,9 +492,9 @@ public abstract class AbstractSCIMConnector<
             GT group = buildNewGroupEntity();
             group.setId(uid.getUidValue());
             group.setDisplayName(displayName);
-            group.fromAttributes(replaceAttributes);
             try {
-                if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
+                group.fromAttributes(replaceAttributes);
+                if ("PATCH" .equals(configuration.getUpdateGroupMethod())) {
                     client.updateGroup(uid.getUidValue(), buildPatchFromGroup(group));
                 } else {
                     client.updateGroup(group);

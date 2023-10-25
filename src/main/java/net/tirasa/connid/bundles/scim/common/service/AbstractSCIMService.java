@@ -256,8 +256,6 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             payload =
                     SCIMUtils.MAPPER.writeValueAsString(patch == null ? buildPatchFromAttrs(replaceAttributes) : patch);
 
-            LOG.info("Patch payload is {0}", payload);
-
             response = webClient.invoke("PATCH", payload);
             checkServiceErrors(response);
 
