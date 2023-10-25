@@ -340,8 +340,15 @@ public abstract class AbstractSCIMConnector<
                 if (!scimGroups.isEmpty() && configuration.getExplicitGroupAddOnCreate()) {
                     LOG.info("Updating groups {0} explicitly adding user {1}", groups, user.getId());
                     scimGroups.forEach(g -> {
-                        g.getMembers().add(new BaseResourceReference.Builder().value(user.getId()).build());
-                        client.updateGroup(g);
+                        g.getMembers()
+                                .add(SCIMUtils.buildGroupMember(user,
+                                        ScimProvider.valueOf(configuration.getScimProvider().toUpperCase())));
+                        if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
+                            client.updateGroup(g.getId(),
+                                    buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD));
+                        } else {
+                            client.updateGroup(g);
+                        }
                     });
                 }
             } catch (Exception e) {
@@ -485,10 +492,13 @@ public abstract class AbstractSCIMConnector<
             GT group = buildNewGroupEntity();
             group.setId(uid.getUidValue());
             group.setDisplayName(displayName);
-
+            group.fromAttributes(replaceAttributes);
             try {
-                group.fromAttributes(replaceAttributes);
-                client.updateGroup(group);
+                if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
+                    client.updateGroup(uid.getUidValue(), buildPatchFromGroup(group));
+                } else {
+                    client.updateGroup(group);
+                }
 
                 returnUid = new Uid(group.getId());
             } catch (Exception e) {
@@ -629,6 +639,10 @@ public abstract class AbstractSCIMConnector<
 
     protected abstract void fillGroupPatches(UT user, Map<String, P> groupPatches, List<String> groupsToAdd,
             List<String> groupsToRemove);
+
+    protected abstract P buildMemberGroupPatch(UT user, String op);
+
+    protected abstract P buildPatchFromGroup(GT group);
 
     protected abstract void manageEntitlements(UT user, List<String> values);
 

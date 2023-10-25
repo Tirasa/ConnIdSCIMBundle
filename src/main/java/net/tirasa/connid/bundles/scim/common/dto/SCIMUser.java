@@ -30,6 +30,10 @@ public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUse
 
     void setActive(Boolean active);
 
+    String getDisplayName();
+
+    void setDisplayName(String displayName);
+    
     void fillSCIMCustomAttributes(Set<Attribute> createAttributes, String customAttributesJSON);
 
     Map<String, List<Object>> getReturnedCustomAttributes();

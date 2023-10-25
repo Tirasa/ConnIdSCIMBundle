@@ -76,41 +76,45 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         return new SCIMv2Group();
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    @Override
-    protected void fillGroupPatches(final SCIMv2User user, final Map<String, SCIMv2Patch> groupPatches,
-            final List<String> groupsToAdd, final List<String> groupsToRemove) {
-
+     @Override
+    protected SCIMv2Patch buildMemberGroupPatch(final SCIMv2User user, final String op) {
         // due to the deviation of salesforce from the standard we need to manage the members patch accordingly
         // https://help.salesforce.com/s/articleView?id=sf.identity_scim_manage_groups.htm&type=5
-        groupsToAdd.forEach(grp -> groupPatches.put(grp, new SCIMv2PatchImpl.Builder().operations(CollectionUtil.newSet(
-                ScimProvider.SALESFORCE == ScimProvider.valueOf(configuration.getScimProvider().toUpperCase())
-                ? new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM2_ADD)
-                        .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                        .value(CollectionUtil.newMap("members",
-                                CollectionUtil.newList(new SCIMv2PatchValue.Builder().value(user.getId()).build())))
-                        .build()
-                : new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM2_ADD)
-                        .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                        .value(CollectionUtil.newList(new SCIMv2PatchValue.Builder().value(user.getId()).build()))
-                        .build())).build()));
-        groupsToRemove.forEach(grp -> groupPatches.put(grp, new SCIMv2PatchImpl.Builder().operations(
-                CollectionUtil.newSet(configuration.getBaseAddress().contains("salesforce.com")
-                        ? new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM2_REMOVE)
-                                .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                                .value(CollectionUtil.newMap(
-                                        SCIMAttributeUtils.SCIM_GROUP_MEMBERS,
-                                        CollectionUtil.newList(
-                                                new SCIMv2PatchValue.Builder().value(user.getId()).build())))
-                                .build()
-                        : new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM2_REMOVE)
-                                .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                                // in some cases is needed to
-                                // append "[value eq \"" + user.getId() + "\"]" to retrieve the user
-                                .value(CollectionUtil.newList(
-                                        new SCIMv2PatchValue.Builder().value(user.getId()).build()))
-                                .build()))
-                .build()));
+         return new SCIMv2PatchImpl.Builder().operations(CollectionUtil.newSet(
+                 ScimProvider.SALESFORCE == ScimProvider.valueOf(configuration.getScimProvider().toUpperCase())
+                         ? new SCIMv2PatchOperation.Builder().op(op)
+                         .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
+                         .value(CollectionUtil.newMap("members",
+                                 CollectionUtil.newList(buildPatchValue(user))))
+                         .build()
+                         : new SCIMv2PatchOperation.Builder().op(op).path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
+                                 // in some cases is needed to
+                                 // append "[value eq \"" + user.getId() + "\"]" to retrieve the user
+                                 .value(CollectionUtil.newList(buildPatchValue(user))).build())).build();
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    protected void fillGroupPatches(final SCIMv2User user,
+            final Map<String, SCIMv2Patch> groupPatches,
+            final List<String> groupsToAdd,
+            final List<String> groupsToRemove) {
+        groupsToAdd.forEach(grp -> groupPatches.put(grp,
+                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD)));
+        groupsToRemove.forEach(grp -> groupPatches.put(grp,
+                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_REMOVE)));
+    }
+
+    @Override
+    protected SCIMv2Patch buildPatchFromGroup(final SCIMv2Group group) {
+        // these information must not be included for some providers like AWS
+        if (ScimProvider.AWS == ScimProvider.valueOf(configuration.getScimProvider())) {
+            group.setMeta(null);
+            group.getSchemas().clear();
+        }
+        return new SCIMv2PatchImpl.Builder().operations(Collections.singleton(new SCIMv2PatchOperation.Builder()
+                .op(SCIMAttributeUtils.SCIM2_REPLACE)
+                .value(group).build())).build();
     }
 
     @Override
@@ -121,5 +125,17 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         scimEntitlementRefs.forEach(e -> user.getEntitlements().add(new SCIMv2Entitlement.Builder().value(e.getId())
                 .ref(configuration.getBaseAddress() + "Entitlements/" + e.getId()).display(e.getDisplayName())
                 .primary(true).type(e.getType()).build()));
+    }
+
+    private SCIMv2PatchValue buildPatchValue(final SCIMv2User user) {
+        SCIMv2PatchValue.Builder builder = new SCIMv2PatchValue.Builder();
+        switch (ScimProvider.valueOf(configuration.getScimProvider())) {
+            case WSO2:
+                builder.value(user.getId()).display(user.getDisplayName());
+                break;
+            default:
+                builder.value(user.getId());
+        }
+        return builder.build();
     }
 }

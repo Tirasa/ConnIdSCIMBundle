@@ -241,8 +241,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
     protected JsonNode doUpdatePatch(final Set<Attribute> replaceAttributes, final WebClient webClient) {
         LOG.ok("UPDATE PATCH: {0}", webClient.getCurrentURI());
-        // TODO
-        return null;
+        return doUpdatePatch(null, replaceAttributes, webClient);
     }
 
     protected JsonNode doUpdatePatch(final P patch, final Set<Attribute> replaceAttributes, final WebClient webClient) {
@@ -257,10 +256,14 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             payload =
                     SCIMUtils.MAPPER.writeValueAsString(patch == null ? buildPatchFromAttrs(replaceAttributes) : patch);
 
-            response = webClient.invoke("PATCH", payload);
+            LOG.info("Patch payload is {0}", payload);
 
+            response = webClient.invoke("PATCH", payload);
             checkServiceErrors(response);
-            result = SCIMUtils.MAPPER.readTree(response.readEntity(String.class));
+
+            // some providers, like AWS, return no result, thus a new read is needed
+            result = Status.NO_CONTENT.getStatusCode() == response.getStatus() ? doGet(webClient)
+                    : SCIMUtils.MAPPER.readTree(response.readEntity(String.class));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
             LOG.error(ex, "UPDATE PATCH payload {0}: ", payload);
@@ -309,7 +312,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             throw new NoSuchEntityException(responseAsString);
         } else if (response.getStatus() != Status.OK.getStatusCode()
                 && response.getStatus() != Status.ACCEPTED.getStatusCode()
-                && response.getStatus() != Status.CREATED.getStatusCode()) {
+                && response.getStatus() != Status.CREATED.getStatusCode()
+                && response.getStatus() != Status.NO_CONTENT.getStatusCode()) {
             SCIMUtils.handleGeneralError("While executing request: " + responseAsString);
         }
     }
@@ -629,7 +633,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         return pagedResults;
     }
 
-    protected GT doGetGroup(final WebClient webClient, final Class<GT> userType) {
+    protected GT doGetGroup(final WebClient webClient, final Class<GT> groupType) {
         GT group = null;
         JsonNode node = doGet(webClient);
         if (node == null) {
@@ -637,7 +641,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         }
 
         try {
-            group = SCIMUtils.MAPPER.readValue(node.toString(), userType);
+            group = SCIMUtils.MAPPER.readValue(node.toString(), groupType);
         } catch (IOException ex) {
             LOG.error(ex, "While converting from JSON to Group");
         }
