@@ -15,8 +15,10 @@
  */
 package net.tirasa.connid.bundles.scim.v2.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SCIMv2PatchOperation implements SCIMPatchOperation {
 
     private static final long serialVersionUID = -1398745689025351659L;
