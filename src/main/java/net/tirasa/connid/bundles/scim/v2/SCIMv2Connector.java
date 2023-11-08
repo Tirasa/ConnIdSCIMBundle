@@ -77,43 +77,46 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected SCIMv2Patch buildMemberGroupPatch(final SCIMv2User user, final String op) {
+    protected SCIMv2Patch buildMemberGroupPatch(final SCIMProvider provider, final SCIMv2User user, final String op) {
         SCIMv2PatchImpl.Builder builder = new SCIMv2PatchImpl.Builder();
-        switch (SCIMProvider.valueOf(configuration.getScimProvider().toUpperCase())) {
-            // due to the deviation of salesforce and WSO2 from the standard we need to manage the members patch 
-            // accordingly
+
+        // due to the deviation of salesforce and WSO2 from the standard we need to adjust the members patch
+        switch (provider) {
             // https://help.salesforce.com/s/articleView?id=sf.identity_scim_manage_groups.htm&type=5
             case SALESFORCE:
             case WSO2:
                 builder.operations(CollectionUtil.newSet(new SCIMv2PatchOperation.Builder()
                         .op(op)
-                        .path(SCIMProvider.SALESFORCE == SCIMProvider.valueOf(configuration.getScimProvider()
-                                .toUpperCase()) ? SCIMAttributeUtils.SCIM_GROUP_MEMBERS : null)
-                        .value(CollectionUtil.newMap(SCIMAttributeUtils.SCIM_GROUP_MEMBERS,
+                        .path(SCIMProvider.SALESFORCE == provider ? SCIMAttributeUtils.SCIM_GROUP_MEMBERS : null)
+                        .value(CollectionUtil.newMap(
+                                SCIMAttributeUtils.SCIM_GROUP_MEMBERS,
                                 CollectionUtil.newList(buildPatchValue(user))))
                         .build()));
                 break;
+
             default:
-                builder.operations(CollectionUtil.newSet(new SCIMv2PatchOperation.Builder().op(op)
+                builder.operations(CollectionUtil.newSet(new SCIMv2PatchOperation.Builder()
+                        .op(op)
                         .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                        // in some cases is needed to
-                        // append "[value eq \"" + user.getId() + "\"]" to retrieve the user
+                        // sometimes it is needed to append "[value eq \"" + user.getId() + "\"]" to retrieve the user
                         .value(CollectionUtil.newList(buildPatchValue(user)))
                         .build()));
         }
         return builder.build();
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    protected void fillGroupPatches(final SCIMv2User user,
+    protected void fillGroupPatches(
+            final SCIMProvider provider,
+            final SCIMv2User user,
             final Map<String, SCIMv2Patch> groupPatches,
             final List<String> groupsToAdd,
             final List<String> groupsToRemove) {
+
         groupsToAdd.forEach(grp -> groupPatches.put(grp,
-                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD)));
+                buildMemberGroupPatch(provider, user, SCIMAttributeUtils.SCIM2_ADD)));
         groupsToRemove.forEach(grp -> groupPatches.put(grp,
-                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_REMOVE)));
+                buildMemberGroupPatch(provider, user, SCIMAttributeUtils.SCIM2_REMOVE)));
     }
 
     @Override

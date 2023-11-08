@@ -277,6 +277,8 @@ public abstract class AbstractSCIMConnector<
             SCIMUtils.handleGeneralError("Set of Attributes value is null or empty");
         }
 
+        final SCIMProvider provider = SCIMProvider.valueOf(configuration.getScimProvider().toUpperCase());
+
         final AttributesAccessor accessor = new AttributesAccessor(createAttributes);
 
         if (ObjectClass.ACCOUNT.equals(objectClass)) {
@@ -339,13 +341,12 @@ public abstract class AbstractSCIMConnector<
                 // SCIM-1 update also groups, if needed
                 if (!scimGroups.isEmpty() && configuration.getExplicitGroupAddOnCreate()) {
                     LOG.info("Updating groups {0} explicitly adding user {1}", groups, user.getId());
+
                     scimGroups.forEach(group -> {
-                        group.getMembers().add(SCIMUtils.buildGroupMember(
-                                user,
-                                SCIMProvider.valueOf(configuration.getScimProvider().toUpperCase())));
+                        group.getMembers().add(SCIMUtils.buildGroupMember(user, provider));
                         if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
                             client.updateGroup(
-                                    group.getId(), buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD));
+                                    group.getId(), buildMemberGroupPatch(provider, user, SCIMAttributeUtils.SCIM2_ADD));
                         } else {
                             client.updateGroup(group);
                         }
@@ -391,6 +392,8 @@ public abstract class AbstractSCIMConnector<
         if (replaceAttributes == null || replaceAttributes.isEmpty()) {
             SCIMUtils.handleGeneralError("Set of Attributes value is null or empty");
         }
+
+        final SCIMProvider provider = SCIMProvider.valueOf(configuration.getScimProvider().toUpperCase());
 
         final AttributesAccessor accessor = new AttributesAccessor(replaceAttributes);
 
@@ -440,7 +443,7 @@ public abstract class AbstractSCIMConnector<
                             groups.stream().filter(g -> !currentGroups.contains(g)).collect(Collectors.toList());
                     List<String> groupsToRemove =
                             currentGroups.stream().filter(g -> !groups.contains(g)).collect(Collectors.toList());
-                    fillGroupPatches(user, groupPatches, groupsToAdd, groupsToRemove);
+                    fillGroupPatches(provider, user, groupPatches, groupsToAdd, groupsToRemove);
                 } else {
                     List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
                     if (groups != null && !groups.isEmpty()) {
@@ -637,10 +640,14 @@ public abstract class AbstractSCIMConnector<
 
     protected abstract ST buildSCIMClient(SCIMConnectorConfiguration configuration);
 
-    protected abstract void fillGroupPatches(UT user, Map<String, P> groupPatches, List<String> groupsToAdd,
+    protected abstract void fillGroupPatches(
+            SCIMProvider provider,
+            UT user,
+            Map<String, P> groupPatches,
+            List<String> groupsToAdd,
             List<String> groupsToRemove);
 
-    protected abstract P buildMemberGroupPatch(UT user, String op);
+    protected abstract P buildMemberGroupPatch(SCIMProvider provider, UT user, String op);
 
     protected abstract P buildPatchFromGroup(GT group);
 
