@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.SCIMProvider;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
@@ -73,16 +74,26 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected void fillGroupPatches(final SCIMv11User user, final Map<String, SCIMv11BasePatch> groupPatches,
-            final List<String> groupsToAdd, final List<String> groupsToRemove) {
+    protected void fillGroupPatches(
+            final SCIMProvider provider,
+            final SCIMv11User user,
+            final Map<String, SCIMv11BasePatch> groupPatches,
+            final List<String> groupsToAdd,
+            final List<String> groupsToRemove) {
+
         // on group add SCIM v1.1 omits the operation 
-        groupsToAdd.forEach(grp -> groupPatches.put(grp, buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD)));
+        groupsToAdd.forEach(grp -> groupPatches.put(grp,
+                buildMemberGroupPatch(provider, user, SCIMAttributeUtils.SCIM2_ADD)));
         groupsToRemove.forEach(grp -> groupPatches.put(grp,
-                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_REMOVE)));
+                buildMemberGroupPatch(provider, user, SCIMAttributeUtils.SCIM2_REMOVE)));
     }
 
     @Override
-    protected SCIMv11BasePatch buildMemberGroupPatch(final SCIMv11User user, final String op) {
+    protected SCIMv11BasePatch buildMemberGroupPatch(
+            final SCIMProvider provider,
+            final SCIMv11User user,
+            final String op) {
+
         return new SCIMv11GroupPatch.Builder().members(
                 CollectionUtil.newList(new Scimv11GroupPatchOperation.Builder().
                         operation(SCIMAttributeUtils.SCIM2_ADD).
@@ -91,7 +102,7 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
 
     @Override
     protected SCIMv11BasePatch buildPatchFromGroup(final SCIMv11Group group) {
-       throw new IllegalArgumentException("Not implemented, yet");
+        throw new IllegalArgumentException("Not implemented, yet");
     }
 
     @Override
