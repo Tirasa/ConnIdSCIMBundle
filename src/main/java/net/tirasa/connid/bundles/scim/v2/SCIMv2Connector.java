@@ -77,7 +77,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected SCIMv2Patch buildMemberGroupPatch(final SCIMProvider provider, final SCIMv2User user, final String op) {
+    protected SCIMv2Patch buildMemberGroupPatch(final SCIMv2User user, final String op) {
         SCIMv2PatchImpl.Builder builder = new SCIMv2PatchImpl.Builder();
 
         // due to the deviation of salesforce and WSO2 from the standard we need to adjust the members patch
@@ -107,28 +107,28 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
 
     @Override
     protected void fillGroupPatches(
-            final SCIMProvider provider,
             final SCIMv2User user,
             final Map<String, SCIMv2Patch> groupPatches,
             final List<String> groupsToAdd,
             final List<String> groupsToRemove) {
 
         groupsToAdd.forEach(grp -> groupPatches.put(grp,
-                buildMemberGroupPatch(provider, user, SCIMAttributeUtils.SCIM2_ADD)));
+                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD)));
         groupsToRemove.forEach(grp -> groupPatches.put(grp,
-                buildMemberGroupPatch(provider, user, SCIMAttributeUtils.SCIM2_REMOVE)));
+                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_REMOVE)));
     }
 
     @Override
     protected SCIMv2Patch buildPatchFromGroup(final SCIMv2Group group) {
         // these information must not be included for some providers like AWS
-        if (SCIMProvider.AWS == SCIMProvider.valueOf(configuration.getScimProvider())) {
+        if (SCIMProvider.AWS == provider) {
             group.setMeta(null);
             group.getSchemas().clear();
         }
-        return new SCIMv2PatchImpl.Builder().operations(Collections.singleton(new SCIMv2PatchOperation.Builder()
-                .op(SCIMAttributeUtils.SCIM2_REPLACE)
-                .value(group).build())).build();
+        return new SCIMv2PatchImpl.Builder().operations(Collections.singleton(
+                new SCIMv2PatchOperation.Builder()
+                        .op(SCIMAttributeUtils.SCIM2_REPLACE)
+                        .value(group).build())).build();
     }
 
     @Override
@@ -143,7 +143,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
 
     private SCIMv2PatchValue buildPatchValue(final SCIMv2User user) {
         SCIMv2PatchValue.Builder builder = new SCIMv2PatchValue.Builder();
-        switch (SCIMProvider.valueOf(configuration.getScimProvider())) {
+        switch (provider) {
             case WSO2:
                 builder.value(user.getId()).display(user.getDisplayName());
                 break;

@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
-import net.tirasa.connid.bundles.scim.common.SCIMProvider;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
@@ -75,7 +74,6 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
 
     @Override
     protected void fillGroupPatches(
-            final SCIMProvider provider,
             final SCIMv11User user,
             final Map<String, SCIMv11BasePatch> groupPatches,
             final List<String> groupsToAdd,
@@ -83,17 +81,13 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
 
         // on group add SCIM v1.1 omits the operation 
         groupsToAdd.forEach(grp -> groupPatches.put(grp,
-                buildMemberGroupPatch(provider, user, SCIMAttributeUtils.SCIM2_ADD)));
+                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD)));
         groupsToRemove.forEach(grp -> groupPatches.put(grp,
-                buildMemberGroupPatch(provider, user, SCIMAttributeUtils.SCIM2_REMOVE)));
+                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_REMOVE)));
     }
 
     @Override
-    protected SCIMv11BasePatch buildMemberGroupPatch(
-            final SCIMProvider provider,
-            final SCIMv11User user,
-            final String op) {
-
+    protected SCIMv11BasePatch buildMemberGroupPatch(final SCIMv11User user, final String op) {
         return new SCIMv11GroupPatch.Builder().members(
                 CollectionUtil.newList(new Scimv11GroupPatchOperation.Builder().
                         operation(SCIMAttributeUtils.SCIM2_ADD).
