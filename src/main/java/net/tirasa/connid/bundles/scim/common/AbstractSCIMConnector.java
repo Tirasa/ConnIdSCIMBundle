@@ -26,15 +26,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 import net.tirasa.connid.bundles.scim.common.service.SCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
@@ -284,7 +287,8 @@ public abstract class AbstractSCIMConnector<
         final AttributesAccessor accessor = new AttributesAccessor(createAttributes);
 
         if (ObjectClass.ACCOUNT.equals(objectClass)) {
-            UT user = buildNewUserEntity();
+            UT user = buildNewUserEntity(SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(),
+                    SCIMv2Attribute.class));
             String username = accessor.findString(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
             if (username == null) {
                 username = accessor.findString(Name.NAME);
@@ -405,7 +409,8 @@ public abstract class AbstractSCIMConnector<
                 username = accessor.findString(Name.NAME);
             }
 
-            UT user = buildNewUserEntity();
+            UT user = buildNewUserEntity(SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(),
+                    SCIMv2Attribute.class));
             user.setId(uid.getUidValue());
             user.setUserName(username);
             if (status == null || status.getValue() == null || status.getValue().isEmpty()) {
@@ -632,7 +637,7 @@ public abstract class AbstractSCIMConnector<
         return configuration;
     }
 
-    protected abstract UT buildNewUserEntity();
+    protected abstract <T extends SCIMBaseAttribute<T>> UT buildNewUserEntity(Optional<SCIMSchema<T>> customSchema);
 
     protected abstract GT buildNewGroupEntity();
 

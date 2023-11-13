@@ -18,10 +18,13 @@ package net.tirasa.connid.bundles.scim.v2;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.SCIMProvider;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Entitlement;
@@ -67,8 +70,12 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected SCIMv2User buildNewUserEntity() {
-        return new SCIMv2User();
+    protected <T extends SCIMBaseAttribute<T>> SCIMv2User buildNewUserEntity(
+            final Optional<SCIMSchema<T>> customSchema) {
+        // SCIM-16 add also custom schemas
+        SCIMv2User newUser = new SCIMv2User();
+        customSchema.ifPresent(cs -> newUser.getSchemas().add(cs.getId()));
+        return newUser;
     }
 
     @Override
