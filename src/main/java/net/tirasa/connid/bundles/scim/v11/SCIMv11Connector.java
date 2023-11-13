@@ -68,7 +68,7 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     @Override
     protected <T extends SCIMBaseAttribute<T>> SCIMv11User buildNewUserEntity(
             final Optional<SCIMSchema<T>> customSchema) {
-        // SCIM-16 add also custom schemas
+
         SCIMv11User newUser = new SCIMv11User();
         customSchema.ifPresent(cs -> newUser.getSchemas().add(cs.getId()));
         return newUser;

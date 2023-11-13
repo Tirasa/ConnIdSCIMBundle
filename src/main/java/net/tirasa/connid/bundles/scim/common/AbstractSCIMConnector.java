@@ -287,8 +287,8 @@ public abstract class AbstractSCIMConnector<
         final AttributesAccessor accessor = new AttributesAccessor(createAttributes);
 
         if (ObjectClass.ACCOUNT.equals(objectClass)) {
-            UT user = buildNewUserEntity(SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(),
-                    SCIMv2Attribute.class));
+            UT user = buildNewUserEntity(
+                    SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class));
             String username = accessor.findString(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
             if (username == null) {
                 username = accessor.findString(Name.NAME);
@@ -409,8 +409,8 @@ public abstract class AbstractSCIMConnector<
                 username = accessor.findString(Name.NAME);
             }
 
-            UT user = buildNewUserEntity(SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(),
-                    SCIMv2Attribute.class));
+            UT user = buildNewUserEntity(
+                    SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class));
             user.setId(uid.getUidValue());
             user.setUserName(username);
             if (status == null || status.getValue() == null || status.getValue().isEmpty()) {
