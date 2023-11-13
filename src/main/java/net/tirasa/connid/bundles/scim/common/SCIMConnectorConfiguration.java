@@ -68,6 +68,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String accessTokenContentType = MediaType.APPLICATION_FORM_URLENCODED;
 
+    private String accessTokenAccept = MediaType.APPLICATION_JSON;
+
     private String addressesType;
 
     private String genericComplexType;
@@ -226,8 +228,18 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.accessTokenContentType = accessTokenContentType;
     }
 
+    @ConfigurationProperty(displayMessageKey = "accessTokenAccept.display",
+            helpMessageKey = "accessTokenAccept.help", order = 15)
+    public String getAccessTokenAccept() {
+        return accessTokenAccept;
+    }
+
+    public void setAccessTokenAccept(final String accessTokenAccept) {
+        this.accessTokenAccept = accessTokenAccept;
+    }
+
     @ConfigurationProperty(displayMessageKey = "addressesType.display", helpMessageKey = "addressesType.help",
-            order = 15)
+            order = 16)
     public String getAddressesType() {
         return addressesType;
     }
@@ -237,7 +249,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     }
 
     @ConfigurationProperty(displayMessageKey = "genericComplexType.display", helpMessageKey = "genericComplexType.help",
-            order = 16)
+            order = 17)
     public String getGenericComplexType() {
         return genericComplexType;
     }
@@ -248,7 +260,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     @ConfigurationProperty(displayMessageKey = "manageComplexEntitlements.display",
             helpMessageKey = "manageComplexEntitlements.help",
-            order = 17)
+            order = 18)
     public Boolean getManageComplexEntitlements() {
         return manageComplexEntitlements;
     }
@@ -259,7 +271,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     @ConfigurationProperty(displayMessageKey = "scimProvider.display",
             helpMessageKey = "scimProvider.help",
-            order = 18)
+            order = 19)
     public String getScimProvider() {
         return scimProvider;
     }
