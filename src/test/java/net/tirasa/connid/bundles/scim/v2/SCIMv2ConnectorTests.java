@@ -407,6 +407,7 @@ public class SCIMv2ConnectorTests {
             final List<ResourceReference> groups, final SCIMv2Client client) {
         SCIMv2User user = new SCIMv2User();
         String name = SCIMv2ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
+        user.getSchemas().add("urn:mem:params:scim:schemas:extension:LuckyNumberExtension");
         user.setUserName(name);
         user.setPassword(SCIMv2ConnectorTestsUtils.VALUE_PASSWORD);
         user.getSchemas().addAll(CUSTOM_OTHER_SCHEMAS);

@@ -17,9 +17,12 @@ package net.tirasa.connid.bundles.scim.v11;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11BasePatch;
@@ -63,8 +66,12 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected SCIMv11User buildNewUserEntity() {
-        return new SCIMv11User();
+    protected <T extends SCIMBaseAttribute<T>> SCIMv11User buildNewUserEntity(
+            final Optional<SCIMSchema<T>> customSchema) {
+
+        SCIMv11User newUser = new SCIMv11User();
+        customSchema.ifPresent(cs -> newUser.getSchemas().add(cs.getId()));
+        return newUser;
     }
 
     @Override
