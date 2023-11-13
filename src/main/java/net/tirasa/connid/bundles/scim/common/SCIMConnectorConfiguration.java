@@ -68,7 +68,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String accessTokenContentType = MediaType.APPLICATION_FORM_URLENCODED;
 
-    private String acceptAccess = MediaType.APPLICATION_JSON;
+    private String accessTokenAccept = MediaType.APPLICATION_JSON;
 
     private String addressesType;
 
@@ -228,14 +228,14 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.accessTokenContentType = accessTokenContentType;
     }
 
-    @ConfigurationProperty(displayMessageKey = "acceptAccess.display",
-            helpMessageKey = "acceptAccess.help", order = 15)
-    public String getAcceptAccess() {
-        return acceptAccess;
+    @ConfigurationProperty(displayMessageKey = "accessTokenAccept.display",
+            helpMessageKey = "accessTokenAccept.help", order = 15)
+    public String getAccessTokenAccept() {
+        return accessTokenAccept;
     }
 
-    public void setAcceptAccess(final String acceptAccess) {
-        this.acceptAccess = acceptAccess;
+    public void setAccessTokenAccept(final String accessTokenAccept) {
+        this.accessTokenAccept = accessTokenAccept;
     }
 
     @ConfigurationProperty(displayMessageKey = "addressesType.display", helpMessageKey = "addressesType.help",
