@@ -84,7 +84,7 @@ public class SCIMv2EntitlementResource extends AbstractSCIMBaseResource<SCIMv2Me
     }
 
     @Override
-    public void fromAttributes(final Set<Attribute> attributes) {
+    public void fromAttributes(final Set<Attribute> attributes, final boolean replaceMembersOnUpdate) {
         // DO NOTHING
     }
 }

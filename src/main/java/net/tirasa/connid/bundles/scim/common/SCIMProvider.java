@@ -16,9 +16,11 @@
 package net.tirasa.connid.bundles.scim.common;
 
 public enum SCIMProvider {
-    
+
     STANDARD,
     SALESFORCE,
     WSO2,
     AWS,
+    KEYCLOAK;
+
 }

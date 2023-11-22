@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.Collections;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.service.AbstractSCIMService;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
@@ -30,7 +31,6 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Patch;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchImpl;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchOperation;
-import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2PatchValue;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import org.identityconnectors.framework.common.objects.Attribute;
 
@@ -122,9 +122,9 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
         SCIMv2Patch patch = new SCIMv2PatchImpl();
         replaceAttributes.stream().filter(attr -> !attr.getValue().isEmpty())
                 .map(attr -> new SCIMv2PatchOperation.Builder()
-                .op(SCIMAttributeUtils.SCIM2_REPLACE)
+                .op(SCIMAttributeUtils.SCIM_REPLACE)
                 .path(attr.getName())
-                .value(new SCIMv2PatchValue.Builder().value(attr.getValue().get(0).toString()).build())
+                .value(new BaseResourceReference.Builder().value(attr.getValue().get(0).toString()).build())
                 .build())
                 .forEach(op -> patch.getOperations().add(op));
         return patch;

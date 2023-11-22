@@ -37,6 +37,10 @@ public interface SCIMBaseResource<MT extends SCIMBaseMeta> extends Serializable 
     Set<Attribute> toAttributes(Class<?> type, SCIMConnectorConfiguration configuration)
             throws IllegalArgumentException, IllegalAccessException;
 
-    void fromAttributes(Set<Attribute> attributes);
+    void fromAttributes(Set<Attribute> attributes, boolean replaceMembersOnUpdate);
+
+    default void fromAttributes(Set<Attribute> attributes) {
+        fromAttributes(attributes, false);
+    }
 
 }

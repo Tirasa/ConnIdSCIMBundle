@@ -102,10 +102,10 @@ public class AbstractSCIMGroup<MT extends SCIMBaseMeta> extends AbstractSCIMBase
 
     @JsonIgnore
     @Override
-    public void fromAttributes(final Set<Attribute> attributes) {
+    public void fromAttributes(final Set<Attribute> attributes, final boolean replaceMembersOnUpdate) {
         attributes.stream().filter(attribute -> !CollectionUtil.isEmpty(attribute.getValue())).forEach(attribute -> {
             try {
-                doSetAttribute(attribute.getName(), attribute.getValue());
+                doSetAttribute(attribute.getName(), attribute.getValue(), replaceMembersOnUpdate);
             } catch (Exception e) {
                 LOG.warn(e, "While populating User field from ConnId attribute: {0}", attribute);
             }
@@ -114,12 +114,16 @@ public class AbstractSCIMGroup<MT extends SCIMBaseMeta> extends AbstractSCIMBase
 
     @JsonIgnore
     @SuppressWarnings("unchecked")
-    private void doSetAttribute(final String name, final List<Object> values) {
+    private void doSetAttribute(final String name, final List<Object> values, final boolean replaceMembersOnUpdate) {
         if (SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME.equals(name)) {
             this.displayName = String.class.cast(values.get(0));
         } else if (SCIMAttributeUtils.SCIM_GROUP_MEMBERS.equals(name)) {
+            if (replaceMembersOnUpdate) {
+                // clear members before, to enable groups replacement
+                members.clear();
+            }
             values.forEach(value -> members.add(
-                    new BaseResourceReference.Builder().value(value.toString()).ref("../Users/" + value).build()));
+                    new BaseResourceReference.Builder().value(value.toString()).build()));
         }
     }
 }

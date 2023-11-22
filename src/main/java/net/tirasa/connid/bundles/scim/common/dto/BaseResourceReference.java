@@ -15,9 +15,11 @@
  */
 package net.tirasa.connid.bundles.scim.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BaseResourceReference implements Serializable {
 
     private static final long serialVersionUID = 9126588075353486789L;

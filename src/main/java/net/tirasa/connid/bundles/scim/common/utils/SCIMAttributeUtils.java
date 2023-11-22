@@ -77,11 +77,11 @@ public final class SCIMAttributeUtils {
 
     public static final String SCIM11_REMOVE = "delete";
 
-    public static final String SCIM2_REMOVE = "remove";
+    public static final String SCIM_REMOVE = "remove";
 
-    public static final String SCIM2_ADD = "add";
+    public static final String SCIM_ADD = "add";
 
-    public static final String SCIM2_REPLACE = "replace";
+    public static final String SCIM_REPLACE = "replace";
 
     public static final String SCIM_USER_PHOTOS = "photos";
 

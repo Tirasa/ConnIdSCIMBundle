@@ -304,7 +304,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
 
     @JsonIgnore
     @Override
-    public void fromAttributes(final Set<Attribute> attributes) {
+    public void fromAttributes(final Set<Attribute> attributes, final boolean replaceMembersOnUpdate) {
         attributes.stream().filter(attribute -> !CollectionUtil.isEmpty(attribute.getValue())).forEach(attribute -> {
             try {
                 doSetAttribute(attribute.getName(), attribute.getValue());
