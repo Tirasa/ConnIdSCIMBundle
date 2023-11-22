@@ -21,4 +21,6 @@ public enum SCIMProvider {
     SALESFORCE,
     WSO2,
     AWS,
+    
+    KEYCLOAK,
 }

@@ -351,8 +351,9 @@ public abstract class AbstractSCIMConnector<
                     scimGroups.forEach(group -> {
                         group.getMembers().add(SCIMUtils.buildGroupMember(user, provider));
                         if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
-                            client.updateGroup(
-                                    group.getId(), buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD));
+                            client.updateGroup(group.getId(),
+                                    buildMembersGroupPatch(Collections.singletonList(user),
+                                            SCIMAttributeUtils.SCIM_ADD));
                         } else {
                             client.updateGroup(group);
                         }
@@ -371,7 +372,7 @@ public abstract class AbstractSCIMConnector<
             String displayName = accessor.findString(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME);
             try {
                 group.setDisplayName(displayName);
-                group.fromAttributes(createAttributes);
+                group.fromAttributes(createAttributes, configuration.getReplaceMembersOnUpdate());
                 client.createGroup(group);
             } catch (Exception e) {
                 LOG.error(e, "Unable to create Group {0}", displayName);
@@ -501,10 +502,25 @@ public abstract class AbstractSCIMConnector<
             group.setId(uid.getUidValue());
             group.setDisplayName(displayName);
             try {
-                group.fromAttributes(replaceAttributes);
+                group.fromAttributes(replaceAttributes, configuration.getReplaceMembersOnUpdate());
                 if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
                     client.updateGroup(uid.getUidValue(), buildPatchFromGroup(group));
+                    if (configuration.getReplaceMembersOnUpdate()) {
+                        List<String> members =
+                                Optional.ofNullable(accessor.findStringList(SCIMAttributeUtils.SCIM_GROUP_MEMBERS))
+                                        .orElse(Collections.emptyList());
+                        LOG.info("Replacing all group [{0}] members with [{1}] during PATCH update",
+                                group.getId(), members);
+                        List<UT> scimUsers = members == null || members.isEmpty() ? Collections.emptyList()
+                                : members.stream()
+                                        .map(client::getUser)
+                                        .filter(g -> g != null)
+                                        .collect(Collectors.toList());
+                        client.updateGroup(group.getId(),
+                                buildMembersGroupPatch(scimUsers, SCIMAttributeUtils.SCIM_ADD));
+                    }
                 } else {
+                    // add members to group
                     client.updateGroup(group);
                 }
 
@@ -651,7 +667,7 @@ public abstract class AbstractSCIMConnector<
             List<String> groupsToAdd,
             List<String> groupsToRemove);
 
-    protected abstract P buildMemberGroupPatch(UT user, String op);
+    protected abstract P buildMembersGroupPatch(List<UT> user, String op);
 
     protected abstract P buildPatchFromGroup(GT group);
 

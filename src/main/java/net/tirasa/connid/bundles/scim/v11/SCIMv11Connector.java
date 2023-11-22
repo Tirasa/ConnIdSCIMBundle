@@ -15,9 +15,11 @@
  */
 package net.tirasa.connid.bundles.scim.v11;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
@@ -32,7 +34,6 @@ import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Meta;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.dto.Scimv11GroupPatchOperation;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.spi.ConnectorClass;
 
@@ -88,17 +89,19 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
 
         // on group add SCIM v1.1 omits the operation 
         groupsToAdd.forEach(grp -> groupPatches.put(grp,
-                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_ADD)));
+                buildMembersGroupPatch(Collections.singletonList(user), SCIMAttributeUtils.SCIM_ADD)));
         groupsToRemove.forEach(grp -> groupPatches.put(grp,
-                buildMemberGroupPatch(user, SCIMAttributeUtils.SCIM2_REMOVE)));
+                buildMembersGroupPatch(Collections.singletonList(user), SCIMAttributeUtils.SCIM_REMOVE)));
     }
 
     @Override
-    protected SCIMv11BasePatch buildMemberGroupPatch(final SCIMv11User user, final String op) {
-        return new SCIMv11GroupPatch.Builder().members(
-                CollectionUtil.newList(new Scimv11GroupPatchOperation.Builder().
-                        operation(SCIMAttributeUtils.SCIM2_ADD).
-                        display(user.getDisplayName()).value(user.getId()).build())).build();
+    protected SCIMv11BasePatch buildMembersGroupPatch(final List<SCIMv11User> users, final String op) {
+        return new SCIMv11GroupPatch.Builder().members(users.stream()
+                .map(user -> new Scimv11GroupPatchOperation.Builder().operation(SCIMAttributeUtils.SCIM_ADD)
+                        .display(user.getDisplayName())
+                        .value(user.getId())
+                        .build())
+                .collect(Collectors.toList())).build();
     }
 
     @Override
