@@ -506,18 +506,21 @@ public abstract class AbstractSCIMConnector<
                 if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
                     client.updateGroup(uid.getUidValue(), buildPatchFromGroup(group));
                     if (configuration.getReplaceMembersOnUpdate()) {
+                        // SCIM-17 replace all members of the group on update
                         List<String> members =
                                 Optional.ofNullable(accessor.findStringList(SCIMAttributeUtils.SCIM_GROUP_MEMBERS))
                                         .orElse(Collections.emptyList());
                         LOG.info("Replacing all group [{0}] members with [{1}] during PATCH update",
                                 group.getId(), members);
-                        List<UT> scimUsers = members == null || members.isEmpty() ? Collections.emptyList()
-                                : members.stream()
-                                        .map(client::getUser)
-                                        .filter(g -> g != null)
-                                        .collect(Collectors.toList());
-                        client.updateGroup(group.getId(),
-                                buildMembersGroupPatch(scimUsers, SCIMAttributeUtils.SCIM_ADD));
+                        // do not execute update if no users, some providers like AWS could complain about this
+                        if (members != null && !members.isEmpty()) {
+                            List<UT> scimUsers = members.stream()
+                                    .map(client::getUser)
+                                    .filter(g -> g != null)
+                                    .collect(Collectors.toList());
+                            client.updateGroup(group.getId(),
+                                    buildMembersGroupPatch(scimUsers, SCIMAttributeUtils.SCIM_ADD));
+                        }
                     }
                 } else {
                     // add members to group
