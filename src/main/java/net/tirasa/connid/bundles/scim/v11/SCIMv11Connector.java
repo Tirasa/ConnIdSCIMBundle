@@ -98,9 +98,9 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     protected SCIMv11BasePatch buildMembersGroupPatch(final List<SCIMv11User> users, final String op) {
         return new SCIMv11GroupPatch.Builder().members(users.stream()
                 .map(user -> new Scimv11GroupPatchOperation.Builder().operation(SCIMAttributeUtils.SCIM_ADD)
-                        .display(user.getDisplayName())
-                        .value(user.getId())
-                        .build())
+                .display(user.getDisplayName())
+                .value(user.getId())
+                .build())
                 .collect(Collectors.toList())).build();
     }
 

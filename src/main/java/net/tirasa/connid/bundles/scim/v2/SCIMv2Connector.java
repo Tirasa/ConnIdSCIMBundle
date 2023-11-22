@@ -155,11 +155,13 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             case WSO2:
                 builder.value(user.getId()).display(user.getDisplayName());
                 break;
+
             case KEYCLOAK:
                 builder.value(user.getId())
                         .ref(configuration.getBaseAddress() + "Users/" + user.getId())
                         .display(user.getDisplayName());
                 break;
+
             default:
                 builder.value(user.getId());
         }
