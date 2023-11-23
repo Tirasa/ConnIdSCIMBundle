@@ -213,7 +213,7 @@ public final class SCIMUtils {
         BaseResourceReference.Builder groupMemberBuilder = new BaseResourceReference.Builder();
         switch (scimProvider) {
             case WSO2:
-                groupMemberBuilder.value(user.getId()).display(user.getDisplayName());
+                groupMemberBuilder.value(user.getId()).display(user.getUserName());
                 break;
 
             default:

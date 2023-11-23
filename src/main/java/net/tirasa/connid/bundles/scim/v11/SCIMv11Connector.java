@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
+import net.tirasa.connid.bundles.scim.common.SCIMProvider;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
@@ -98,7 +99,7 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     protected SCIMv11BasePatch buildMembersGroupPatch(final List<SCIMv11User> users, final String op) {
         return new SCIMv11GroupPatch.Builder().members(users.stream()
                 .map(user -> new Scimv11GroupPatchOperation.Builder().operation(SCIMAttributeUtils.SCIM_ADD)
-                .display(user.getDisplayName())
+                .display(provider.equals(SCIMProvider.WSO2) ? user.getUserName() : user.getDisplayName())
                 .value(user.getId())
                 .build())
                 .collect(Collectors.toList())).build();
