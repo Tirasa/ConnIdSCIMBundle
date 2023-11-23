@@ -153,7 +153,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         BaseResourceReference.Builder builder = new BaseResourceReference.Builder();
         switch (provider) {
             case WSO2:
-                builder.value(user.getId()).display(user.getDisplayName());
+                builder.value(user.getId()).display(user.getUserName());
                 break;
 
             case KEYCLOAK:
