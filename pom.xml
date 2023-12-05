@@ -78,7 +78,7 @@
   <properties>
     <connid.version>1.5.2.0</connid.version>
 
-    <jackson.version>2.13.5</jackson.version>
+    <jackson.version>2.16.0</jackson.version>
     <cxf.version>3.3.13</cxf.version>
     <java.version>1.8</java.version>
 
