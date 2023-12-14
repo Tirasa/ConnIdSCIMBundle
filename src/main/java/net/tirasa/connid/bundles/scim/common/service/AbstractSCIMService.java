@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -66,6 +67,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     public static final String RESPONSE_ERRORS = "Errors";
 
     public static final String RESPONSE_RESOURCES = "Resources";
+    
+    public static final int MAX_RETRIES = 3;
 
     public AbstractSCIMService(final SCIMConnectorConfiguration config) {
         this.config = config;
@@ -98,7 +101,11 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     }
 
     protected String getBearerToken() {
-        if (StringUtil.isNotBlank(config.getBearerToken())) {
+        return getBearerToken(false);
+    }
+
+    protected String getBearerToken(final boolean forceRefresh) {
+        if (StringUtil.isNotBlank(config.getBearerToken()) && !forceRefresh) {
             return config.getBearerToken();
         }
 
@@ -108,7 +115,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         StringBuilder requestBuilder =
                 new StringBuilder("&client_id=").append(config.getClientId())
                         .append("&client_secret=").append(config.getClientSecret());
-        // append also username and password if and only if they're not blank 
+        // append also username and password if and only if they're not blank
         if (StringUtil.isNotBlank(config.getUsername()) && config.getPassword() != null) {
             requestBuilder.append("&username=").append(config.getUsername())
                     .append("&password=").append(SecurityUtil.decrypt(config.getPassword())).toString();
@@ -136,7 +143,9 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         JsonNode result = null;
 
         try {
-            Response response = webClient.get();
+            Response response = executeAndRetry((token) -> StringUtil.isNotBlank(token)
+                            ? webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).get()
+                            : webClient.get(), 0);
             String responseAsString = response.readEntity(String.class);
             checkServiceErrors(response);
             result = SCIMUtils.MAPPER.readTree(responseAsString);
@@ -158,7 +167,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     protected void doCreate(final UT user, final WebClient webClient) {
         LOG.ok("CREATE: {0}", webClient.getCurrentURI());
         Response response;
-        String payload = null;
+        String payload;
 
         try {
             // check custom attributes
@@ -177,8 +186,10 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                 // no custom attributes
                 payload = SCIMUtils.MAPPER.writeValueAsString(user);
             }
-            response = webClient.post(payload);
-
+            LOG.info("CREATE payload is {0}: ", payload);
+            response = executeAndRetry((token) -> StringUtil.isNotBlank(token)
+                    ? webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).post(payload)
+                    : webClient.post(payload), 0);
             checkServiceErrors(response);
             String value = SCIMAttributeUtils.ATTRIBUTE_ID;
             String responseAsString = response.readEntity(String.class);
@@ -191,7 +202,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                         "While getting " + value + " value for created User - Response : " + responseAsString);
             }
         } catch (IOException ex) {
-            LOG.error("CREATE payload {0}: ", payload);
+            LOG.error(ex, "Error while creating entity");
             SCIMUtils.handleGeneralError("While creating User", ex);
         }
     }
@@ -200,7 +211,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         LOG.ok("UPDATE: {0}", webClient.getCurrentURI());
         JsonNode result = null;
         Response response;
-        String payload = null;
+        String payload;
         if (config.getUpdateUserMethod().equalsIgnoreCase("PATCH")) {
             WebClient.getConfig(webClient).getRequestContext().put("use.async.http.conduit", true);
         }
@@ -223,17 +234,24 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                 payload = SCIMUtils.MAPPER.writeValueAsString(user);
             }
 
+            LOG.info("UPDATE payload is {0}: ", payload);
+
             if (config.getUpdateUserMethod().equalsIgnoreCase("PATCH")) {
-                response = webClient.invoke("PATCH", payload);
+                response = executeAndRetry((token) -> StringUtil.isNotBlank(token)
+                        ? webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .invoke("PATCH", payload)
+                        : webClient.invoke("PATCH", payload), 0);
             } else {
-                response = webClient.put(payload);
+                response = executeAndRetry((token) -> StringUtil.isNotBlank(token)
+                        ? webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).put(payload)
+                        : webClient.put(payload), 0);
             }
 
             checkServiceErrors(response);
             result = SCIMUtils.MAPPER.readTree(response.readEntity(String.class));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
-            LOG.error("UPDATE payload {0}: ", payload);
+            LOG.error(ex, "Error while updating entity");
             SCIMUtils.handleGeneralError("While updating User", ex);
         }
 
@@ -249,7 +267,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         LOG.ok("UPDATE PATCH: {0}", webClient.getCurrentURI());
         JsonNode result = null;
         Response response;
-        String payload = null;
+        String payload;
         WebClient.getConfig(webClient).getRequestContext().put("use.async.http.conduit", true);
 
         try {
@@ -257,7 +275,11 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             payload =
                     SCIMUtils.MAPPER.writeValueAsString(patch == null ? buildPatchFromAttrs(replaceAttributes) : patch);
 
-            response = webClient.invoke("PATCH", payload);
+            LOG.info("UPDATE PATCH payload is {0}: ", payload);
+
+            response = executeAndRetry((token) -> StringUtil.isNotBlank(token)
+                    ? webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).invoke("PATCH", payload)
+                    : webClient.invoke("PATCH", payload), 0);
             checkServiceErrors(response);
 
             // some providers, like AWS, return no result, thus a new read is needed
@@ -266,7 +288,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                     : SCIMUtils.MAPPER.readTree(response.readEntity(String.class));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
-            LOG.error(ex, "UPDATE PATCH payload {0}: ", payload);
+            LOG.error(ex, "Error while updating entity");
             SCIMUtils.handleGeneralError("While updating Group with patch", ex);
         }
 
@@ -290,7 +312,13 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             ObjectNode userIdNode = SCIMUtils.MAPPER.createObjectNode();
             userIdNode.set("user_id", userIdNode.textNode(userId));
 
-            response = webClient.post(SCIMUtils.MAPPER.writeValueAsString(userIdNode));
+            String payload = SCIMUtils.MAPPER.writeValueAsString(userIdNode);
+
+            LOG.info("Activate payload is {0}", payload);
+
+            response = executeAndRetry((token) -> StringUtil.isNotBlank(token)
+                    ? webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).post(payload)
+                    : webClient.post(payload), 0);
             if (response == null) {
                 SCIMUtils.handleGeneralError("While activating User - no response");
             } else {
@@ -746,11 +774,16 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     protected void doCreate(final GT group, final WebClient webClient) {
         LOG.ok("CREATE: {0}", webClient.getCurrentURI());
         Response response;
-        String payload = null;
+        String payload;
 
         try {
             payload = SCIMUtils.MAPPER.writeValueAsString(group);
-            response = webClient.post(payload);
+
+            LOG.info("CREATE payload is {0}: ", payload);
+
+            response = executeAndRetry((token) -> StringUtil.isNotBlank(token)
+                    ? webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).post(payload)
+                    : webClient.post(payload), 0);
 
             checkServiceErrors(response);
             String value = SCIMAttributeUtils.ATTRIBUTE_ID;
@@ -764,7 +797,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                         "While getting " + value + " value for created Group - Response : " + responseAsString);
             }
         } catch (IOException ex) {
-            LOG.error("CREATE payload {0}: ", payload);
+            LOG.error(ex, "Unable to create entity");
             SCIMUtils.handleGeneralError("While creating Group", ex);
         }
     }
@@ -806,22 +839,26 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         LOG.ok("UPDATE: {0}", webClient.getCurrentURI());
         JsonNode result = null;
         Response response;
-        String payload = null;
+        String payload;
 
         try {
             // this is only for update through PUT method
             payload = SCIMUtils.MAPPER.writeValueAsString(group);
-            response = webClient.put(payload);
+
+            LOG.info("UPDATE payload is {0}: ", payload);
+
+            response = executeAndRetry((token) -> StringUtil.isNotBlank(token)
+                    ? webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).put(payload)
+                    : webClient.put(payload), 0);
 
             checkServiceErrors(response);
             String responseEntity = response.readEntity(String.class);
             // some servers like Salesforce return empty response on group update with PUT, thus  a re-read is needed
-            result = StringUtil.isNotBlank(responseEntity)
-                    ? SCIMUtils.MAPPER.readTree(responseEntity)
+            result = StringUtil.isNotBlank(responseEntity) ? SCIMUtils.MAPPER.readTree(responseEntity)
                     : doGet(getWebclient("Groups", null).path(group.getId()));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
-            LOG.error("UPDATE payload {0}: ", payload);
+            LOG.error(ex, "Unable to update entity");
             SCIMUtils.handleGeneralError("While updating Group", ex);
         }
 
@@ -830,10 +867,28 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
     protected void doDeleteGroup(final String groupId, final WebClient webClient) {
         LOG.ok("DELETE Group: {0}", webClient.getCurrentURI());
-        int status = webClient.delete().getStatus();
+        int status = executeAndRetry((token) -> StringUtil.isNotBlank(token)
+                        ? webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token).delete()
+                        : webClient.delete(),
+                0).getStatus();
         if (status != Status.NO_CONTENT.getStatusCode() && status != Status.OK.getStatusCode()) {
             throw new NoSuchEntityException(groupId);
         }
+    }
+
+    protected Response executeAndRetry(final Function<String, Response> action, final int retry) {
+        Response response = action.apply(config.getBearerToken());
+        if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+            if (retry < MAX_RETRIES) {
+                LOG.info("Refreshing bearer token after UNAUTHORIZED response, try #{0}", retry);
+                // regenerate the token and update configuration
+                getBearerToken(true);
+                return executeAndRetry(action, retry + 1);
+            } else {
+                LOG.error("Max retries {0} reached after unauthorized error", MAX_RETRIES);
+            }
+        }
+        return response;
     }
 
     protected abstract PagedResults<UT> deserializeUserPagedResults(String node) throws JsonProcessingException;
