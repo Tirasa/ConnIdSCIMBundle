@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -86,6 +87,8 @@ public class SCIMV11MockedTests {
                         + "\"location\":\"https://localhost/Users/d046ef30-a13a-490f-9a43-765a90abde33\"}}").
                         build();
             });
+            
+            when(webClient.replaceHeader(anyString(), any())).thenReturn(webClient);
         }
 
         @Override
