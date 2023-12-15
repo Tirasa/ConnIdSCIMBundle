@@ -856,19 +856,28 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             final WebClient webClient,
             final int retry) {
 
-        Response response = action.apply(
-                webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + config.getBearerToken()));
-        if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-            if (retry < MAX_RETRIES) {
-                LOG.ok("Refreshing bearer token after UNAUTHORIZED response, try #{0}", retry);
-                // regenerate the token and update configuration
-                getBearerToken(true);
-                return executeAndRetry(action, webClient, retry + 1);
-            }
+        if (StringUtil.isNotBlank(config.getBearerToken())
+                || (StringUtil.isNotBlank(config.getClientId())
+                && StringUtil.isNotBlank(config.getClientSecret())
+                && StringUtil.isNotBlank(config.getAccessTokenBaseAddress())
+                && StringUtil.isNotBlank(config.getAccessTokenAccept())
+                && StringUtil.isNotBlank(config.getAccessTokenNodeId()))) {
+            Response response = action.apply(
+                    webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + config.getBearerToken()));
+            if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                if (retry < MAX_RETRIES) {
+                    LOG.ok("Refreshing bearer token after UNAUTHORIZED response, try #{0}", retry);
+                    // regenerate the token and update configuration
+                    getBearerToken(true);
+                    return executeAndRetry(action, webClient, retry + 1);
+                }
 
-            LOG.error("Max retries {0} reached after unauthorized error", MAX_RETRIES);
+                LOG.error("Max retries {0} reached after unauthorized error", MAX_RETRIES);
+            }
+            return response;
+        } else {
+            return action.apply(webClient);
         }
-        return response;
     }
 
     protected abstract PagedResults<UT> deserializeUserPagedResults(String node) throws JsonProcessingException;
