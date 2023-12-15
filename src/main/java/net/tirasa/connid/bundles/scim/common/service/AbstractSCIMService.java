@@ -76,12 +76,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
     protected WebClient getWebclient(final String path, final Map<String, String> params) {
         WebClient webClient;
-        if (StringUtil.isNotBlank(config.getBearerToken())
-                || (StringUtil.isNotBlank(config.getClientId())
-                && StringUtil.isNotBlank(config.getClientSecret())
-                && StringUtil.isNotBlank(config.getAccessTokenBaseAddress())
-                && StringUtil.isNotBlank(config.getAccessTokenAccept())
-                && StringUtil.isNotBlank(config.getAccessTokenNodeId()))) {
+        if (checkBearerToken()) {
 
             webClient = WebClient.create(config.getBaseAddress()).
                     header(HttpHeaders.AUTHORIZATION, "Bearer " + getBearerToken(false));
@@ -856,12 +851,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             final WebClient webClient,
             final int retry) {
 
-        if (StringUtil.isNotBlank(config.getBearerToken())
-                || (StringUtil.isNotBlank(config.getClientId())
-                && StringUtil.isNotBlank(config.getClientSecret())
-                && StringUtil.isNotBlank(config.getAccessTokenBaseAddress())
-                && StringUtil.isNotBlank(config.getAccessTokenAccept())
-                && StringUtil.isNotBlank(config.getAccessTokenNodeId()))) {
+        if (checkBearerToken()) {
             Response response = action.apply(
                     webClient.replaceHeader(HttpHeaders.AUTHORIZATION, "Bearer " + config.getBearerToken()));
             if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -878,6 +868,15 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         } else {
             return action.apply(webClient);
         }
+    }
+
+    private boolean checkBearerToken() {
+        return StringUtil.isNotBlank(config.getBearerToken())
+                || (StringUtil.isNotBlank(config.getClientId())
+                && StringUtil.isNotBlank(config.getClientSecret())
+                && StringUtil.isNotBlank(config.getAccessTokenBaseAddress())
+                && StringUtil.isNotBlank(config.getAccessTokenAccept())
+                && StringUtil.isNotBlank(config.getAccessTokenNodeId()));
     }
 
     protected abstract PagedResults<UT> deserializeUserPagedResults(String node) throws JsonProcessingException;
