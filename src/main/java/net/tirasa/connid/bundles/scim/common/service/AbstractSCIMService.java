@@ -693,6 +693,29 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         return doGetAllGroups(webClient).getResources();
     }
 
+    @Override
+    public List<GT> getAllGroups(final String filterQuery, final Map<String, String> inputParams) {
+        Map<String, String> params = new HashMap<>();
+        params.put("filter", filterQuery);
+        params.putAll(inputParams);
+        WebClient webClient = getWebclient("Groups", params);
+        return doGetAllGroups(webClient).getResources();
+    }
+
+    @Override
+    public PagedResults<GT> getAllGroups(final String filterQuery, final Map<String, String> inputParams,
+                                         final Integer startIndex, final Integer count) {
+        Map<String, String> params = new HashMap<>();
+        params.put("filter", filterQuery);
+        params.putAll(inputParams);
+        params.put("startIndex", String.valueOf(startIndex));
+        if (count != null) {
+            params.put("count", String.valueOf(count));
+        }
+        WebClient webClient = getWebclient("Groups", params);
+        return doGetAllGroups(webClient);
+    }
+
     public PagedResults<GT> getAllGroups(final String filterQuery, final Integer startIndex, final Integer count) {
 
         Map<String, String> params = new HashMap<>();
