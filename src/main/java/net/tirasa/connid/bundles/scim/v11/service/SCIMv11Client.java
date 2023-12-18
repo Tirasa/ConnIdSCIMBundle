@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
@@ -80,6 +81,11 @@ public class SCIMv11Client extends AbstractSCIMService<
     @Override
     public SCIMv11Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv11Group.class);
+    }
+
+    @Override
+    public SCIMv11Group getGroup(final String groupId, final Map<String, String> queryParams) {
+        return doGetGroup(getWebclient("Groups", queryParams).path(groupId), SCIMv11Group.class);
     }
 
     @Override

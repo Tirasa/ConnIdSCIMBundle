@@ -18,6 +18,7 @@ package net.tirasa.connid.bundles.scim.v2.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
@@ -75,6 +76,11 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
     @Override
     public SCIMv2Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv2Group.class);
+    }
+
+    @Override
+    public SCIMv2Group getGroup(final String groupId, final Map<String, String> queryParams) {
+        return doGetGroup(getWebclient("Groups", queryParams).path(groupId), SCIMv2Group.class);
     }
 
     @Override

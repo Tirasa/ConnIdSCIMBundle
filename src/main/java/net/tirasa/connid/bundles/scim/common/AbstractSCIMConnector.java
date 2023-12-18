@@ -274,6 +274,118 @@ public abstract class AbstractSCIMConnector<
         }
     }
 
+
+    // Support for QueryParams, For now Only for Groups
+    public void executeQuery(
+            final ObjectClass objectClass,
+            final Filter query,
+            final Map<String, String> queryParams,
+            final ResultsHandler handler,
+            final OperationOptions options) {
+
+        LOG.ok("Connector READ");
+
+        Attribute key = null;
+        if (query instanceof EqualsFilter || query instanceof EqualsIgnoreCaseFilter) {
+            Attribute filterAttr = query instanceof EqualsFilter
+                    ? ((EqualsFilter) query).getAttribute()
+                    : ((EqualsIgnoreCaseFilter) query).getAttribute();
+
+            if (filterAttr instanceof Uid
+                    || ObjectClass.ACCOUNT.equals(objectClass) || ObjectClass.GROUP.equals(objectClass)) {
+
+                key = filterAttr;
+            }
+        }
+
+        Set<String> attributesToGet = new HashSet<>();
+        if (options.getAttributesToGet() != null) {
+            attributesToGet.addAll(Arrays.asList(options.getAttributesToGet()));
+        }
+
+        if (ObjectClass.ACCOUNT.equals(objectClass)) {
+
+            executeQuery(objectClass, query, handler, options);
+
+        } else if (ObjectClass.GROUP.equals(objectClass)) {
+            if (queryParams.isEmpty() || queryParams.size() == 0) {
+
+                executeQuery(objectClass, query, handler, options);
+
+            } else {
+                // Handle when QueryParameters
+                if (key == null) {
+                    List<GT> groups = null;
+                    int remainingResults = -1;
+                    int pagesSize = Optional.ofNullable(options.getPageSize()).orElse(-1);
+                    String cookie = options.getPagedResultsCookie();
+                    try {
+                        if (pagesSize != -1) {
+                            if (StringUtil.isNotBlank(cookie)) {
+                                PagedResults<GT> pagedResult = client.getAllGroups(Integer.valueOf(cookie),
+                                                                      pagesSize, queryParams);
+                                groups = pagedResult.getResources();
+
+                                cookie = groups.size() >= pagesSize ? String.valueOf(
+                                        pagedResult.getStartIndex() + groups.size()) : null;
+                            } else {
+                                PagedResults<GT> pagedResult = client.getAllGroups(1, pagesSize, queryParams);
+                                groups = pagedResult.getResources();
+                                cookie = groups.size() >= pagesSize ? String.valueOf(
+                                        pagedResult.getStartIndex() + groups.size()) : null;
+                            }
+                        } else {
+                            groups = client.getAllGroups(queryParams);
+                        }
+                    } catch (Exception e) {
+                        LOG.error(e, "Could not search for Groups");
+                        SCIMUtils.wrapGeneralError("Could not search for Groups", e);
+                    }
+                    for (GT group : groups) {
+                        handler.handle(fromGroup(group, attributesToGet));
+                    }
+
+                    if (handler instanceof SearchResultsHandler) {
+                        ((SearchResultsHandler) handler).handleResult(new SearchResult(cookie, remainingResults));
+                    }
+                } else {
+                    GT result = null;
+                    if (Uid.NAME.equals(key.getName()) || SCIMAttributeUtils.ATTRIBUTE_ID.equals(key.getName())) {
+                        result = null;
+                        try {
+                            result = client.getGroup(AttributeUtil.getAsStringValue(key), queryParams);
+                        } catch (Exception e) {
+                            SCIMUtils.wrapGeneralError(
+                                    "While getting Group : " + key.getName() + " - "
+                                     + AttributeUtil.getAsStringValue(key), e);
+                        }
+                    } else {
+                        try {
+                            List<GT> groups = client.getAllGroups(
+                                (Name.NAME.equals(key.getName()) ? SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME
+                                : key.getName()) + " eq \"" + AttributeUtil.getAsStringValue(key) + "\"",
+                                                  queryParams);
+                           if (!groups.isEmpty()) {
+                                result = groups.get(0);
+                           }
+                         } catch (Exception e) {
+                            SCIMUtils.wrapGeneralError(
+                                    "While getting Group : " + key.getName() + " - "
+                                    + AttributeUtil.getAsStringValue(key), e);
+                         }
+                    }
+                    if (result != null) {
+                        handler.handle(fromGroup(result, attributesToGet));
+                    }
+                }
+            }
+        } else {
+            LOG.warn("Search of type {0} is not supported", objectClass.getObjectClassValue());
+            throw new UnsupportedOperationException(
+                    "Search of type" + objectClass.getObjectClassValue() + " is not supported");
+        }
+    }
+
     @Override
     public Uid create(
             final ObjectClass objectClass,
