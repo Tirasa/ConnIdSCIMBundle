@@ -696,7 +696,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             params.put("count", String.valueOf(count));
         }
         params.put("filter", filterQuery);
-        WebClient webClient = getWebclient("Users", params);
+        WebClient webClient = getWebclient("Groups", params);
         return doGetAllGroups(webClient);
     }
 
