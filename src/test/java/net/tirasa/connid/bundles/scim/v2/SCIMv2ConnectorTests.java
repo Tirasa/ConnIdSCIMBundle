@@ -666,11 +666,11 @@ public class SCIMv2ConnectorTests {
         assertEquals(paged.getItemsPerPage(), 2);
         LOG.info("Paged Groups: {0}", paged);
 
-        PagedResults<SCIMv2Group> paged2 = client.getAllGroups(3, 2);
+        PagedResults<SCIMv2Group> paged2 = client.getAllGroups(3, 1);
         assertNotNull(paged2);
         assertFalse(paged2.getResources().isEmpty());
         assertEquals(3, paged2.getStartIndex());
-        assertEquals(2, paged2.getItemsPerPage());
+        assertEquals(1, paged2.getItemsPerPage());
         LOG.info("Paged Groups next page: {0}", paged2);
     }
 
