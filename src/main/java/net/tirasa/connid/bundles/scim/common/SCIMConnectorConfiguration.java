@@ -21,6 +21,7 @@ import java.net.URL;
 import javax.ws.rs.core.MediaType;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
+import org.apache.cxf.transports.http.configuration.ProxyServerType;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -81,7 +82,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String scimProvider = SCIMProvider.STANDARD.name();
 
     // proxy configuration section
-    private String proxyServerType = SCIMProxyServerType.HTTP.name();
+    private String proxyServerType = ProxyServerType.HTTP.name();
 
     private String proxyServerHost;
 
@@ -413,6 +414,13 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
                 StringUtil.isBlank(proxyServerType)
                 || proxyServerPort == null)) {
             failValidation("Proxy server type and port cannot be null or empty if host is specified.");
+        }
+        if (StringUtil.isNotBlank(proxyServerType)) {
+            try {
+                ProxyServerType.valueOf(proxyServerType.toUpperCase());
+            } catch (Exception e) {
+                failValidation("Unsupported proxy Server type: " + proxyServerType.toUpperCase());
+            }
         }
         if (StringUtil.isNotBlank(proxyServerUser) && StringUtil.isBlank(proxyServerPassword)) {
             failValidation("Proxy server password cannot be null or empty if user is specified.");

@@ -759,8 +759,19 @@ public class SCIMv2ConnectorTests {
                 assertTrue(e.getMessage()
                         .contains("Proxy server type and port cannot be null or empty if host is specified."));
             }
+            // fail because proxy server type is wrong
             CONF.setProxyServerHost("localhost");
             CONF.setProxyServerPort(8080);
+            CONF.setProxyServerType("WRONG");
+            try {
+                newFacade().validate();
+                fail();
+            } catch (Exception e) {
+                assertTrue(e instanceof ConfigurationException);
+                assertTrue(e.getMessage()
+                        .contains("Unsupported proxy Server type: WRONG"));
+            }
+            // fix proxy server type
             CONF.setProxyServerType(ProxyServerType.HTTP.value());
             CONF.setProxyServerUser("user");
             CONF.setProxyServerPassword(null);
