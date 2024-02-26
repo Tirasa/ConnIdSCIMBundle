@@ -21,6 +21,7 @@ import java.net.URL;
 import javax.ws.rs.core.MediaType;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
+import org.apache.cxf.transports.http.configuration.ProxyServerType;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -80,6 +81,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String scimProvider = SCIMProvider.STANDARD.name();
 
+    // proxy configuration section
+    private String proxyServerType = ProxyServerType.HTTP.name();
+
+    private String proxyServerHost;
+
+    private Integer proxyServerPort;
+
+    private String proxyServerUser;
+
+    private String proxyServerPassword;
+    
     @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display", helpMessageKey = "baseAddress.help",
             required = true)
     public String getBaseAddress() {
@@ -295,6 +307,61 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.scimProvider = scimProvider;
     }
 
+    @ConfigurationProperty(displayMessageKey = "proxyServerType.display",
+            helpMessageKey = "proxyServerType.help",
+            order = 21)
+    public String getProxyServerType() {
+        return proxyServerType;
+    }
+
+    public void setProxyServerType(final String proxyServerType) {
+        this.proxyServerType = proxyServerType;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "proxyServerHost.display",
+            helpMessageKey = "proxyServerHost.help",
+            order = 22)
+    public String getProxyServerHost() {
+        return proxyServerHost;
+    }
+
+    public void setProxyServerHost(final String proxyServerHost) {
+        this.proxyServerHost = proxyServerHost;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "proxyServerPort.display",
+            helpMessageKey = "proxyServerPort.help",
+            order = 23)
+    public Integer getProxyServerPort() {
+        return proxyServerPort;
+    }
+
+    public void setProxyServerPort(final Integer proxyServerPort) {
+        this.proxyServerPort = proxyServerPort;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "proxyServerUser.display",
+            helpMessageKey = "proxyServerUser.help",
+            order = 24)
+    public String getProxyServerUser() {
+        return proxyServerUser;
+    }
+
+    public void setProxyServerUser(final String proxyServerUser) {
+        this.proxyServerUser = proxyServerUser;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "proxyServerPassword.display",
+            helpMessageKey = "proxyServerPassword.help",
+            order = 25, confidential = true)
+    public String getProxyServerPassword() {
+        return proxyServerPassword;
+    }
+
+    public void setProxyServerPassword(final String proxyServerPassword) {
+        this.proxyServerPassword = proxyServerPassword;
+    }
+
     @Override
     public void validate() {
         if (StringUtil.isBlank(baseAddress)) {
@@ -342,6 +409,24 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             SCIMProvider.valueOf(scimProvider.toUpperCase());
         } catch (Exception e) {
             failValidation("Unsupported SCIM provider: " + scimProvider);
+        }
+        if (StringUtil.isNotBlank(proxyServerHost) && (
+                StringUtil.isBlank(proxyServerType)
+                || proxyServerPort == null)) {
+            failValidation("Proxy server type and port cannot be null or empty if host is specified.");
+        }
+        if (StringUtil.isNotBlank(proxyServerType)) {
+            try {
+                ProxyServerType.valueOf(proxyServerType.toUpperCase());
+            } catch (Exception e) {
+                failValidation("Unsupported proxy Server type: " + proxyServerType.toUpperCase());
+            }
+        }
+        if (StringUtil.isNotBlank(proxyServerUser) && StringUtil.isBlank(proxyServerPassword)) {
+            failValidation("Proxy server password cannot be null or empty if user is specified.");
+        }
+        if (StringUtil.isNotBlank(proxyServerPassword) && StringUtil.isBlank(proxyServerUser)) {
+            failValidation("Proxy server user cannot be null or empty if password is specified.");
         }
     }
 
