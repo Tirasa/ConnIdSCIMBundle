@@ -21,7 +21,6 @@ import java.net.URL;
 import javax.ws.rs.core.MediaType;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
-import org.apache.cxf.transports.http.configuration.ProxyServerType;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -82,7 +81,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String scimProvider = SCIMProvider.STANDARD.name();
 
     // proxy configuration section
-    private String proxyServerType = ProxyServerType.HTTP.value();
+    private String proxyServerType = SCIMProxyServerType.HTTP.name();
 
     private String proxyServerHost;
 
