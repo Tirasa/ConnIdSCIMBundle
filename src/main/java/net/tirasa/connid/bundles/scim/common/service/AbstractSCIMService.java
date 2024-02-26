@@ -47,7 +47,11 @@ import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.Type;
+import org.apache.cxf.configuration.security.ProxyAuthorizationPolicy;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transport.http.HTTPConduit;
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
+import org.apache.cxf.transports.http.configuration.ProxyServerType;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.SecurityUtil;
@@ -88,6 +92,26 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                     null);
         }
 
+        // SCIM-25 proxy management
+        if (StringUtil.isNotBlank(config.getProxyServerHost())) {
+            HTTPConduit conduit = WebClient.getConfig(webClient).getHttpConduit();
+
+            HTTPClientPolicy policy = new HTTPClientPolicy();
+            policy.setProxyServer(config.getProxyServerHost());
+            policy.setProxyServerPort(config.getProxyServerPort());
+            policy.setProxyServerType(ProxyServerType.valueOf(config.getProxyServerType().toUpperCase()));
+            conduit.setClient(policy);
+
+            if (StringUtil.isNotBlank(config.getProxyServerUser())
+                    && StringUtil.isNotBlank(config.getProxyServerPassword())) {
+                ProxyAuthorizationPolicy authorizationPolicy = new ProxyAuthorizationPolicy();
+                authorizationPolicy.setAuthorizationType("Basic");
+                authorizationPolicy.setUserName(config.getProxyServerUser());
+                authorizationPolicy.setPassword(config.getProxyServerPassword());
+                conduit.setProxyAuthorization(authorizationPolicy);
+            }
+        }
+        
         webClient.type(config.getContentType()).accept(config.getAccept()).path(path);
 
         Optional.ofNullable(params).ifPresent(p -> p.forEach((k, v) -> webClient.query(k, v)));

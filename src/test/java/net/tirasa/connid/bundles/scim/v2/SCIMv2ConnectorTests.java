@@ -55,12 +55,14 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Group;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import net.tirasa.connid.bundles.scim.v2.dto.Uniqueness;
 import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Client;
+import org.apache.cxf.transports.http.configuration.ProxyServerType;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
@@ -742,6 +744,40 @@ public class SCIMv2ConnectorTests {
         }
     }
 
+    @Test
+    void validateWithProxyConfiguration() {
+        try {
+            // fail because port is null
+            CONF.setProxyServerHost("localhost");
+            CONF.setProxyServerUser("user");
+            CONF.setProxyServerPassword("password");
+            try {
+                newFacade().validate();
+                fail();
+            } catch (Exception e) {
+                assertTrue(e instanceof ConfigurationException);
+                assertTrue(e.getMessage()
+                        .contains("Proxy server type and port cannot be null or empty if host is specified."));
+            }
+            CONF.setProxyServerHost("localhost");
+            CONF.setProxyServerPort(8080);
+            CONF.setProxyServerType(ProxyServerType.HTTP.value());
+            CONF.setProxyServerUser("user");
+            CONF.setProxyServerPassword(null);
+            try {
+                newFacade().validate();
+                fail();
+            } catch (Exception e) {
+                assertTrue(e instanceof ConfigurationException);
+                assertTrue(e.getMessage()
+                        .contains("Proxy server password cannot be null or empty if user is specified."));
+            }
+        } finally {
+            // cleanup not to invalidate other tests
+            CONF.setProxyServerHost(null);
+        }
+    }
+    
     @Test
     public void validate() {
         FACADE.validate();
