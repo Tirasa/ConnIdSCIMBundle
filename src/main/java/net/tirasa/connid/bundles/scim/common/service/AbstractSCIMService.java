@@ -380,11 +380,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
         ObjectNode newNode = SCIMUtils.MAPPER.createObjectNode();
         List<Object> values = user.getSCIMCustomAttributes().get(scimAttribute);
-        Object value = null;
 
-        if (!scimAttribute.getMultiValued()) {
-            value = values.get(0);
-        }
+        Object nodeValue = scimAttribute.getMultiValued() ? values : (values.isEmpty() ? null : values.get(0));
         String mainNodeKey = scimAttribute instanceof SCIMv2Attribute ? SCIMv2Attribute.class.cast(scimAttribute)
                 .getExtensionSchema() : SCIMv11Attribute.class.cast(scimAttribute).getSchema();
         String currentNodeKey = scimAttribute.getName();
@@ -395,14 +392,13 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         } else {
             if (mainNodeKey.contains(SCIMAttributeUtils.SCIM_SCHEMA_EXTENSION)) {
                 if (rootNode.has(mainNodeKey)) {
-                    ((ObjectNode) rootNode.get(mainNodeKey)).putPOJO(currentNodeKey,
-                            values.size() > 1 ? values : values.get(0));
+                    ((ObjectNode) rootNode.get(mainNodeKey)).putPOJO(currentNodeKey, nodeValue);
                 } else {
-                    newNode.putPOJO(currentNodeKey, value == null ? values : value);
+                    newNode.putPOJO(currentNodeKey, nodeValue);
                     ((ObjectNode) rootNode).set(mainNodeKey, newNode);
                 }
             } else {
-                ((ObjectNode) rootNode).putPOJO(currentNodeKey, value == null ? values : value);
+                ((ObjectNode) rootNode).putPOJO(currentNodeKey, nodeValue);
             }
         }
     }
