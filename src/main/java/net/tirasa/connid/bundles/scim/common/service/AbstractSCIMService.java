@@ -112,7 +112,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             }
         }
 
-         // SCIM- enable follow redirects
+         // SCIM-28 enable follow redirects
         if (config.getFollowHttpRedirects()) {
             HTTPConduit conduit = WebClient.getConfig(webClient).getHttpConduit();
             final HTTPClientPolicy policy = conduit.getClient();
