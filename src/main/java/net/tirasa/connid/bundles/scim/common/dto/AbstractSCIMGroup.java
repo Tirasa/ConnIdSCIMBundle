@@ -73,7 +73,7 @@ public class AbstractSCIMGroup<MT extends SCIMBaseMeta> extends AbstractSCIMBase
 
             try {
                 field.setAccessible(true);
-                // SCIM-3 manage enterprise user
+                // manage enterprise user
                 if (!field.isAnnotationPresent(JsonIgnore.class) && !SCIMUtils.isEmptyObject(field.get(this))) {
                     Object objInstance = field.get(this);
 

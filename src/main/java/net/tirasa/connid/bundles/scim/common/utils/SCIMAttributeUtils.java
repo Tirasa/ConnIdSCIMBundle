@@ -274,7 +274,7 @@ public final class SCIMAttributeUtils {
             }
         });
 
-        // SCIM-3 enterprise user
+        // enterprise user
         if (SCIMv2Attribute.class.equals(attrType)) {
             userBuilder.addAttributeInfo(
                     AttributeInfoBuilder.define(SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber")
@@ -319,7 +319,7 @@ public final class SCIMAttributeUtils {
         user = userBuilder.build();
         builder.defineObjectClass(user);
 
-        // SCIM-1 Group
+        // Group
         ObjectClassInfoBuilder groupBuilder = new ObjectClassInfoBuilder().setType(ObjectClass.GROUP_NAME);
         groupBuilder.addAttributeInfo(
                 AttributeInfoBuilder.define(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME).setMultiValued(false).build());

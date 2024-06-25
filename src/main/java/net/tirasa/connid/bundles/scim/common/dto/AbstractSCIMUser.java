@@ -924,7 +924,7 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
 
             try {
                 field.setAccessible(true);
-                // SCIM-3 manage enterprise user
+                // manage enterprise user
                 if (SCIMEnterpriseUser.class.isAssignableFrom(field.getType()) && getEnterpriseUser() != null) {
                     field.setAccessible(true);
                     addAttribute(getEnterpriseUser().toAttributes(SCIMv2EnterpriseUser.SCHEMA_URI), attrs,
@@ -1061,16 +1061,16 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                             addAttribute(SCIMBaseMeta.class.cast(objInstance).toAttributes(), attrs, field.getType());
                         }
                     } else if (SCIMAttributeUtils.SCIM_USER_GROUPS.equals(field.getName())) {
-                        // SCIM-1 manage groups
+                        // manage groups
                         List<BaseResourceReference> groupRefs = (List<BaseResourceReference>) objInstance;
                         attrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS,
                                 groupRefs.stream().map(g -> g.getValue()).collect(Collectors.toList())));
                     } else if (SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS.equals(field.getName())) {
-                        // SCIM-10 manage entitlements
+                        // manage entitlements
                         entitlementsToAttribute((List<ET>) objInstance, attrs);
                     } else if (field.getType().equals(List.class)
                             && field.getGenericType() instanceof ParameterizedType) {
-                        // SCIM-8 properly manage lists with parametrized type
+                        // properly manage lists with parametrized type
                         List<CT> complexTypeList = (List<CT>) objInstance;
                         switch (field.getName()) {
                             case SCIMAttributeUtils.SCIM_USER_ROLES:

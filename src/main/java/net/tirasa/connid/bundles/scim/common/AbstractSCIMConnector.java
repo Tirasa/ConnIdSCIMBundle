@@ -303,7 +303,7 @@ public abstract class AbstractSCIMConnector<
             try {
                 user.setUserName(username);
                 user.setExternalId(externalId != null ? externalId : username);
-                // SCIM-1 manage groups
+                // manage groups
                 List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
                 LOG.info("Adding groups {0} to user {1}", groups, username);
                 List<GT> scimGroups = groups == null ? Collections.emptyList()
@@ -313,7 +313,7 @@ public abstract class AbstractSCIMConnector<
                         .build()));
 
                 if (configuration.getManageComplexEntitlements()) {
-                    // SCIM-10 manage not default entitlements
+                    // manage not default entitlements
                     List<String> entitlements = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS);
                     LOG.info("Adding entitlements {0} to user {1}", entitlements, username);
                     manageEntitlements(user, entitlements);
@@ -338,7 +338,7 @@ public abstract class AbstractSCIMConnector<
                 if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
                     user.fillSCIMCustomAttributes(createAttributes, configuration.getCustomAttributesJSON());
                 }
-                // SCIM-3 enterprise user
+                // enterprise user
                 createAttributes.stream().filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI))
                         .findFirst().ifPresent(ca -> {
                             user.getSchemas().add(SCIMv2EnterpriseUser.SCHEMA_URI);
@@ -346,7 +346,7 @@ public abstract class AbstractSCIMConnector<
                         });
 
                 client.createUser(user);
-                // SCIM-1 update also groups, if needed
+                // update also groups, if needed
                 if (!scimGroups.isEmpty() && configuration.getExplicitGroupAddOnCreate()) {
                     LOG.info("Updating groups {0} explicitly adding user {1}", groups, user.getId());
 
@@ -426,7 +426,7 @@ public abstract class AbstractSCIMConnector<
             if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
                 user.fillSCIMCustomAttributes(replaceAttributes, configuration.getCustomAttributesJSON());
             }
-            // SCIM-3 enterprise user
+            // enterprise user
             replaceAttributes.stream().filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI)).findFirst()
                     .ifPresent(ca -> {
                         user.getSchemas().add(SCIMv2EnterpriseUser.SCHEMA_URI);
@@ -436,7 +436,7 @@ public abstract class AbstractSCIMConnector<
             try {
                 user.fromAttributes(replaceAttributes);
 
-                // SCIM-1 manage groups
+                // manage groups
                 final Map<String, P> groupPatches = new HashMap<>();
                 if ("PATCH".equalsIgnoreCase(configuration.getUpdateGroupMethod())) {
                     // calculate groupsToAdd and groupsToRemove
@@ -469,7 +469,7 @@ public abstract class AbstractSCIMConnector<
                 }
 
                 if (configuration.getManageComplexEntitlements()) {
-                    // SCIM-10 manage not default entitlements
+                    // manage not default entitlements
                     List<String> entitlements = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS);
                     LOG.info("Adding entitlements {0} on update to user {1}", entitlements, username);
                     manageEntitlements(user, entitlements);
@@ -484,7 +484,7 @@ public abstract class AbstractSCIMConnector<
                 }
 
                 client.updateUser(user);
-                // SCIM-1 if PATCH is enabled update also group with memberships previously calculated
+                // if PATCH is enabled update also group with memberships previously calculated
                 groupPatches.entrySet()
                         .forEach(patchEntry -> client.updateGroup(patchEntry.getKey(), patchEntry.getValue()));
 
@@ -509,7 +509,7 @@ public abstract class AbstractSCIMConnector<
                     client.updateGroup(uid.getUidValue(), buildPatchFromGroup(group));
 
                     if (configuration.getReplaceMembersOnUpdate()) {
-                        // SCIM-17 replace all members of the group on update
+                        // replace all members of the group on update
                         List<String> members = Optional.ofNullable(
                                 accessor.findStringList(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)).
                                 orElse(Collections.emptyList());
