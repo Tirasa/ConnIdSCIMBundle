@@ -92,7 +92,6 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                     null);
         }
 
-        // SCIM-25 proxy management
         if (StringUtil.isNotBlank(config.getProxyServerHost())) {
             HTTPConduit conduit = WebClient.getConfig(webClient).getHttpConduit();
 
@@ -112,7 +111,6 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             }
         }
 
-         // SCIM-28 enable follow redirects
         if (config.getFollowHttpRedirects()) {
             HTTPConduit conduit = WebClient.getConfig(webClient).getHttpConduit();
             final HTTPClientPolicy policy = conduit.getClient();

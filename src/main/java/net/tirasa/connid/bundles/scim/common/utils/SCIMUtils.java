@@ -123,10 +123,8 @@ public final class SCIMUtils {
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES + ".")) {
                 result += SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES.concat(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + ".")) {
-                // SCIM-8
                 result += SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS.concat(",");
             } else if (attributeToGet.startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)) {
-                // SCIM-3
                 result += SCIMv2EnterpriseUser.SCHEMA_URI
                         + (attributeToGet.replace(SCIMv2EnterpriseUser.SCHEMA_URI, StringUtil.EMPTY)
                                 .replaceFirst(".", ":").concat(","));

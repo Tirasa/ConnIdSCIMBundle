@@ -53,9 +53,9 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String updateGroupMethod = "PUT";
 
-    private Boolean explicitGroupAddOnCreate = false;
+    private boolean explicitGroupAddOnCreate = false;
     
-    private Boolean replaceMembersOnUpdate = false;
+    private boolean replaceMembersOnUpdate = false;
 
     private String accept = MediaType.APPLICATION_JSON;
 
@@ -77,7 +77,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String genericComplexType;
 
-    private Boolean manageComplexEntitlements = false;
+    private boolean manageComplexEntitlements = false;
 
     private String scimProvider = SCIMProvider.STANDARD.name();
 
@@ -92,7 +92,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private String proxyServerPassword;
 
-    private Boolean followHttpRedirects = false;
+    private boolean followHttpRedirects = false;
     
     @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display", helpMessageKey = "baseAddress.help",
             required = true)
@@ -209,21 +209,21 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     @ConfigurationProperty(displayMessageKey = "explicitGroupAddOnCreate.display",
             helpMessageKey = "explicitGroupAddOnCreate.help", order = 11)
-    public Boolean getExplicitGroupAddOnCreate() {
+    public boolean getExplicitGroupAddOnCreate() {
         return explicitGroupAddOnCreate;
     }
 
-    public void setExplicitGroupAddOnCreate(final Boolean explicitGroupAddOnCreate) {
+    public void setExplicitGroupAddOnCreate(final boolean explicitGroupAddOnCreate) {
         this.explicitGroupAddOnCreate = explicitGroupAddOnCreate;
     }
 
     @ConfigurationProperty(displayMessageKey = "replaceMembersOnUpdate.display",
             helpMessageKey = "replaceMembersOnUpdate.help", order = 12)
-    public Boolean getReplaceMembersOnUpdate() {
+    public boolean getReplaceMembersOnUpdate() {
         return replaceMembersOnUpdate;
     }
 
-    public void setReplaceMembersOnUpdate(final Boolean replaceMembersOnUpdate) {
+    public void setReplaceMembersOnUpdate(final boolean replaceMembersOnUpdate) {
         this.replaceMembersOnUpdate = replaceMembersOnUpdate;
     }
 
@@ -283,14 +283,14 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         return genericComplexType;
     }
 
-    public void setManageComplexEntitlements(final Boolean manageComplexEntitlements) {
+    public void setManageComplexEntitlements(final boolean manageComplexEntitlements) {
         this.manageComplexEntitlements = manageComplexEntitlements;
     }
 
     @ConfigurationProperty(displayMessageKey = "manageComplexEntitlements.display",
             helpMessageKey = "manageComplexEntitlements.help",
             order = 19)
-    public Boolean getManageComplexEntitlements() {
+    public boolean getManageComplexEntitlements() {
         return manageComplexEntitlements;
     }
 
@@ -366,12 +366,12 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     @ConfigurationProperty(displayMessageKey = "followHttpRedirects.display",
             helpMessageKey = "followHttpRedirects.help",
-            order = 26, confidential = true)
-    public Boolean getFollowHttpRedirects() {
+            order = 26)
+    public boolean getFollowHttpRedirects() {
         return followHttpRedirects;
     }
 
-    public void setFollowHttpRedirects(final Boolean followHttpRedirects) {
+    public void setFollowHttpRedirects(final boolean followHttpRedirects) {
         this.followHttpRedirects = followHttpRedirects;
     }
 
