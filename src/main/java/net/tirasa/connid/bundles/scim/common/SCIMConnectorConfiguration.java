@@ -91,6 +91,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String proxyServerUser;
 
     private String proxyServerPassword;
+
+    private Boolean followHttpRedirects = false;
     
     @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display", helpMessageKey = "baseAddress.help",
             required = true)
@@ -360,6 +362,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     public void setProxyServerPassword(final String proxyServerPassword) {
         this.proxyServerPassword = proxyServerPassword;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "followHttpRedirects.display",
+            helpMessageKey = "followHttpRedirects.help",
+            order = 26, confidential = true)
+    public Boolean getFollowHttpRedirects() {
+        return followHttpRedirects;
+    }
+
+    public void setFollowHttpRedirects(final Boolean followHttpRedirects) {
+        this.followHttpRedirects = followHttpRedirects;
     }
 
     @Override

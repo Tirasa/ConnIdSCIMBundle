@@ -111,6 +111,14 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                 conduit.setProxyAuthorization(authorizationPolicy);
             }
         }
+
+         // SCIM- enable follow redirects
+        if (config.getFollowHttpRedirects()) {
+            HTTPConduit conduit = WebClient.getConfig(webClient).getHttpConduit();
+            final HTTPClientPolicy policy = conduit.getClient();
+            policy.setAutoRedirect(true);
+            conduit.setClient(policy);
+        }
         
         webClient.type(config.getContentType()).accept(config.getAccept()).path(path);
 
