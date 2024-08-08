@@ -94,7 +94,11 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private boolean followHttpRedirects = false;
     
-    @ConfigurationProperty(order = 1, displayMessageKey = "baseAddress.display", helpMessageKey = "baseAddress.help",
+    private boolean requestAttributesOnSearch = true;
+
+    @ConfigurationProperty(order = 1,
+            displayMessageKey = "baseAddress.display",
+            helpMessageKey = "baseAddress.help",
             required = true)
     public String getBaseAddress() {
         if (StringUtil.isNotBlank(baseAddress) && baseAddress.charAt(baseAddress.length() - 1) != '/') {
@@ -373,6 +377,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     public void setFollowHttpRedirects(final boolean followHttpRedirects) {
         this.followHttpRedirects = followHttpRedirects;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "requestAttributesOnSearch.display",
+            helpMessageKey = "requestAttributesOnSearch.help",
+            order = 27)
+    public boolean getRequestAttributesOnSearch() {
+        return requestAttributesOnSearch;
+    }
+
+    public void setRequestAttributesOnSearch(final boolean requestAttributesOnSearch) {
+        this.requestAttributesOnSearch = requestAttributesOnSearch;
     }
 
     @Override
