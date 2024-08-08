@@ -587,7 +587,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     public List<UT> getAllUsers(final String filterQuery, final Set<String> attributesToGet) {
         Map<String, String> params = new HashMap<>();
         params.put("filter", filterQuery);
-        if (config.getRequestAttributesOnSearch()) {
+        if (!attributesToGet.isEmpty() && config.getRequestAttributesOnSearch()) {
             params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
                     SCIMv2Attribute.class));
         }
