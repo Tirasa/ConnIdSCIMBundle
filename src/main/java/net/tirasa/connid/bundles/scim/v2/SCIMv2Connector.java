@@ -129,9 +129,11 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     protected SCIMv2Patch buildPatchFromGroup(final SCIMv2Group group) {
         // these information must not be included for some providers like AWS
         if (SCIMProvider.AWS == provider) {
-            group.setMeta(null);
-            group.getSchemas().clear();
             group.getMembers().clear();
+        }
+        if (SCIMProvider.AWS == provider || SCIMProvider.EGNYTE == provider) {
+            group.getSchemas().clear();
+            group.setMeta(null);
         }
         return new SCIMv2PatchImpl.Builder().operations(Collections.singleton(
                 new SCIMv2PatchOperation.Builder()
