@@ -110,7 +110,7 @@ public class SCIMv2ConnectorTests {
 
     @Container
     private static final GenericContainer<?> SCIMPLE_SERVER =
-            new GenericContainer<>("tirasa/scimple-server:1.0.0").withExposedPorts(8080)
+            new GenericContainer<>("tirasa/scimple-server:latest").withExposedPorts(8080)
                     .waitingFor(Wait.forLogMessage(".*Started ScimpleSpringBootApplication in.*\\n", 1));
 
     @BeforeAll
