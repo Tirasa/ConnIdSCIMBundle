@@ -117,7 +117,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             policy.setAutoRedirect(true);
             conduit.setClient(policy);
         }
-        
+
         webClient.type(config.getContentType()).accept(config.getAccept()).path(path);
 
         Optional.ofNullable(params).ifPresent(p -> p.forEach((k, v) -> webClient.query(k, v)));
@@ -344,12 +344,12 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             SCIMUtils.handleGeneralError("While executing request - no response");
         }
 
-        String responseAsString = response.readEntity(String.class);
         if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            throw new NoSuchEntityException(responseAsString);
+            throw new NoSuchEntityException("No SCIM entity found");
         }
+
         if (response.getStatusInfo().getFamily() != Status.Family.SUCCESSFUL) {
-            SCIMUtils.handleGeneralError("While executing request: " + responseAsString);
+            SCIMUtils.handleGeneralError("While executing SCIM request");
         }
     }
 
@@ -602,16 +602,17 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
      * @return Paged list of Users
      */
     @Override
-    public PagedResults<UT> getAllUsers(final Integer startIndex, final Integer count,
+    public PagedResults<UT> getAllUsers(
+            final Integer startIndex,
+            final Integer count,
             final Set<String> attributesToGet) {
+
         Map<String, String> params = new HashMap<>();
         params.put("startIndex", String.valueOf(startIndex));
-        if (count != null) {
-            params.put("count", String.valueOf(count));
-        }
+        Optional.ofNullable(count).ifPresent(c -> params.put("count", String.valueOf(c)));
         if (!attributesToGet.isEmpty() && config.getRequestAttributesOnSearch()) {
-            params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                    SCIMv2Attribute.class));
+            params.put("attributes", SCIMUtils.cleanAttributesToGet(
+                    attributesToGet, config.getCustomAttributesJSON(), SCIMv2Attribute.class));
         }
         WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient);
