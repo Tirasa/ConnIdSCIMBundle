@@ -529,6 +529,26 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         return user;
     }
 
+    protected UT doUpdateUser(final String userId, final P userPatch, final Class<UT> userType) {
+        UT updated = null;
+        JsonNode node = doUpdatePatch(userPatch, Collections.emptySet(), getWebclient("Users", null).path(userId));
+        if (node == null) {
+            SCIMUtils.handleGeneralError("While running update patch on service");
+        }
+
+        try {
+            updated = SCIMUtils.MAPPER.readValue(node.toString(), userType);
+        } catch (IOException ex) {
+            LOG.error(ex, "While converting from JSON to User");
+        }
+
+        if (updated == null) {
+            SCIMUtils.handleGeneralError("While retrieving user from service after update");
+        }
+
+        return updated;
+    }
+
     protected UT doUpdateUser(final UT user, final Set<Attribute> replaceAttributes, final Class<UT> userType) {
         if (StringUtil.isBlank(user.getId())) {
             SCIMUtils.handleGeneralError("Missing required user id attribute for update");

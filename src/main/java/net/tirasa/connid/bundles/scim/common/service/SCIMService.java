@@ -42,6 +42,8 @@ public interface SCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? exten
     void deleteUser(String userId);
 
     UT updateUser(UT user);
+    
+    UT updateUser(String userId, P userPatch);
 
     void activateUser(String userId);
 
@@ -62,6 +64,6 @@ public interface SCIMService<UT extends SCIMUser<? extends SCIMBaseMeta, ? exten
     GT updateGroup(GT group);
 
     GT updateGroup(String groupId, P groupPatch);
-    
+
     ERT getEntitlement(String entitlementId);
 }

@@ -71,6 +71,11 @@ public class SCIMv11Client extends AbstractSCIMService<
     }
 
     @Override
+    public SCIMv11User updateUser(final String userId, final SCIMv11BasePatch userPatch) {
+        return doUpdateUser(userId, userPatch, SCIMv11User.class);
+    }
+
+    @Override
     public boolean testService() {
         Set<String> attributesToGet = new HashSet<>();
         attributesToGet.add(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
