@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
@@ -29,19 +30,27 @@ import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Attribute;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11BasePatch;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11EnterpriseUser;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Group;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11GroupPatch;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11Meta;
 import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11User;
 import net.tirasa.connid.bundles.scim.v11.dto.Scimv11GroupPatchOperation;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMPatchOperation;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Schema;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.spi.ConnectorClass;
 
 @ConnectorClass(displayNameKey = "SCIMv11Connector.connector.display", configurationClass =
         SCIMConnectorConfiguration.class)
 public class SCIMv11Connector extends AbstractSCIMConnector<
-        SCIMv11User, SCIMv11Group, SCIMBaseResource<SCIMv11Meta>, SCIMv11BasePatch, SCIMv11Client> {
+        SCIMv11User, SCIMv11Group, SCIMBaseResource<SCIMv11Meta>, SCIMv11BasePatch, SCIMPatchOperation, SCIMv11Client, 
+        SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager> {
 
     private Schema schema;
 
@@ -60,6 +69,13 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
                     configuration.getManageComplexEntitlements(), SCIMv11Attribute.class);
         }
         return schema;
+    }
+
+    @Override
+    public Set<AttributeDelta> updateDelta(final ObjectClass objectClass, final Uid uid,
+            final Set<AttributeDelta> modifications, final OperationOptions options) {
+        LOG.error("Update delta is not supported in version 1.1");
+        throw new ConnectorException("Update delta is not supported in version 1.1");
     }
 
     @Override
@@ -111,7 +127,49 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     }
 
     @Override
+    protected SCIMv11BasePatch buildUserPatch(final Set<AttributeDelta> modifications, final SCIMv11User currentUser,
+            final boolean manageGroups) {
+        throw new ConnectorException("Update delta is not supported in version 1.1");
+    }
+
+    @Override
+    protected SCIMv11BasePatch buildGroupPatch(final Set<AttributeDelta> modifications) {
+        throw new ConnectorException("Update delta is not supported in version 1.1");
+    }
+
+    @Override
+    protected SCIMPatchOperation buildPatchOperation(final AttributeDelta currentDelta,
+            final SCIMBaseAttribute<?> attributeDefinition) {
+        throw new ConnectorException("Update delta is not supported in version 1.1");
+    }
+
+    @Override
+    protected List<SCIMPatchOperation> buildGroupPatchOperations(final Set<AttributeDelta> modifications) {
+        throw new ConnectorException("Update delta is not supported in version 1.1");
+    }
+
+    @Override
+    protected List<SCIMPatchOperation> buildAddressesPatchOperations(final Set<AttributeDelta> modifications,
+            final SCIMv11User currentUser) {
+        throw new ConnectorException("Update delta is not supported in version 1.1");
+    }
+
+    @Override
     protected void manageEntitlements(final SCIMv11User user, final List<String> values) {
         // in v11 only the default entitlement is supported
+    }
+
+    @Override
+    protected SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager buildEnterpriseUserManager(final String value) {
+        SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager manager =
+                new SCIMv11EnterpriseUser.SCIMv11EnterpriseUserManager();
+        if (value.contains(":")) {
+            String[] splitValue = value.split(":");
+            manager.setManagerId(splitValue[0]);
+            manager.setManagerId(splitValue[1]);
+        } else {
+            manager.setDisplayName(value);
+        }
+        return manager;
     }
 }

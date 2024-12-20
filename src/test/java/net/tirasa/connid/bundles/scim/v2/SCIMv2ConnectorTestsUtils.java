@@ -61,7 +61,25 @@ public final class SCIMv2ConnectorTestsUtils {
 
     public static final String USER_ATTRIBUTE_PHONE_OTHER_OPERATION = "phoneNumbers.other.operation";
 
+    public static final String USER_ATTRIBUTE_ADDRESS_STREET_ADDRESS = "addresses.streetAddress";
+
+    public static final String USER_ATTRIBUTE_ADDRESS_LOCALITY = "addresses.locality";
+
+    public static final String USER_ATTRIBUTE_ADDRESS_REGION = "addresses.region";
+
+    public static final String USER_ATTRIBUTE_ADDRESS_POSTAL_CODE = "addresses.postalCode";
+
+    public static final String USER_ATTRIBUTE_ADDRESS_COUNTRY = "addresses.country";
+    
     public static final String USER_ATTRIBUTE_ADDRESS_WORK_STREET_ADDRESS = "addresses.work.streetAddress";
+
+    public static final String USER_ATTRIBUTE_ADDRESS_WORK_LOCALITY = "addresses.work.locality";
+
+    public static final String USER_ATTRIBUTE_ADDRESS_WORK_REGION = "addresses.work.region";
+
+    public static final String USER_ATTRIBUTE_ADDRESS_WORK_POSTAL_CODE = "addresses.work.postalCode";
+
+    public static final String USER_ATTRIBUTE_ADDRESS_WORK_COUNTRY = "addresses.work.country";
 
     public static final String DISPLAY_NAME = "displayName";
 
