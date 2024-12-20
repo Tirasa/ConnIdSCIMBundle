@@ -303,14 +303,14 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
             if (username == null) {
                 username = accessor.findString(Name.NAME);
             }
-            String externalId = accessor.findString(SCIMAttributeUtils.USER_ATTRIBUTE_EXTERNAL_ID);
 
             GuardedString password = accessor.findGuardedString(OperationalAttributes.PASSWORD_NAME);
             Attribute status = accessor.find(OperationalAttributes.ENABLE_NAME);
 
             try {
                 user.setUserName(username);
-                user.setExternalId(externalId != null ? externalId : username);
+                Optional.ofNullable(accessor.findString(SCIMAttributeUtils.USER_ATTRIBUTE_EXTERNAL_ID))
+                        .ifPresent(user::setExternalId);
                 // manage groups
                 List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
                 LOG.info("Adding groups {0} to user {1}", groups, username);
