@@ -430,17 +430,19 @@ public class SCIMv2ConnectorTests {
             final List<String> membersToAdd, final List<String> membersToRemove, final List<String> membersToReplace) {
         Set<AttributeDelta> groupAttrs = new HashSet<>();
         // replace displayName and __NAME__
-        groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, newDisplayName));
-        groupAttrs.add(AttributeDeltaBuilder.build(Name.NAME, newDisplayName));
+        if (StringUtil.isNotBlank(newDisplayName)) {
+            groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, newDisplayName));
+            groupAttrs.add(AttributeDeltaBuilder.build(Name.NAME, newDisplayName));
+        }
 
         // members
-        // remove user01
-        groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, Collections.emptyList(),
-                membersToRemove));
-        groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, membersToAdd,
-                Collections.emptyList()));
-        groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, membersToReplace));
-
+        if (CollectionUtil.isEmpty(membersToReplace)) {
+            groupAttrs.add(
+                    AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, membersToAdd, membersToRemove));
+        } else {
+            groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, membersToReplace));
+        }
+        
         groupAttrs = FACADE_PATCH.updateDelta(ObjectClass.GROUP, groupToUpdate, groupAttrs,
                 new OperationOptionsBuilder().build());
 
@@ -1328,14 +1330,34 @@ public class SCIMv2ConnectorTests {
                     .anyMatch(g -> g.getValue().equalsIgnoreCase(user01.getUidValue())));
 
             // update group with PATCH
-            Uid updatedWithDelta = updateDeltaGroup(group1, createdGroup.getDisplayName() + "_upd",
+            Uid updatedWithDelta =
+                    updateDeltaGroup(group1, updatedGroup.getDisplayName().replaceAll("updated__", "upd2_"),
                     Collections.singletonList(user02.getUidValue()), Collections.singletonList(user01.getUidValue()),
-                    Collections.singletonList(user03.getUidValue()));
+                    Collections.emptyList());
 
             SCIMv2Group updatedWithDeltaGroup = readDeltaGroup(updatedWithDelta.getUidValue(), client);
-            LOG.info("Updated group with PATCH: {0}", updatedWithDeltaGroup);
             assertNotNull(updatedWithDeltaGroup.getDisplayName());
-            assertEquals(createdGroup.getDisplayName() + "_upd", updatedWithDeltaGroup.getDisplayName());
+            assertEquals(updatedGroup.getDisplayName().replaceAll("updated__", "upd2_"),
+                    updatedWithDeltaGroup.getDisplayName());
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .noneMatch(g -> g.getValue().equalsIgnoreCase(user01.getUidValue())));
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .anyMatch(g -> g.getValue().equalsIgnoreCase(user02.getUidValue())));
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .noneMatch(g -> g.getValue().equalsIgnoreCase(user03.getUidValue())));
+
+            // update again with members to replace
+            updateDeltaGroup(group1, null, Collections.emptyList(), Collections.emptyList(),
+                    Arrays.asList(user01.getUidValue(), user03.getUidValue()));
+
+            updatedWithDeltaGroup = readDeltaGroup(updatedWithDelta.getUidValue(), client);
+
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .anyMatch(g -> g.getValue().equalsIgnoreCase(user01.getUidValue())));
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .noneMatch(g -> g.getValue().equalsIgnoreCase(user02.getUidValue())));
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .anyMatch(g -> g.getValue().equalsIgnoreCase(user03.getUidValue())));
 
             deleteGroup(updated);
             assertThrows(

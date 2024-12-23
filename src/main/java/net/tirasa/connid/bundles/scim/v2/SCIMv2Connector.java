@@ -258,7 +258,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                     if (!CollectionUtil.isEmpty(ad.getValuesToReplace())) {
                         memberOperations.add(new SCIMv2PatchOperation.Builder()
                                 .op(SCIMAttributeUtils.SCIM_REPLACE)
-                                .path(SCIMAttributeUtils.SCIM_USER_GROUPS)
+                                .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
                                 .value(ad.getValuesToReplace().stream().map(vtr -> {
                                     SCIMv2User user = client.getUser(vtr.toString());
                                     BaseResourceReference resRef = null;
@@ -276,6 +276,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                                 .build());
                     }
                 });
+        patch.getOperations().addAll(memberOperations);
         return patch;
     }
 
