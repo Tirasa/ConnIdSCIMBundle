@@ -57,9 +57,9 @@ public final class SCIMAttributeUtils {
     public static final String SCIM_USER_META = "meta";
 
     public static final String SCIM_USER_ADDRESSES = "addresses";
-    
+
     public static final String SCIM_USER_STREET_ADDRESS = "streetAddress";
-    
+
     public static final String SCIM_USER_LOCALITY = "locality";
 
     public static final String SCIM_USER_REGION = "region";
@@ -357,7 +357,7 @@ public final class SCIMAttributeUtils {
                 if (list.size() > 1) {
                     for (Object elem : list) {
                         attributeBuilder.addValue(
-                            doBuildAttributeFromClassField(elem, name, elem.getClass()).getValue());
+                                doBuildAttributeFromClassField(elem, name, elem.getClass()).getValue());
                     }
                 } else if (!list.isEmpty() && list.get(0) != null) {
                     attributeBuilder.addValue(list.get(0).toString());
@@ -391,12 +391,12 @@ public final class SCIMAttributeUtils {
                 || attributeName.startsWith(SCIM_USER_IMS))
                 ? attributeName.split("\\.")[0]
                 : StringUtil.isNotBlank(attributeName) && (attributeName.startsWith(
-                        SCIMv2EnterpriseUser.SCHEMA_URI + "." + SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE)
-                        || attributeName.startsWith(
+                SCIMv2EnterpriseUser.SCHEMA_URI + "." + SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE)
+                || attributeName.startsWith(
                         SCIMv2EnterpriseUser.SCHEMA_URI + ":" + SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE)
-                        || attributeName.startsWith(
+                || attributeName.startsWith(
                         SCIMv11EnterpriseUser.SCHEMA_URI + "." + SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE)
-                        || attributeName.startsWith(
+                || attributeName.startsWith(
                         SCIMv11EnterpriseUser.SCHEMA_URI + ":" + SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE))
                         ? attributeName.replaceAll(".value", StringUtil.EMPTY)
                         : attributeName;

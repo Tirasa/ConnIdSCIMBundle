@@ -120,7 +120,10 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
     }
 
     @Override
-    public void executeQuery(final ObjectClass objectClass, final Filter query, final ResultsHandler handler,
+    public void executeQuery(
+            final ObjectClass objectClass,
+            final Filter query,
+            final ResultsHandler handler,
             final OperationOptions options) {
 
         LOG.ok("Connector READ");
@@ -347,8 +350,9 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                     user.fillSCIMCustomAttributes(createAttributes, configuration.getCustomAttributesJSON());
                 }
                 // enterprise user
-                createAttributes.stream().filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI))
-                        .findFirst().ifPresent(ca -> {
+                createAttributes.stream().
+                        filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI)).
+                        findFirst().ifPresent(ca -> {
                             user.getSchemas().add(SCIMv2EnterpriseUser.SCHEMA_URI);
                             user.fillEnterpriseUser(createAttributes);
                         });
@@ -554,8 +558,11 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
     }
 
     @Override
-    public Set<AttributeDelta> updateDelta(final ObjectClass objectClass, final Uid uid,
-            final Set<AttributeDelta> modifications, final OperationOptions options) {
+    public Set<AttributeDelta> updateDelta(
+            final ObjectClass objectClass,
+            final Uid uid,
+            final Set<AttributeDelta> modifications,
+            final OperationOptions options) {
 
         LOG.ok("Connector UPDATE DELTA object [{0}]", uid);
 
@@ -569,24 +576,25 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
             if (currentUser == null) {
                 SCIMUtils.handleGeneralError("Unable to update user because does not exist");
             }
-            final Map<String, P> groupPatches = new HashMap<>();
+            Map<String, P> groupPatches = new HashMap<>();
             boolean manageGroupsWithPatch = "PATCH".equalsIgnoreCase(configuration.getUpdateGroupMethod());
             if (manageGroupsWithPatch) {
                 // only values to add and remove are supported
-                modifications.stream().filter(ad -> SCIMAttributeUtils.SCIM_USER_GROUPS.equalsIgnoreCase(ad.getName()))
-                        .findFirst().ifPresent(grpsAd -> fillGroupPatches(currentUser, groupPatches,
-                                CollectionUtil.isEmpty(grpsAd.getValuesToAdd()) ? grpsAd.getValuesToReplace().stream()
-                                        .map(String.class::cast).collect(Collectors.toList())
-                                        : grpsAd.getValuesToAdd().stream().map(String.class::cast)
-                                                .collect(Collectors.toList()),
-                                grpsAd.getValuesToRemove().stream().map(String.class::cast)
-                                        .collect(Collectors.toList()))
-                );
+                modifications.stream().
+                        filter(ad -> SCIMAttributeUtils.SCIM_USER_GROUPS.equalsIgnoreCase(ad.getName())).
+                        findFirst().ifPresent(grpsAd -> fillGroupPatches(
+                        currentUser,
+                        groupPatches,
+                        CollectionUtil.isEmpty(grpsAd.getValuesToAdd())
+                        ? grpsAd.getValuesToReplace().stream().map(String.class::cast).collect(Collectors.toList())
+                        : grpsAd.getValuesToAdd().stream().map(String.class::cast).collect(Collectors.toList()),
+                        grpsAd.getValuesToRemove().stream().map(String.class::cast).collect(Collectors.toList())));
             } else {
                 LOG.warn("Group update method must be set to PATCH while updating through UPDATE_DELTA");
             }
             try {
-                client.updateUser(uid.getUidValue(),
+                client.updateUser(
+                        uid.getUidValue(),
                         buildUserPatch(modifications, currentUser, !manageGroupsWithPatch));
                 // 2. if any modify also groups
                 // if PATCH is enabled update also group with memberships previously calculated
@@ -733,8 +741,8 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
 
     protected abstract ST buildSCIMClient(SCIMConnectorConfiguration configuration);
 
-    protected abstract void fillGroupPatches(UT user, Map<String, P> groupPatches, List<String> groupsToAdd,
-            List<String> groupsToRemove);
+    protected abstract void fillGroupPatches(
+            UT user, Map<String, P> groupPatches, List<String> groupsToAdd, List<String> groupsToRemove);
 
     protected abstract P buildMembersGroupPatch(List<UT> user, String op);
 
@@ -743,16 +751,18 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
     protected abstract P buildUserPatch(Set<AttributeDelta> modifications, UT currentUser, boolean manageGroups);
 
     protected abstract P buildGroupPatch(Set<AttributeDelta> modifications);
-    
-    protected abstract PO buildPatchOperation(AttributeDelta currentDelta,
-            SCIMBaseAttribute<?> attributeDefinition);
+
+    protected abstract PO buildPatchOperation(AttributeDelta currentDelta, SCIMBaseAttribute<?> attributeDefinition);
 
     protected abstract List<PO> buildGroupPatchOperations(Set<AttributeDelta> modifications);
 
     protected abstract List<PO> buildAddressesPatchOperations(Set<AttributeDelta> modifications, UT currentUser);
 
-    protected Object buildPatchValue(final String name, final List<Object> values,
+    protected Object buildPatchValue(
+            final String name,
+            final List<Object> values,
             final SCIMBaseAttribute<?> attributeDefinition) {
+
         Object patchValue;
         switch (name) {
             case "userName":
@@ -1007,7 +1017,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                 // this is mainly useful to manage custom attributes
                 patchValue = CollectionUtil.isEmpty(values) ? null
                         : attributeDefinition != null && attributeDefinition.getMultiValued() ? values
-                                : values.get(0).toString();
+                        : values.get(0).toString();
                 break;
         }
 
@@ -1032,5 +1042,4 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
     protected abstract void manageEntitlements(UT user, List<String> values);
 
     protected abstract EUM buildEnterpriseUserManager(String value);
-
 }

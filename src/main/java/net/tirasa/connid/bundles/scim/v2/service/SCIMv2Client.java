@@ -71,7 +71,7 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
     public SCIMv2User updateUser(final SCIMv2User user) {
         return doUpdateUser(user, Collections.emptySet(), SCIMv2User.class);
     }
-    
+
     @Override
     public SCIMv2User updateUser(final String userId, final SCIMv2Patch userPatch) {
         return doUpdateUser(userId, userPatch, SCIMv2User.class);

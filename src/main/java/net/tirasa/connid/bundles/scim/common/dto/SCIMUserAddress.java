@@ -151,9 +151,9 @@ public class SCIMUserAddress {
     }
 
     public boolean isEmpty() {
-        return StringUtil.isBlank(this.postalCode) 
+        return StringUtil.isBlank(this.postalCode)
                 && StringUtil.isBlank(this.streetAddress)
-                && StringUtil.isBlank(this.locality) 
+                && StringUtil.isBlank(this.locality)
                 && StringUtil.isBlank(this.country)
                 && StringUtil.isBlank(this.region);
     }

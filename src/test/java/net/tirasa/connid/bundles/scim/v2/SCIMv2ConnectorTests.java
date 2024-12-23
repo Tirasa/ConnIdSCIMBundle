@@ -98,13 +98,13 @@ public class SCIMv2ConnectorTests {
     private static final Properties PROPS = new Properties();
 
     private static SCIMConnectorConfiguration CONF;
-    
+
     private static SCIMConnectorConfiguration CONF_PATCH;
 
     private static SCIMv2Connector CONN;
 
     private static ConnectorFacade FACADE;
-    
+
     private static ConnectorFacade FACADE_PATCH;
 
     private static final List<String> CUSTOM_OTHER_SCHEMAS = new ArrayList<>();
@@ -272,8 +272,12 @@ public class SCIMv2ConnectorTests {
         return updated;
     }
 
-    private static Uid updateDeltaUser(final ConnectorObject created, final String name, final List<String> groupsToAdd,
+    private static Uid updateDeltaUser(
+            final ConnectorObject created,
+            final String name,
+            final List<String> groupsToAdd,
             final List<String> groupsToRemove) {
+
         Set<AttributeDelta> userAttrs = updateDeltaUserAttributes(created, name);
 
         // change groups
@@ -434,7 +438,7 @@ public class SCIMv2ConnectorTests {
         groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, Collections.emptyList(),
                 membersToRemove));
         groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, membersToAdd,
-                        Collections.emptyList()));
+                Collections.emptyList()));
         groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, membersToReplace));
 
         groupAttrs = FACADE_PATCH.updateDelta(ObjectClass.GROUP, groupToUpdate, groupAttrs,
@@ -513,6 +517,7 @@ public class SCIMv2ConnectorTests {
 
     private static SCIMv2User readDeltaUser(final String id, final SCIMv2Client client)
             throws IllegalArgumentException, IllegalAccessException {
+
         SCIMv2User user = client.getUser(id);
         LOG.info("Found User: {0}", user);
         assertNotNull(user);
@@ -528,8 +533,8 @@ public class SCIMv2ConnectorTests {
 
         assertTrue(user.getAddresses().stream().anyMatch(
                 a -> a.getStreetAddress().equals("my street") && a.getLocality().equals("my locality") && a.getRegion()
-                        .equals("my region") && a.getCountry().equals("my country") && a.getPostalCode()
-                        .equals("12345")));
+                .equals("my region") && a.getCountry().equals("my country") && a.getPostalCode()
+                .equals("12345")));
         // check groups
         // group1 removed, group4 and group5 added -> groups should be group2,group3,group4,group5
         assertEquals(3, user.getGroups().size());
@@ -598,6 +603,7 @@ public class SCIMv2ConnectorTests {
 
     private static SCIMv2Group readDeltaGroup(final String id, final SCIMv2Client client)
             throws IllegalArgumentException {
+
         SCIMv2Group group = client.getGroup(id);
         assertNotNull(group);
         assertNotNull(group.getId());
@@ -917,8 +923,8 @@ public class SCIMv2ConnectorTests {
     private static void addDeltaCustomAttributes(final Set<AttributeDelta> userAttrs) {
         if (testCustomAttributes()) {
             for (int i = 0; i < CUSTOM_DELTA_ATTRIBUTES_VALUES.size(); i++) {
-                userAttrs.add(AttributeDeltaBuilder.build(CUSTOM_DELTA_ATTRIBUTES_KEYS.get(i),
-                        CUSTOM_DELTA_ATTRIBUTES_VALUES.get(i)));
+                userAttrs.add(AttributeDeltaBuilder.build(
+                        CUSTOM_DELTA_ATTRIBUTES_KEYS.get(i), CUSTOM_DELTA_ATTRIBUTES_VALUES.get(i)));
             }
         }
     }
@@ -1178,7 +1184,7 @@ public class SCIMv2ConnectorTests {
             Uid updated = "PATCH".equalsIgnoreCase(CONF.getUpdateGroupMethod())
                     ? updateUser(createdUid, createdUser.getUserName(),
                             Arrays.asList(group1.getUidValue(), group3.getUidValue()),
-                    Collections.singletonList(group2.getUidValue()))
+                            Collections.singletonList(group2.getUidValue()))
                     : updateUser(createdUid, createdUser.getUserName(), group1.getUidValue(), group3.getUidValue());
 
             SCIMv2User updatedUser = readUser(updated.getUidValue(), client);
@@ -1263,7 +1269,6 @@ public class SCIMv2ConnectorTests {
         assertNotNull(result);
         assertNotNull(result.getPagedResultsCookie());
         assertEquals(-1, result.getRemainingPagedResults());
-
     }
 
     @Test

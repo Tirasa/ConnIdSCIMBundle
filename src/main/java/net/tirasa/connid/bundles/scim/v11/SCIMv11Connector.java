@@ -72,8 +72,12 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    public Set<AttributeDelta> updateDelta(final ObjectClass objectClass, final Uid uid,
-            final Set<AttributeDelta> modifications, final OperationOptions options) {
+    public Set<AttributeDelta> updateDelta(
+            final ObjectClass objectClass,
+            final Uid uid,
+            final Set<AttributeDelta> modifications,
+            final OperationOptions options) {
+
         LOG.error("Update delta is not supported in version 1.1");
         throw new ConnectorException("Update delta is not supported in version 1.1");
     }
@@ -127,8 +131,11 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected SCIMv11BasePatch buildUserPatch(final Set<AttributeDelta> modifications, final SCIMv11User currentUser,
+    protected SCIMv11BasePatch buildUserPatch(
+            final Set<AttributeDelta> modifications,
+            final SCIMv11User currentUser,
             final boolean manageGroups) {
+
         throw new ConnectorException("Update delta is not supported in version 1.1");
     }
 
@@ -149,8 +156,10 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected List<SCIMPatchOperation> buildAddressesPatchOperations(final Set<AttributeDelta> modifications,
+    protected List<SCIMPatchOperation> buildAddressesPatchOperations(
+            final Set<AttributeDelta> modifications,
             final SCIMv11User currentUser) {
+
         throw new ConnectorException("Update delta is not supported in version 1.1");
     }
 

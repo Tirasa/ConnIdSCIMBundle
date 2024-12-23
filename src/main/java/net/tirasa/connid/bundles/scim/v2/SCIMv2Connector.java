@@ -158,24 +158,35 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected SCIMv2Patch buildUserPatch(final Set<AttributeDelta> modifications, final SCIMv2User currentUser,
+    protected SCIMv2Patch buildUserPatch(
+            final Set<AttributeDelta> modifications,
+            final SCIMv2User currentUser,
             final boolean manageGroups) {
+
         SCIMv2Patch patch = new SCIMv2PatchImpl.Builder().build();
         for (AttributeDelta attrDelta : modifications) {
             if (attrDelta.is(Uid.NAME)) {
                 throw new IllegalArgumentException(
                         "Changing the id attribute is not supported, nor recommended with patch");
-            } else if (attrDelta.is(Name.NAME) && !CollectionUtil.isEmpty(attrDelta.getValuesToReplace())) {
-                patch.addOperation(new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM_REPLACE)
-                        .path(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME).value(attrDelta.getValuesToReplace().get(0))
+            }
+
+            if (attrDelta.is(Name.NAME) && !CollectionUtil.isEmpty(attrDelta.getValuesToReplace())) {
+                patch.addOperation(new SCIMv2PatchOperation.Builder()
+                        .op(SCIMAttributeUtils.SCIM_REPLACE)
+                        .path(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME)
+                        .value(attrDelta.getValuesToReplace().get(0))
                         .build());
-            } else if (attrDelta.is(OperationalAttributes.PASSWORD_NAME) && !CollectionUtil.isEmpty(
-                    attrDelta.getValuesToReplace())) {
-                patch.addOperation(new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM_REPLACE)
+            } else if (attrDelta.is(OperationalAttributes.PASSWORD_NAME)
+                    && !CollectionUtil.isEmpty(attrDelta.getValuesToReplace())) {
+
+                patch.addOperation(new SCIMv2PatchOperation.Builder()
+                        .op(SCIMAttributeUtils.SCIM_REPLACE)
                         .path(SCIMAttributeUtils.USER_ATTRIBUTE_PASSWORD)
-                        .value(SecurityUtil.decrypt((GuardedString) attrDelta.getValuesToReplace().get(0))).build());
-            } else if (!attrDelta.getName().contains(SCIMAttributeUtils.SCIM_USER_ADDRESSES) && !attrDelta.is(
-                    SCIMAttributeUtils.SCIM_USER_GROUPS)) {
+                        .value(SecurityUtil.decrypt((GuardedString) attrDelta.getValuesToReplace().get(0)))
+                        .build());
+            } else if (!attrDelta.getName().contains(SCIMAttributeUtils.SCIM_USER_ADDRESSES)
+                    && !attrDelta.is(SCIMAttributeUtils.SCIM_USER_GROUPS)) {
+
                 patch.addOperation(buildPatchOperation(attrDelta, null));
             }
         }
@@ -200,27 +211,34 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             if (attrDelta.is(Uid.NAME)) {
                 throw new IllegalArgumentException(
                         "Changing the id attribute is not supported, nor recommended with patch");
-            } else if (attrDelta.is(Name.NAME) && !CollectionUtil.isEmpty(attrDelta.getValuesToReplace())) {
-                patch.addOperation(new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM_REPLACE)
-                        .path(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME).value(attrDelta.getValuesToReplace().get(0))
+            }
+
+            if (attrDelta.is(Name.NAME) && !CollectionUtil.isEmpty(attrDelta.getValuesToReplace())) {
+                patch.addOperation(new SCIMv2PatchOperation.Builder()
+                        .op(SCIMAttributeUtils.SCIM_REPLACE)
+                        .path(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME)
+                        .value(attrDelta.getValuesToReplace().get(0))
                         .build());
             } else if (!attrDelta.getName().contains(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)) {
                 patch.addOperation(buildPatchOperation(attrDelta, null));
             }
         }
-        
+
         // manage members, only values to add and remove are supported
         List<SCIMv2PatchOperation> memberOperations = new ArrayList<>();
         modifications.stream().filter(ad -> SCIMAttributeUtils.SCIM_GROUP_MEMBERS.equalsIgnoreCase(ad.getName()))
                 .findFirst().ifPresent(ad -> {
                     // remove ops
                     if (!CollectionUtil.isEmpty(ad.getValuesToRemove())) {
-                        memberOperations.add(new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM_REMOVE)
-                                .path(buildFilteredPath(ad.getName(), ad.getValuesToRemove(), "or", "eq")).build());
+                        memberOperations.add(new SCIMv2PatchOperation.Builder()
+                                .op(SCIMAttributeUtils.SCIM_REMOVE)
+                                .path(buildFilteredPath(ad.getName(), ad.getValuesToRemove(), "or", "eq"))
+                                .build());
                     }
                     // add ops
                     if (!CollectionUtil.isEmpty(ad.getValuesToAdd())) {
-                        memberOperations.add(new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM_ADD)
+                        memberOperations.add(new SCIMv2PatchOperation.Builder()
+                                .op(SCIMAttributeUtils.SCIM_ADD)
                                 .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
                                 .value(ad.getValuesToAdd().stream().map(vta -> {
                                     SCIMv2User user = client.getUser(vta.toString());
@@ -233,17 +251,20 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                                                 .display(user.getDisplayName()).build();
                                     }
                                     return resRef;
-                                }).filter(Objects::nonNull).collect(Collectors.toList())).build());
+                                }).filter(Objects::nonNull).collect(Collectors.toList()))
+                                .build());
                     }
                     // replace ops
                     if (!CollectionUtil.isEmpty(ad.getValuesToReplace())) {
-                        memberOperations.add(new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM_REPLACE)
-                                .path(SCIMAttributeUtils.SCIM_USER_GROUPS).value(ad.getValuesToReplace().stream()
-                                        .map(vtr -> {
+                        memberOperations.add(new SCIMv2PatchOperation.Builder()
+                                .op(SCIMAttributeUtils.SCIM_REPLACE)
+                                .path(SCIMAttributeUtils.SCIM_USER_GROUPS)
+                                .value(ad.getValuesToReplace().stream().map(vtr -> {
                                     SCIMv2User user = client.getUser(vtr.toString());
                                     BaseResourceReference resRef = null;
                                     if (user == null) {
-                                        LOG.error("Unable to replace member {0} on the group, user does not exist",
+                                        LOG.error(
+                                                "Unable to replace member {0} on the group, user does not exist",
                                                 vtr);
                                     } else {
                                         resRef = new BaseResourceReference.Builder().value(user.getId())
@@ -251,7 +272,8 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                                                 .display(user.getDisplayName()).build();
                                     }
                                     return resRef;
-                                }).filter(Objects::nonNull).collect(Collectors.toList())).build());
+                                }).filter(Objects::nonNull).collect(Collectors.toList()))
+                                .build());
                     }
                 });
         return patch;
@@ -259,14 +281,13 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
 
     protected List<SCIMv2PatchOperation> buildCustomAttributesPatchOperations(final Set<AttributeDelta> modifications) {
         List<SCIMv2PatchOperation> operations = new ArrayList<>();
-        SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class)
-                .ifPresent(customAttributesObj -> {
-                    for (SCIMv2Attribute customAttribute : customAttributesObj.getAttributes()) {
-                        String externalAttributeName =
-                                SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema().concat(".")
-                                        .concat(customAttribute.getName());
+        SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class).ifPresent(
+                scimSchema -> {
+                    for (SCIMv2Attribute customAttribute : scimSchema.getAttributes()) {
+                        String extAttrName = SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema().
+                                concat(".").concat(customAttribute.getName());
                         // only single valued attributes are supported
-                        modifications.stream().filter(ad -> ad.getName().equals(externalAttributeName))
+                        modifications.stream().filter(mod -> mod.getName().equals(extAttrName))
                                 .findFirst().ifPresent(ad -> buildPatchOperation(ad, customAttribute));
                     }
                 });
@@ -274,8 +295,10 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected SCIMv2PatchOperation buildPatchOperation(final AttributeDelta currentDelta,
+    protected SCIMv2PatchOperation buildPatchOperation(
+            final AttributeDelta currentDelta,
             final SCIMBaseAttribute<?> attributeDefinition) {
+
         SCIMv2PatchOperation patchOperation = new SCIMv2PatchOperation();
         patchOperation.setPath(SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()));
         if (CollectionUtil.isEmpty(currentDelta.getValuesToReplace())) {
@@ -284,8 +307,8 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                 patchOperation.setValue(
                         buildPatchValue(currentDelta.getName(), currentDelta.getValuesToAdd(), attributeDefinition));
             }
-            if (CollectionUtil.isEmpty(currentDelta.getValuesToAdd()) && !CollectionUtil.isEmpty(
-                    currentDelta.getValuesToRemove())) {
+            if (CollectionUtil.isEmpty(currentDelta.getValuesToAdd())
+                    && !CollectionUtil.isEmpty(currentDelta.getValuesToRemove())) {
                 patchOperation.setOp(SCIMAttributeUtils.SCIM_REMOVE);
                 // while removing specific attribute values we must use a filter like emails[value eq \"user
                 // .secondary@example.com\"], if multiple values are present must filter in OR like
@@ -306,18 +329,21 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     @Override
     protected List<SCIMv2PatchOperation> buildGroupPatchOperations(final Set<AttributeDelta> modifications) {
         List<SCIMv2PatchOperation> grpOperations = new ArrayList<>();
-        modifications.stream().filter(ad -> SCIMAttributeUtils.SCIM_USER_GROUPS.equalsIgnoreCase(ad.getName()))
-                .findFirst().ifPresent(ad -> {
+        modifications.stream().filter(mod -> SCIMAttributeUtils.SCIM_USER_GROUPS.equalsIgnoreCase(mod.getName()))
+                .findFirst().ifPresent(mod -> {
                     // remove ops
-                    if (!CollectionUtil.isEmpty(ad.getValuesToRemove())) {
-                        grpOperations.add(new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM_REMOVE)
-                                .path(buildFilteredPath(ad.getName(), ad.getValuesToRemove(), "or", "eq")).build());
+                    if (!CollectionUtil.isEmpty(mod.getValuesToRemove())) {
+                        grpOperations.add(new SCIMv2PatchOperation.Builder()
+                                .op(SCIMAttributeUtils.SCIM_REMOVE)
+                                .path(buildFilteredPath(mod.getName(), mod.getValuesToRemove(), "or", "eq"))
+                                .build());
                     }
                     // add ops
-                    if (!CollectionUtil.isEmpty(ad.getValuesToAdd())) {
-                        grpOperations.add(new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM_ADD)
+                    if (!CollectionUtil.isEmpty(mod.getValuesToAdd())) {
+                        grpOperations.add(new SCIMv2PatchOperation.Builder()
+                                .op(SCIMAttributeUtils.SCIM_ADD)
                                 .path(SCIMAttributeUtils.SCIM_USER_GROUPS)
-                                .value(ad.getValuesToAdd().stream().map(vta -> {
+                                .value(mod.getValuesToAdd().stream().map(vta -> {
                                     SCIMv2Group group = client.getGroup(vta.toString());
                                     BaseResourceReference resRef = null;
                                     if (group == null) {
@@ -328,13 +354,15 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                                                 .display(group.getDisplayName()).build();
                                     }
                                     return resRef;
-                                }).filter(Objects::nonNull).collect(Collectors.toList())).build());
+                                }).filter(Objects::nonNull).collect(Collectors.toList()))
+                                .build());
                     }
                     // replace ops
-                    if (!CollectionUtil.isEmpty(ad.getValuesToReplace())) {
-                        grpOperations.add(new SCIMv2PatchOperation.Builder().op(SCIMAttributeUtils.SCIM_REPLACE)
+                    if (!CollectionUtil.isEmpty(mod.getValuesToReplace())) {
+                        grpOperations.add(new SCIMv2PatchOperation.Builder()
+                                .op(SCIMAttributeUtils.SCIM_REPLACE)
                                 .path(SCIMAttributeUtils.SCIM_USER_GROUPS)
-                                .value(ad.getValuesToReplace().stream().map(vtr -> {
+                                .value(mod.getValuesToReplace().stream().map(vtr -> {
                                     SCIMv2Group group = client.getGroup(vtr.toString());
                                     BaseResourceReference resRef = null;
                                     if (group == null) {
@@ -345,19 +373,23 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                                                 .display(group.getDisplayName()).build();
                                     }
                                     return resRef;
-                                }).filter(Objects::nonNull).collect(Collectors.toList())).build());
+                                }).filter(Objects::nonNull).collect(Collectors.toList()))
+                                .build());
                     }
                 });
         return grpOperations;
     }
 
     @Override
-    protected List<SCIMv2PatchOperation> buildAddressesPatchOperations(final Set<AttributeDelta> modifications,
+    protected List<SCIMv2PatchOperation> buildAddressesPatchOperations(
+            final Set<AttributeDelta> modifications,
             final SCIMv2User currentUser) {
+
         // 1. first manage removals
         List<SCIMv2PatchOperation> patchOperations = new ArrayList<>();
-        modifications.stream().filter(ad -> ad.getName().startsWith(SCIMAttributeUtils.SCIM_USER_ADDRESSES)
-                        && !CollectionUtil.isEmpty(ad.getValuesToRemove()))
+        modifications.stream()
+                .filter(mod -> mod.getName().startsWith(SCIMAttributeUtils.SCIM_USER_ADDRESSES)
+                && !CollectionUtil.isEmpty(mod.getValuesToRemove()))
                 .collect(Collectors.toMap(AttributeDelta::getName, AttributeDelta::getValuesToRemove))
                 .forEach((k, v) -> {
                     SCIMv2PatchOperation patchOperation = new SCIMv2PatchOperation();
@@ -367,9 +399,9 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                 });
 
         // 2. then manage additions
-        if (modifications.stream().anyMatch(
-                ad -> ad.getName().startsWith(SCIMAttributeUtils.SCIM_USER_ADDRESSES) && !CollectionUtil.isEmpty(
-                        ad.getValuesToAdd()))) {
+        if (modifications.stream().anyMatch(mod -> mod.getName().startsWith(SCIMAttributeUtils.SCIM_USER_ADDRESSES)
+                && !CollectionUtil.isEmpty(mod.getValuesToAdd()))) {
+
             // default
             SCIMUserAddress defaultAddress = buildUserAddress(modifications, null, false);
             if (!defaultAddress.isEmpty()) {
@@ -408,9 +440,9 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             }
         }
         // 3. finally manage replaces, must perform a read before to get previous values
-        if (modifications.stream().anyMatch(
-                ad -> ad.getName().startsWith(SCIMAttributeUtils.SCIM_USER_ADDRESSES) && !CollectionUtil.isEmpty(
-                        ad.getValuesToReplace()))) {
+        if (modifications.stream().anyMatch(mod -> mod.getName().startsWith(SCIMAttributeUtils.SCIM_USER_ADDRESSES)
+                && !CollectionUtil.isEmpty(mod.getValuesToReplace()))) {
+
             // default
             addAddressToPatchOperations(patchOperations,
                     currentUser.getAddresses().stream().filter(a -> a.getType() == null).findFirst(),
@@ -432,8 +464,11 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         return patchOperations;
     }
 
-    private void addAddressToPatchOperations(final List<SCIMv2PatchOperation> patchOperations,
-            final Optional<SCIMUserAddress> currentOtherAddress, final SCIMUserAddress newAddress) {
+    private static void addAddressToPatchOperations(
+            final List<SCIMv2PatchOperation> patchOperations,
+            final Optional<SCIMUserAddress> currentOtherAddress,
+            final SCIMUserAddress newAddress) {
+
         if (!newAddress.isEmpty()) {
             SCIMv2PatchOperation patchOperation = new SCIMv2PatchOperation();
             patchOperation.setPath(SCIMAttributeUtils.SCIM_USER_ADDRESSES);
@@ -449,53 +484,60 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         }
     }
 
-    private SCIMUserAddress buildUserAddress(final Set<AttributeDelta> modifications, final AddressCanonicalType type,
+    private SCIMUserAddress buildUserAddress(
+            final Set<AttributeDelta> modifications,
+            final AddressCanonicalType type,
             final boolean isReplace) {
+
         SCIMUserAddress address = new SCIMUserAddress();
         Optional.ofNullable(type).ifPresent(address::setType);
         // streetAddress
         setAddressAttribute(modifications,
                 SCIMAttributeUtils.SCIM_USER_ADDRESSES + "."
-                        + (type == null ? StringUtil.EMPTY : (type.name() + "."))
-                        + SCIMAttributeUtils.SCIM_USER_STREET_ADDRESS, isReplace,
+                + (type == null ? StringUtil.EMPTY : (type.name() + "."))
+                + SCIMAttributeUtils.SCIM_USER_STREET_ADDRESS, isReplace,
                 address::setStreetAddress);
         // locality
         setAddressAttribute(modifications,
                 SCIMAttributeUtils.SCIM_USER_ADDRESSES + "."
-                        + (type == null ? StringUtil.EMPTY : (type.name() + "."))
-                        + SCIMAttributeUtils.SCIM_USER_LOCALITY, isReplace,
+                + (type == null ? StringUtil.EMPTY : (type.name() + "."))
+                + SCIMAttributeUtils.SCIM_USER_LOCALITY, isReplace,
                 address::setLocality);
         // region
         setAddressAttribute(modifications,
                 SCIMAttributeUtils.SCIM_USER_ADDRESSES + "."
-                        + (type == null ? StringUtil.EMPTY : (type.name() + "."))
-                        + SCIMAttributeUtils.SCIM_USER_REGION, isReplace,
+                + (type == null ? StringUtil.EMPTY : (type.name() + "."))
+                + SCIMAttributeUtils.SCIM_USER_REGION, isReplace,
                 address::setRegion);
         // postalCode
         setAddressAttribute(modifications,
                 SCIMAttributeUtils.SCIM_USER_ADDRESSES + "."
-                        + (type == null ? StringUtil.EMPTY : (type.name() + "."))
-                        + SCIMAttributeUtils.SCIM_USER_POSTAL_CODE, isReplace,
+                + (type == null ? StringUtil.EMPTY : (type.name() + "."))
+                + SCIMAttributeUtils.SCIM_USER_POSTAL_CODE, isReplace,
                 address::setPostalCode);
         // country
         setAddressAttribute(modifications,
                 SCIMAttributeUtils.SCIM_USER_ADDRESSES + "."
-                        + (type == null ? StringUtil.EMPTY : (type.name() + "."))
-                        + SCIMAttributeUtils.SCIM_USER_COUNTRY, isReplace,
+                + (type == null ? StringUtil.EMPTY : (type.name() + "."))
+                + SCIMAttributeUtils.SCIM_USER_COUNTRY, isReplace,
                 address::setCountry);
         return address;
     }
 
-    private void setAddressAttribute(
+    private static void setAddressAttribute(
             final Set<AttributeDelta> modifications,
             final String addressAttrName,
             final boolean isReplace,
             final Consumer<String> setter) {
-        modifications.stream().filter(ad ->
-                ((isReplace && !CollectionUtil.isEmpty(ad.getValuesToReplace())) || (!isReplace
-                        && !CollectionUtil.isEmpty(ad.getValuesToAdd()))) && ad.getName()
-                        .equalsIgnoreCase(addressAttrName)).findFirst().ifPresent(ad -> setter.accept(
-                isReplace ? ad.getValuesToReplace().get(0).toString() : ad.getValuesToAdd().get(0).toString()));
+
+        modifications.stream().
+                filter(mod -> mod.getName().equalsIgnoreCase(addressAttrName)
+                && (isReplace && !CollectionUtil.isEmpty(mod.getValuesToReplace()))
+                || (!isReplace && !CollectionUtil.isEmpty(mod.getValuesToAdd()))).
+                findFirst().
+                ifPresent(mod -> setter.accept(isReplace
+                ? mod.getValuesToReplace().get(0).toString()
+                : mod.getValuesToAdd().get(0).toString()));
     }
 
     @Override
