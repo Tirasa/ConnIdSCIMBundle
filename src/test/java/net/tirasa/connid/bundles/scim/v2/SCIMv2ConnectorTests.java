@@ -442,9 +442,9 @@ public class SCIMv2ConnectorTests {
         } else {
             groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, membersToReplace));
         }
-        
-        groupAttrs = FACADE_PATCH.updateDelta(ObjectClass.GROUP, groupToUpdate, groupAttrs,
-                new OperationOptionsBuilder().build());
+
+        groupAttrs = FACADE_PATCH.updateDelta(
+                ObjectClass.GROUP, groupToUpdate, groupAttrs, new OperationOptionsBuilder().build());
 
         assertFalse(CollectionUtil.isEmpty(groupAttrs));
         LOG.info("Updated Group uid: {0}", groupToUpdate);
@@ -1330,9 +1330,11 @@ public class SCIMv2ConnectorTests {
                     .anyMatch(g -> g.getValue().equalsIgnoreCase(user01.getUidValue())));
 
             // update group with PATCH
-            Uid updatedWithDelta =
-                    updateDeltaGroup(group1, updatedGroup.getDisplayName().replaceAll("updated__", "upd2_"),
-                    Collections.singletonList(user02.getUidValue()), Collections.singletonList(user01.getUidValue()),
+            Uid updatedWithDelta = updateDeltaGroup(
+                    group1,
+                    updatedGroup.getDisplayName().replaceAll("updated__", "upd2_"),
+                    Collections.singletonList(user02.getUidValue()),
+                    Collections.singletonList(user01.getUidValue()),
                     Collections.emptyList());
 
             SCIMv2Group updatedWithDeltaGroup = readDeltaGroup(updatedWithDelta.getUidValue(), client);

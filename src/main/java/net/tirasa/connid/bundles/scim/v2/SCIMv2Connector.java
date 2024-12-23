@@ -226,21 +226,21 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
 
         // manage members, only values to add and remove are supported
         List<SCIMv2PatchOperation> memberOperations = new ArrayList<>();
-        modifications.stream().filter(ad -> SCIMAttributeUtils.SCIM_GROUP_MEMBERS.equalsIgnoreCase(ad.getName()))
-                .findFirst().ifPresent(ad -> {
+        modifications.stream().filter(mod -> SCIMAttributeUtils.SCIM_GROUP_MEMBERS.equalsIgnoreCase(mod.getName()))
+                .findFirst().ifPresent(mod -> {
                     // remove ops
-                    if (!CollectionUtil.isEmpty(ad.getValuesToRemove())) {
+                    if (!CollectionUtil.isEmpty(mod.getValuesToRemove())) {
                         memberOperations.add(new SCIMv2PatchOperation.Builder()
                                 .op(SCIMAttributeUtils.SCIM_REMOVE)
-                                .path(buildFilteredPath(ad.getName(), ad.getValuesToRemove(), "or", "eq"))
+                                .path(buildFilteredPath(mod.getName(), mod.getValuesToRemove(), "or", "eq"))
                                 .build());
                     }
                     // add ops
-                    if (!CollectionUtil.isEmpty(ad.getValuesToAdd())) {
+                    if (!CollectionUtil.isEmpty(mod.getValuesToAdd())) {
                         memberOperations.add(new SCIMv2PatchOperation.Builder()
                                 .op(SCIMAttributeUtils.SCIM_ADD)
                                 .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                                .value(ad.getValuesToAdd().stream().map(vta -> {
+                                .value(mod.getValuesToAdd().stream().map(vta -> {
                                     SCIMv2User user = client.getUser(vta.toString());
                                     BaseResourceReference resRef = null;
                                     if (user == null) {
@@ -255,11 +255,11 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                                 .build());
                     }
                     // replace ops
-                    if (!CollectionUtil.isEmpty(ad.getValuesToReplace())) {
+                    if (!CollectionUtil.isEmpty(mod.getValuesToReplace())) {
                         memberOperations.add(new SCIMv2PatchOperation.Builder()
                                 .op(SCIMAttributeUtils.SCIM_REPLACE)
                                 .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                                .value(ad.getValuesToReplace().stream().map(vtr -> {
+                                .value(mod.getValuesToReplace().stream().map(vtr -> {
                                     SCIMv2User user = client.getUser(vtr.toString());
                                     BaseResourceReference resRef = null;
                                     if (user == null) {
