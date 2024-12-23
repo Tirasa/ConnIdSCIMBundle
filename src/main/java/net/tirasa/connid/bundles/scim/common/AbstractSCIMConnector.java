@@ -15,6 +15,7 @@
  */
 package net.tirasa.connid.bundles.scim.common;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,13 +32,21 @@ import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseMeta;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseResource;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMDefaultComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMEnterpriseUser;
+import net.tirasa.connid.bundles.scim.common.dto.SCIMGenericComplex;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMGroup;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMUser;
 import net.tirasa.connid.bundles.scim.common.service.SCIMService;
+import net.tirasa.connid.bundles.scim.common.types.EmailCanonicalType;
+import net.tirasa.connid.bundles.scim.common.types.IMCanonicalType;
+import net.tirasa.connid.bundles.scim.common.types.PhoneNumberCanonicalType;
+import net.tirasa.connid.bundles.scim.common.types.PhotoCanonicalType;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMAttributeUtils;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
+import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11EnterpriseUser;
+import net.tirasa.connid.bundles.scim.v2.dto.SCIMPatchOperation;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
 import org.identityconnectors.common.CollectionUtil;
@@ -47,6 +56,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.SecurityUtil;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.AttributesAccessor;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -70,13 +80,14 @@ import org.identityconnectors.framework.spi.operations.DeleteOp;
 import org.identityconnectors.framework.spi.operations.SchemaOp;
 import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
+import org.identityconnectors.framework.spi.operations.UpdateDeltaOp;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 
-public abstract class AbstractSCIMConnector<
-        UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<?>>, 
-        GT extends SCIMGroup<? extends SCIMBaseMeta>, ERT extends SCIMBaseResource<? extends SCIMBaseMeta>,
-        P extends SCIMBasePatch, ST extends SCIMService<UT, GT, ERT, P>>
-        implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp {
+public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBaseMeta, ? extends SCIMEnterpriseUser<
+        ?>>, GT extends SCIMGroup<? extends SCIMBaseMeta>, ERT extends SCIMBaseResource<? extends SCIMBaseMeta>,
+        P extends SCIMBasePatch, PO extends SCIMPatchOperation, ST extends SCIMService<UT, GT, ERT, P>, 
+        EUM extends Serializable>
+        implements Connector, CreateOp, DeleteOp, SchemaOp, SearchOp<Filter>, TestOp, UpdateOp, UpdateDeltaOp {
 
     protected static final Log LOG = Log.getLog(AbstractSCIMConnector.class);
 
@@ -339,8 +350,9 @@ public abstract class AbstractSCIMConnector<
                     user.fillSCIMCustomAttributes(createAttributes, configuration.getCustomAttributesJSON());
                 }
                 // enterprise user
-                createAttributes.stream().filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI))
-                        .findFirst().ifPresent(ca -> {
+                createAttributes.stream().
+                        filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI)).
+                        findFirst().ifPresent(ca -> {
                             user.getSchemas().add(SCIMv2EnterpriseUser.SCHEMA_URI);
                             user.fillEnterpriseUser(createAttributes);
                         });
@@ -546,6 +558,65 @@ public abstract class AbstractSCIMConnector<
     }
 
     @Override
+    public Set<AttributeDelta> updateDelta(
+            final ObjectClass objectClass,
+            final Uid uid,
+            final Set<AttributeDelta> modifications,
+            final OperationOptions options) {
+
+        LOG.ok("Connector UPDATE DELTA object [{0}]", uid);
+
+        if (modifications == null || modifications.isEmpty()) {
+            SCIMUtils.handleGeneralError("Set of Attribute Deltas is null or empty");
+        }
+
+        if (ObjectClass.ACCOUNT.equals(objectClass)) {
+            // 1. build and send a patch for the user
+            UT currentUser = client.getUser(uid.getUidValue());
+            if (currentUser == null) {
+                SCIMUtils.handleGeneralError("Unable to update user because does not exist");
+            }
+            Map<String, P> groupPatches = new HashMap<>();
+            boolean manageGroupsWithPatch = "PATCH".equalsIgnoreCase(configuration.getUpdateGroupMethod());
+            if (manageGroupsWithPatch) {
+                // only values to add and remove are supported
+                modifications.stream().
+                        filter(ad -> SCIMAttributeUtils.SCIM_USER_GROUPS.equalsIgnoreCase(ad.getName())).
+                        findFirst().ifPresent(grpsAd -> fillGroupPatches(
+                        currentUser,
+                        groupPatches,
+                        CollectionUtil.isEmpty(grpsAd.getValuesToAdd())
+                        ? grpsAd.getValuesToReplace().stream().map(String.class::cast).collect(Collectors.toList())
+                        : grpsAd.getValuesToAdd().stream().map(String.class::cast).collect(Collectors.toList()),
+                        grpsAd.getValuesToRemove().stream().map(String.class::cast).collect(Collectors.toList())));
+            } else {
+                LOG.warn("Group update method must be set to PATCH while updating through UPDATE_DELTA");
+            }
+            try {
+                client.updateUser(
+                        uid.getUidValue(),
+                        buildUserPatch(modifications, currentUser, !manageGroupsWithPatch));
+                // 2. if any modify also groups
+                // if PATCH is enabled update also group with memberships previously calculated
+                groupPatches.forEach((key, value) -> client.updateGroup(key, value));
+            } catch (Exception e) {
+                SCIMUtils.handleGeneralError("Error while updating user", e);
+            }
+        } else if (ObjectClass.GROUP.equals(objectClass)) {
+            try {
+                if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
+                    client.updateGroup(uid.getUidValue(), buildGroupPatch(modifications));
+                } else {
+                    LOG.warn("Group update method must be set to PATCH while updating through UPDATE_DELTA");
+                }
+            } catch (Exception e) {
+                SCIMUtils.handleGeneralError("Error while updating group", e);
+            }
+        }
+        return modifications;
+    }
+
+    @Override
     public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
         LOG.ok("Connector DELETE object [{0}]", uid);
 
@@ -671,15 +742,304 @@ public abstract class AbstractSCIMConnector<
     protected abstract ST buildSCIMClient(SCIMConnectorConfiguration configuration);
 
     protected abstract void fillGroupPatches(
-            UT user,
-            Map<String, P> groupPatches,
-            List<String> groupsToAdd,
-            List<String> groupsToRemove);
+            UT user, Map<String, P> groupPatches, List<String> groupsToAdd, List<String> groupsToRemove);
 
     protected abstract P buildMembersGroupPatch(List<UT> user, String op);
 
     protected abstract P buildPatchFromGroup(GT group);
 
+    protected abstract P buildUserPatch(Set<AttributeDelta> modifications, UT currentUser, boolean manageGroups);
+
+    protected abstract P buildGroupPatch(Set<AttributeDelta> modifications);
+
+    protected abstract PO buildPatchOperation(AttributeDelta currentDelta, SCIMBaseAttribute<?> attributeDefinition);
+
+    protected abstract List<PO> buildGroupPatchOperations(Set<AttributeDelta> modifications);
+
+    protected abstract List<PO> buildAddressesPatchOperations(Set<AttributeDelta> modifications, UT currentUser);
+
+    protected Object buildPatchValue(
+            final String name,
+            final List<Object> values,
+            final SCIMBaseAttribute<?> attributeDefinition) {
+
+        Object patchValue;
+        switch (name) {
+            case "userName":
+            case "name.formatted":
+            case "name.familyName":
+            case "name.givenName":
+            case "name.middleName":
+            case "name.honorificPrefix":
+            case "name.honorificSuffix":
+            case "displayName":
+            case "nickName":
+            case "profileUrl":
+            case "title":
+            case "userType":
+            case "locale":
+            case "preferredLanguage":
+            case "timezone":
+                patchValue = CollectionUtil.isEmpty(values) ? null : values.get(0).toString();
+                break;
+            case "active":
+                patchValue = CollectionUtil.isEmpty(values) ? null : Boolean.valueOf(values.get(0).toString());
+                break;
+            case "emails.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<EmailCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+            case "emails.work.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<EmailCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(EmailCanonicalType.work);
+                    return value;
+                }).collect(Collectors.toList());
+                // emails.work.primary must be set with path including the email value
+                break;
+
+            case "emails.home.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<EmailCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(EmailCanonicalType.home);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "emails.other.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<EmailCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(EmailCanonicalType.other);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "phoneNumbers.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<PhoneNumberCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "phoneNumbers.work.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<PhoneNumberCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(PhoneNumberCanonicalType.work);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "phoneNumbers.home.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<PhoneNumberCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(PhoneNumberCanonicalType.home);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "phoneNumbers.other.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<PhoneNumberCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(PhoneNumberCanonicalType.other);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "phoneNumbers.pager.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<PhoneNumberCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(PhoneNumberCanonicalType.pager);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "phoneNumbers.fax.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<PhoneNumberCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(PhoneNumberCanonicalType.fax);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "phoneNumbers.mobile.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<PhoneNumberCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(PhoneNumberCanonicalType.mobile);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "ims.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<IMCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "ims.aim.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<IMCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(IMCanonicalType.aim);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "ims.xmpp.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<IMCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(IMCanonicalType.xmpp);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "ims.skype.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<IMCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(IMCanonicalType.skype);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "ims.qq.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<IMCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(IMCanonicalType.qq);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "ims.yahoo.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<IMCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(IMCanonicalType.yahoo);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "ims.msn.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<IMCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(IMCanonicalType.msn);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "ims.icq.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<IMCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(IMCanonicalType.icq);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "ims.gtalk.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<IMCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(IMCanonicalType.gtalk);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "photos.photo.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<PhotoCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(PhotoCanonicalType.photo);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "photos.thumbnail.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<PhotoCanonicalType> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType(PhotoCanonicalType.thumbnail);
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "roles.default.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<String> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType("default");
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "entitlements.default.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMGenericComplex<String> value = new SCIMGenericComplex<>();
+                    value.setValue(v.toString());
+                    value.setType("default");
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+
+            case "x509Certificates.default.value":
+                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                    SCIMDefaultComplex value = new SCIMDefaultComplex();
+                    value.setValue(v.toString());
+                    return value;
+                }).collect(Collectors.toList());
+                break;
+            case SCIMv11EnterpriseUser.SCHEMA_URI + "." + SCIMAttributeUtils.SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE:
+            case SCIMv11EnterpriseUser.SCHEMA_URI + ":" + SCIMAttributeUtils.SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE:
+            case SCIMv2EnterpriseUser.SCHEMA_URI + "." + SCIMAttributeUtils.SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE:
+            case SCIMv2EnterpriseUser.SCHEMA_URI + ":" + SCIMAttributeUtils.SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE:
+                patchValue =
+                        CollectionUtil.isEmpty(values) ? null : buildEnterpriseUserManager(values.get(0).toString());
+                break;
+
+            default:
+                // this is mainly useful to manage custom attributes
+                patchValue = CollectionUtil.isEmpty(values) ? null
+                        : attributeDefinition != null && attributeDefinition.getMultiValued() ? values
+                        : values.get(0).toString();
+                break;
+        }
+
+        return patchValue;
+    }
+
+    protected String buildFilteredPath(final String name, final List<Object> values, final String op,
+            final String comparisonOp) {
+        // emails[value eq \"user.secondary@example.com\"]
+        if (CollectionUtil.isEmpty(values)) {
+            return StringUtil.EMPTY;
+        }
+        StringBuilder builder = new StringBuilder(name).append("[value ").append(comparisonOp).append(" ").append("\"")
+                .append(values.get(0)).append("\"");
+        values.subList(1, values.size()).forEach(
+                v -> builder.append(" ").append(op).append(" value ").append(comparisonOp).append(" ").append("\"")
+                        .append(values.get(0)).append("\""));
+
+        return builder.append("]").toString();
+    }
+
     protected abstract void manageEntitlements(UT user, List<String> values);
 
+    protected abstract EUM buildEnterpriseUserManager(String value);
 }

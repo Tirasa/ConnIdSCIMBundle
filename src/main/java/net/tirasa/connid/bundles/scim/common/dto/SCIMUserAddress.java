@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.Field;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.types.AddressCanonicalType;
@@ -147,6 +148,35 @@ public class SCIMUserAddress {
             }
         }
         return attrs;
+    }
+
+    public boolean isEmpty() {
+        return StringUtil.isBlank(this.postalCode)
+                && StringUtil.isBlank(this.streetAddress)
+                && StringUtil.isBlank(this.locality)
+                && StringUtil.isBlank(this.country)
+                && StringUtil.isBlank(this.region);
+    }
+
+    public SCIMUserAddress fillFrom(final Optional<SCIMUserAddress> currentDefaultAddress) {
+        currentDefaultAddress.ifPresent(address -> {
+            if (StringUtil.isBlank(this.streetAddress)) {
+                setStreetAddress(address.getStreetAddress());
+            }
+            if (StringUtil.isBlank(this.locality)) {
+                setLocality(address.getLocality());
+            }
+            if (StringUtil.isBlank(this.country)) {
+                setCountry(address.getCountry());
+            }
+            if (StringUtil.isBlank(this.region)) {
+                setRegion(address.getRegion());
+            }
+            if (StringUtil.isBlank(this.postalCode)) {
+                setPostalCode(address.getPostalCode());
+            }
+        });
+        return this;
     }
 
     @Override

@@ -73,6 +73,11 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
     }
 
     @Override
+    public SCIMv2User updateUser(final String userId, final SCIMv2Patch userPatch) {
+        return doUpdateUser(userId, userPatch, SCIMv2User.class);
+    }
+
+    @Override
     public SCIMv2Group getGroup(final String groupId) {
         return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv2Group.class);
     }

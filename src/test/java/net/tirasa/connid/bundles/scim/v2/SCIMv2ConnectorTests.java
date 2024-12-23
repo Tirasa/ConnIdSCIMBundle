@@ -56,6 +56,7 @@ import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2User;
 import net.tirasa.connid.bundles.scim.v2.dto.Uniqueness;
 import net.tirasa.connid.bundles.scim.v2.service.SCIMv2Client;
 import org.apache.cxf.transports.http.configuration.ProxyServerType;
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -65,6 +66,8 @@ import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
@@ -96,15 +99,23 @@ public class SCIMv2ConnectorTests {
 
     private static SCIMConnectorConfiguration CONF;
 
+    private static SCIMConnectorConfiguration CONF_PATCH;
+
     private static SCIMv2Connector CONN;
 
     private static ConnectorFacade FACADE;
+
+    private static ConnectorFacade FACADE_PATCH;
 
     private static final List<String> CUSTOM_OTHER_SCHEMAS = new ArrayList<>();
 
     private static final List<String> CUSTOM_ATTRIBUTES_KEYS = new ArrayList<>();
 
+    private static final List<String> CUSTOM_DELTA_ATTRIBUTES_KEYS = new ArrayList<>();
+
     private static final List<String> CUSTOM_ATTRIBUTES_VALUES = new ArrayList<>();
+
+    private static final List<String> CUSTOM_DELTA_ATTRIBUTES_VALUES = new ArrayList<>();
 
     private static final List<String> CUSTOM_ATTRIBUTES_UPDATE_VALUES = new ArrayList<>();
 
@@ -122,6 +133,10 @@ public class SCIMv2ConnectorTests {
             configurationParameters.put(name, PROPS.getProperty(name));
         }
         CONF = SCIMv2ConnectorTestsUtils.buildConfiguration(
+                configurationParameters, SCIMPLE_SERVER.getFirstMappedPort());
+        configurationParameters.put("auth.updateUserMethod", "PATCH");
+        configurationParameters.put("auth.updateGroupMethod", "PATCH");
+        CONF_PATCH = SCIMv2ConnectorTestsUtils.buildConfiguration(
                 configurationParameters, SCIMPLE_SERVER.getFirstMappedPort());
 
         Boolean isValid = SCIMv2ConnectorTestsUtils.isConfigurationValid(CONF);
@@ -152,13 +167,24 @@ public class SCIMv2ConnectorTests {
             CUSTOM_ATTRIBUTES_KEYS.addAll(
                     Arrays.asList(PROPS.getProperty("auth.customAttributesKeys").split("\\s*,\\s*")));
         }
+        if (PROPS.containsKey("auth.customDeltaAttributesValues")
+                && PROPS.getProperty("auth.customDeltaAttributesValues") != null) {
+            CUSTOM_DELTA_ATTRIBUTES_VALUES.addAll(
+                    Arrays.asList(PROPS.getProperty("auth.customDeltaAttributesValues").split("\\s*,\\s*")));
+        }
+        if (PROPS.containsKey("auth.customDeltaAttributesKeys")
+                && PROPS.getProperty("auth.customDeltaAttributesKeys") != null) {
+            CUSTOM_DELTA_ATTRIBUTES_KEYS.addAll(
+                    Arrays.asList(PROPS.getProperty("auth.customDeltaAttributesKeys").split("\\s*,\\s*")));
+        }
         if (PROPS.containsKey("auth.customAttributesUpdateValues")
                 && PROPS.getProperty("auth.customAttributesUpdateValues") != null) {
             CUSTOM_ATTRIBUTES_UPDATE_VALUES.addAll(
                     Arrays.asList(PROPS.getProperty("auth.customAttributesUpdateValues").split("\\s*,\\s*")));
         }
 
-        FACADE = newFacade();
+        FACADE = newFacade(CONF);
+        FACADE_PATCH = newFacade(CONF_PATCH);
 
         assertNotNull(CONF);
         assertNotNull(isValid);
@@ -170,9 +196,9 @@ public class SCIMv2ConnectorTests {
         assertNotNull(CONF.getUpdateUserMethod());
     }
 
-    private static ConnectorFacade newFacade() {
+    private static ConnectorFacade newFacade(final SCIMConnectorConfiguration conf) {
         ConnectorFacadeFactory factory = ConnectorFacadeFactory.getInstance();
-        APIConfiguration impl = TestHelpers.createTestConfiguration(SCIMv2Connector.class, CONF);
+        APIConfiguration impl = TestHelpers.createTestConfiguration(SCIMv2Connector.class, conf);
         impl.getResultsHandlerConfiguration().setFilteredResultsHandlerInValidationMode(true);
         return factory.newInstance(impl);
     }
@@ -246,6 +272,26 @@ public class SCIMv2ConnectorTests {
         return updated;
     }
 
+    private static Uid updateDeltaUser(
+            final ConnectorObject created,
+            final String name,
+            final List<String> groupsToAdd,
+            final List<String> groupsToRemove) {
+
+        Set<AttributeDelta> userAttrs = updateDeltaUserAttributes(created, name);
+
+        // change groups
+        userAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_USER_GROUPS, groupsToAdd, groupsToRemove));
+
+        userAttrs = FACADE.updateDelta(ObjectClass.ACCOUNT, created.getUid(), userAttrs,
+                new OperationOptionsBuilder().build());
+
+        assertFalse(CollectionUtil.isEmpty(userAttrs));
+        LOG.info("Updated User uid: {0}", created.getUid().getUidValue());
+
+        return created.getUid();
+    }
+
     private static Uid updateUser(final Uid created, final String name, final List<String> groupsToAdd,
             final List<String> groupsToRemove) {
         Set<Attribute> userAttrs = updateUserAttributes(created, name);
@@ -301,6 +347,55 @@ public class SCIMv2ConnectorTests {
         return userAttrs;
     }
 
+    private static Set<AttributeDelta> updateDeltaUserAttributes(final ConnectorObject created, final String name) {
+        AttributeDelta password = AttributeDeltaBuilder.buildPassword(
+                new GuardedString((SCIMv2ConnectorTestsUtils.VALUE_PASSWORD + "01").toCharArray()));
+        // UPDATE USER VALUE_PASSWORD
+        Set<AttributeDelta> userAttrs = new HashSet<>();
+        // value to replace
+        userAttrs.add(AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME,
+                "updated_" + SCIMv2ConnectorTestsUtils.VALUE_FAMILY_NAME));
+        userAttrs.add(AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME,
+                "updated_" + SCIMv2ConnectorTestsUtils.VALUE_NICK_NAME + created.getUid().getUidValue()
+                        .substring(0, 10)));
+        // values to remove and values to add
+        userAttrs.add(AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE,
+                Collections.singletonList("updated_" + name), Collections.singletonList(name)));
+        userAttrs.add(AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_HOME_VALUE,
+                Collections.singletonList("123456789"),
+                Collections.singletonList(SCIMv2ConnectorTestsUtils.VALUE_PHONE_NUMBER)));
+        userAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE, false));
+        userAttrs.add(AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ADDRESS_STREET_ADDRESS,
+                "my street"));
+        userAttrs.add(
+                AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ADDRESS_LOCALITY, "my locality"));
+        userAttrs.add(
+                AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ADDRESS_POSTAL_CODE, "12345"));
+        userAttrs.add(
+                AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ADDRESS_COUNTRY, "my country"));
+        userAttrs.add(
+                AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ADDRESS_REGION, "my region"));
+        userAttrs.add(password);
+
+        if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
+                PROPS.getProperty("auth.defaultEntitlement"))) {
+            userAttrs.add(
+                    AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
+                            PROPS.getProperty("auth.defaultEntitlement")));
+        }
+
+        // custom attributes
+        addDeltaCustomAttributes(userAttrs);
+
+        userAttrs.add(
+                AttributeDeltaBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:employeeNumber",
+                        "56789"));
+        userAttrs.add(
+                AttributeDeltaBuilder.build("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:manager.value",
+                        "bulkId:asdsdfas"));
+        return userAttrs;
+    }
+
     private static Uid createGroup(final UUID uid, final String prefix) {
         Set<Attribute> groupAttrs = new HashSet<>();
         String displayName = prefix + "_group_" + uid.toString().substring(0, 10);
@@ -314,10 +409,13 @@ public class SCIMv2ConnectorTests {
         return created;
     }
 
-    private static Uid updateGroup(final Uid groupToUpdate, final String newDisplayName) {
+    private static Uid updateGroup(final Uid groupToUpdate, final String newDisplayName, final String... membersToAdd) {
         Set<Attribute> groupAttrs = new HashSet<>();
         groupAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, newDisplayName));
         groupAttrs.add(new Name(newDisplayName));
+
+        // members
+        groupAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, Arrays.asList(membersToAdd)));
 
         Uid updated =
                 FACADE.update(ObjectClass.GROUP, groupToUpdate, groupAttrs, new OperationOptionsBuilder().build());
@@ -326,6 +424,32 @@ public class SCIMv2ConnectorTests {
         LOG.info("Updated Group uid: {0}", updated);
 
         return updated;
+    }
+
+    private static Uid updateDeltaGroup(final Uid groupToUpdate, final String newDisplayName,
+            final List<String> membersToAdd, final List<String> membersToRemove, final List<String> membersToReplace) {
+        Set<AttributeDelta> groupAttrs = new HashSet<>();
+        // replace displayName and __NAME__
+        if (StringUtil.isNotBlank(newDisplayName)) {
+            groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_DISPLAY_NAME, newDisplayName));
+            groupAttrs.add(AttributeDeltaBuilder.build(Name.NAME, newDisplayName));
+        }
+
+        // members
+        if (CollectionUtil.isEmpty(membersToReplace)) {
+            groupAttrs.add(
+                    AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, membersToAdd, membersToRemove));
+        } else {
+            groupAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.SCIM_GROUP_MEMBERS, membersToReplace));
+        }
+
+        groupAttrs = FACADE_PATCH.updateDelta(
+                ObjectClass.GROUP, groupToUpdate, groupAttrs, new OperationOptionsBuilder().build());
+
+        assertFalse(CollectionUtil.isEmpty(groupAttrs));
+        LOG.info("Updated Group uid: {0}", groupToUpdate);
+
+        return groupToUpdate;
     }
 
     private static void deleteUser(final Uid userToDelete) {
@@ -393,12 +517,99 @@ public class SCIMv2ConnectorTests {
         return user;
     }
 
+    private static SCIMv2User readDeltaUser(final String id, final SCIMv2Client client)
+            throws IllegalArgumentException, IllegalAccessException {
+
+        SCIMv2User user = client.getUser(id);
+        LOG.info("Found User: {0}", user);
+        assertNotNull(user);
+        assertNotNull(user.getId());
+        assertEquals("updated_" + SCIMv2ConnectorTestsUtils.VALUE_FAMILY_NAME, user.getName().getFamilyName());
+        assertTrue(user.getNickName().startsWith("updated_"));
+        assertFalse(user.getEmails().isEmpty());
+        assertTrue(user.getEmails().stream()
+                .anyMatch(e -> EmailCanonicalType.work == e.getType() && e.getValue().startsWith("updated_")));
+        assertTrue(user.getPhoneNumbers().stream()
+                .anyMatch(e -> e.getType() == PhoneNumberCanonicalType.home && e.getValue().equals("123456789")));
+        assertFalse(user.getActive());
+
+        assertTrue(user.getAddresses().stream().anyMatch(
+                a -> a.getStreetAddress().equals("my street") && a.getLocality().equals("my locality") && a.getRegion()
+                .equals("my region") && a.getCountry().equals("my country") && a.getPostalCode()
+                .equals("12345")));
+        // check groups
+        // group1 removed, group4 and group5 added -> groups should be group2,group3,group4,group5
+        assertEquals(3, user.getGroups().size());
+        assertTrue(user.getGroups().stream().anyMatch(g -> g.getDisplay().contains("group3_group")));
+        assertTrue(user.getGroups().stream().anyMatch(g -> g.getDisplay().contains("group4_group")));
+        assertTrue(user.getGroups().stream().anyMatch(g -> g.getDisplay().contains("group5_group")));
+        assertFalse(user.getGroups().stream().anyMatch(g -> g.getDisplay().contains("group1_group")));
+
+        // USER TO ATTRIBUTES
+        Set<Attribute> toAttributes = user.toAttributes(user.getClass(), CONF);
+        LOG.info("User to attributes: {0}", toAttributes);
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_FAMILY_NAME));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_NICK_NAME));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.SCIM_USER_SCHEMAS));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
+        if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
+                PROPS.getProperty("auth.defaultEntitlement"))) {
+            assertTrue(SCIMv2ConnectorTestsUtils.containsAttribute(toAttributes,
+                    SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS));
+        }
+
+        List<ConnectorObject> found = new ArrayList<>();
+        if (testCustomAttributes()) {
+            FACADE.search(ObjectClass.ACCOUNT, new EqualsFilter(new Name(user.getUserName())), found::add,
+                    new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
+                            "displayName", "active",
+                            "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
+            assertEquals(1, found.size());
+            assertNotNull(found.get(0));
+            assertNotNull(found.get(0).getName());
+            for (String key : CUSTOM_ATTRIBUTES_KEYS) {
+                assertNotNull(found.get(0).getAttributeByName(key));
+                assertNotNull(found.get(0).getAttributeByName(key).getValue());
+                assertFalse(found.get(0).getAttributeByName(key).getValue().isEmpty());
+            }
+            LOG.info("Found User using Connector search: {0}", found.get(0));
+        }
+        found.clear();
+        FACADE.search(ObjectClass.ACCOUNT, new EqualsFilter(new Name(user.getUserName())), found::add,
+                new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
+                        "displayName", "active", SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber",
+                        SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value",
+                        "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(found.get(0).getAttributes(),
+                SCIMv2EnterpriseUser.SCHEMA_URI + ".employeeNumber"));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(found.get(0).getAttributes(),
+                SCIMv2EnterpriseUser.SCHEMA_URI + ".manager.value"));
+
+        return user;
+    }
+
     private static SCIMv2Group readGroup(final String id, final SCIMv2Client client) throws IllegalArgumentException {
         SCIMv2Group group = client.getGroup(id);
         assertNotNull(group);
         assertNotNull(group.getId());
         assertNotNull(group.getDisplayName());
         LOG.info("Found Group: {0}", group);
+
+        return group;
+    }
+
+    private static SCIMv2Group readDeltaGroup(final String id, final SCIMv2Client client)
+            throws IllegalArgumentException {
+
+        SCIMv2Group group = client.getGroup(id);
+        assertNotNull(group);
+        assertNotNull(group.getId());
+        LOG.info("Found updated Group: {0}", group);
 
         return group;
     }
@@ -711,6 +922,15 @@ public class SCIMv2ConnectorTests {
         }
     }
 
+    private static void addDeltaCustomAttributes(final Set<AttributeDelta> userAttrs) {
+        if (testCustomAttributes()) {
+            for (int i = 0; i < CUSTOM_DELTA_ATTRIBUTES_VALUES.size(); i++) {
+                userAttrs.add(AttributeDeltaBuilder.build(
+                        CUSTOM_DELTA_ATTRIBUTES_KEYS.get(i), CUSTOM_DELTA_ATTRIBUTES_VALUES.get(i)));
+            }
+        }
+    }
+
     private static boolean testCustomAttributes() {
         return StringUtil.isNotBlank(CONF.getCustomAttributesJSON()) && !CUSTOM_ATTRIBUTES_KEYS.isEmpty()
                 && !CUSTOM_ATTRIBUTES_VALUES.isEmpty() && !CUSTOM_ATTRIBUTES_UPDATE_VALUES.isEmpty();
@@ -750,7 +970,7 @@ public class SCIMv2ConnectorTests {
             CONF.setProxyServerUser("user");
             CONF.setProxyServerPassword("password");
             try {
-                newFacade().validate();
+                newFacade(CONF).validate();
                 fail();
             } catch (Exception e) {
                 assertTrue(e instanceof ConfigurationException);
@@ -762,7 +982,7 @@ public class SCIMv2ConnectorTests {
             CONF.setProxyServerPort(8080);
             CONF.setProxyServerType("WRONG");
             try {
-                newFacade().validate();
+                newFacade(CONF).validate();
                 fail();
             } catch (Exception e) {
                 assertTrue(e instanceof ConfigurationException);
@@ -774,7 +994,7 @@ public class SCIMv2ConnectorTests {
             CONF.setProxyServerUser("user");
             CONF.setProxyServerPassword(null);
             try {
-                newFacade().validate();
+                newFacade(CONF).validate();
                 fail();
             } catch (Exception e) {
                 assertTrue(e instanceof ConfigurationException);
@@ -786,7 +1006,7 @@ public class SCIMv2ConnectorTests {
             CONF.setProxyServerHost(null);
         }
     }
-    
+
     @Test
     public void validate() {
         FACADE.validate();
@@ -914,12 +1134,13 @@ public class SCIMv2ConnectorTests {
         UUID uid = UUID.randomUUID();
 
         String testUser;
-        String testGroup1;
         try {
             // create group
             Uid group1 = createGroup(UUID.randomUUID(), "group1");
             Uid group2 = createGroup(UUID.randomUUID(), "group2");
             Uid group3 = createGroup(UUID.randomUUID(), "group3");
+            Uid group4 = createGroup(UUID.randomUUID(), "group4");
+            Uid group5 = createGroup(UUID.randomUUID(), "group5");
 
             SCIMv2Group createdGroup1 = readGroup(group1.getUidValue(), client);
             assertEquals(createdGroup1.getId(), group1.getUidValue());
@@ -928,11 +1149,11 @@ public class SCIMv2ConnectorTests {
             SCIMv2Group createdGroup3 = readGroup(group3.getUidValue(), client);
             assertEquals(createdGroup3.getId(), group3.getUidValue());
 
-            Uid created = createUser(uid, group1.getUidValue(), group2.getUidValue());
-            testUser = created.getUidValue();
+            Uid createdUid = createUser(uid, group1.getUidValue(), group2.getUidValue());
+            testUser = createdUid.getUidValue();
 
             SCIMv2User createdUser = readUser(testUser, client);
-            assertEquals(createdUser.getId(), created.getUidValue());
+            assertEquals(createdUser.getId(), createdUid.getUidValue());
             // check groups
             assertFalse(createdUser.getGroups().isEmpty());
             assertEquals(2, createdUser.getGroups().size());
@@ -953,7 +1174,7 @@ public class SCIMv2ConnectorTests {
             // check entitlements
             assertTrue(createdUser.getEntitlements().stream().allMatch(e -> "00e09000000iZP5AAM".equals(e.getValue())));
             // read user through connector APIs
-            ConnectorObject createdConnObj = FACADE.getObject(ObjectClass.ACCOUNT, created,
+            ConnectorObject createdConnObj = FACADE.getObject(ObjectClass.ACCOUNT, createdUid,
                     new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
                             "displayName", "active", SCIMAttributeUtils.SCIM_USER_GROUPS,
                             "urn:mem:params:scim:schemas:extension:LuckyNumberExtension.luckyNumber").build());
@@ -963,10 +1184,10 @@ public class SCIMv2ConnectorTests {
             assertTrue(groupsAttr.getValue().contains(group2.getUidValue()));
 
             Uid updated = "PATCH".equalsIgnoreCase(CONF.getUpdateGroupMethod())
-                    ? updateUser(created, createdUser.getUserName(),
+                    ? updateUser(createdUid, createdUser.getUserName(),
                             Arrays.asList(group1.getUidValue(), group3.getUidValue()),
-                            Arrays.asList(group2.getUidValue()))
-                    : updateUser(created, createdUser.getUserName(), group1.getUidValue(), group3.getUidValue());
+                            Collections.singletonList(group2.getUidValue()))
+                    : updateUser(createdUid, createdUser.getUserName(), group1.getUidValue(), group3.getUidValue());
 
             SCIMv2User updatedUser = readUser(updated.getUidValue(), client);
             LOG.info("Updated user: {0}", updatedUser);
@@ -988,6 +1209,15 @@ public class SCIMv2ConnectorTests {
             assertTrue(user.getEmails().stream().anyMatch(
                     email -> EmailCanonicalType.work == email.getType() && ("updated"
                     + updatedUser.getUserName()).equals(email.getValue())));
+
+            // update user with PATCH
+            Uid updatedWithDelta = updateDeltaUser(createdConnObj, createdUser.getUserName(),
+                    Arrays.asList(group4.getUidValue(), group5.getUidValue()),
+                    Collections.singletonList(group1.getUidValue()));
+
+            SCIMv2User updatedWithDeltaUser = readDeltaUser(updatedWithDelta.getUidValue(), client);
+            LOG.info("Updated user with PATCH: {0}", updatedWithDeltaUser);
+            assertNull(updatedWithDeltaUser.getPassword()); // password won't be retrieved from API
 
             // check delete user
             deleteUser(updated);
@@ -1041,7 +1271,6 @@ public class SCIMv2ConnectorTests {
         assertNotNull(result);
         assertNotNull(result.getPagedResultsCookie());
         assertEquals(-1, result.getRemainingPagedResults());
-
     }
 
     @Test
@@ -1083,6 +1312,9 @@ public class SCIMv2ConnectorTests {
         SCIMv2Client client = newClient();
 
         try {
+            Uid user01 = createUser(UUID.randomUUID());
+            Uid user02 = createUser(UUID.randomUUID());
+            Uid user03 = createUser(UUID.randomUUID());
             // create group
             Uid group1 = createGroup(UUID.randomUUID(), StringUtil.EMPTY);
 
@@ -1091,9 +1323,43 @@ public class SCIMv2ConnectorTests {
             assertNotNull(FACADE.getObject(ObjectClass.GROUP, new Uid(createdGroup.getId()),
                     new OperationOptionsBuilder().build()));
 
-            Uid updated = updateGroup(group1, "updated_" + createdGroup.getDisplayName());
+            Uid updated = updateGroup(group1, "updated_" + createdGroup.getDisplayName(), user01.getUidValue());
             SCIMv2Group updatedGroup = readGroup(updated.getUidValue(), client);
             assertEquals("updated_" + createdGroup.getDisplayName(), updatedGroup.getDisplayName());
+            assertTrue(updatedGroup.getMembers().stream()
+                    .anyMatch(g -> g.getValue().equalsIgnoreCase(user01.getUidValue())));
+
+            // update group with PATCH
+            Uid updatedWithDelta = updateDeltaGroup(
+                    group1,
+                    updatedGroup.getDisplayName().replaceAll("updated__", "upd2_"),
+                    Collections.singletonList(user02.getUidValue()),
+                    Collections.singletonList(user01.getUidValue()),
+                    Collections.emptyList());
+
+            SCIMv2Group updatedWithDeltaGroup = readDeltaGroup(updatedWithDelta.getUidValue(), client);
+            assertNotNull(updatedWithDeltaGroup.getDisplayName());
+            assertEquals(updatedGroup.getDisplayName().replaceAll("updated__", "upd2_"),
+                    updatedWithDeltaGroup.getDisplayName());
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .noneMatch(g -> g.getValue().equalsIgnoreCase(user01.getUidValue())));
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .anyMatch(g -> g.getValue().equalsIgnoreCase(user02.getUidValue())));
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .noneMatch(g -> g.getValue().equalsIgnoreCase(user03.getUidValue())));
+
+            // update again with members to replace
+            updateDeltaGroup(group1, null, Collections.emptyList(), Collections.emptyList(),
+                    Arrays.asList(user01.getUidValue(), user03.getUidValue()));
+
+            updatedWithDeltaGroup = readDeltaGroup(updatedWithDelta.getUidValue(), client);
+
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .anyMatch(g -> g.getValue().equalsIgnoreCase(user01.getUidValue())));
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .noneMatch(g -> g.getValue().equalsIgnoreCase(user02.getUidValue())));
+            assertTrue(updatedWithDeltaGroup.getMembers().stream()
+                    .anyMatch(g -> g.getValue().equalsIgnoreCase(user03.getUidValue())));
 
             deleteGroup(updated);
             assertThrows(

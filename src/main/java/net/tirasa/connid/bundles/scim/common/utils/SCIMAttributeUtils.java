@@ -26,6 +26,7 @@ import net.tirasa.connid.bundles.scim.v11.dto.SCIMv11EnterpriseUser;
 import net.tirasa.connid.bundles.scim.v2.dto.Mutability;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2Attribute;
 import net.tirasa.connid.bundles.scim.v2.dto.SCIMv2EnterpriseUser;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
@@ -56,6 +57,16 @@ public final class SCIMAttributeUtils {
     public static final String SCIM_USER_META = "meta";
 
     public static final String SCIM_USER_ADDRESSES = "addresses";
+
+    public static final String SCIM_USER_STREET_ADDRESS = "streetAddress";
+
+    public static final String SCIM_USER_LOCALITY = "locality";
+
+    public static final String SCIM_USER_REGION = "region";
+
+    public static final String SCIM_USER_POSTAL_CODE = "postalCode";
+
+    public static final String SCIM_USER_COUNTRY = "country";
 
     public static final String SCIM_USER_PHONE_NUMBERS = "phoneNumbers";
 
@@ -88,9 +99,9 @@ public final class SCIMAttributeUtils {
     public static final String SCIM_USER_SCHEMAS = "schemas";
 
     public static final String SCIM_SCHEMA_TYPE_COMPLEX = "complex";
-    
+
     public static final String SCIM_SCHEMA_TYPE_DEFAULT = "default";
-    
+
     public static final String SCIM_SCHEMA_TYPE_PROFILE = "Profile";
 
     public static final String SCIM_SCHEMA_EXTENSION = "extension";
@@ -346,7 +357,7 @@ public final class SCIMAttributeUtils {
                 if (list.size() > 1) {
                     for (Object elem : list) {
                         attributeBuilder.addValue(
-                            doBuildAttributeFromClassField(elem, name, elem.getClass()).getValue());
+                                doBuildAttributeFromClassField(elem, name, elem.getClass()).getValue());
                     }
                 } else if (!list.isEmpty() && list.get(0) != null) {
                     attributeBuilder.addValue(list.get(0).toString());
@@ -370,6 +381,25 @@ public final class SCIMAttributeUtils {
             attrs.add(SCIMAttributeUtils.doBuildAttributeFromClassField(toAttribute.getValue(), toAttribute.getName(),
                     type).build());
         }
+    }
+
+    public static String getBaseAttributeName(final String attributeName) {
+        return StringUtil.isNotBlank(attributeName) && (attributeName.startsWith(SCIM_USER_EMAILS)
+                || attributeName.startsWith(SCIM_USER_PHONE_NUMBERS) || attributeName.startsWith(SCIM_USER_ADDRESSES)
+                || attributeName.startsWith(SCIM_USER_ROLES) || attributeName.startsWith(SCIM_USER_ENTITLEMENTS)
+                || attributeName.startsWith(SCIM_USER_X509CERTIFICATES) || attributeName.startsWith(SCIM_USER_PHOTOS)
+                || attributeName.startsWith(SCIM_USER_IMS))
+                ? attributeName.split("\\.")[0]
+                : StringUtil.isNotBlank(attributeName) && (attributeName.startsWith(
+                SCIMv2EnterpriseUser.SCHEMA_URI + "." + SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE)
+                || attributeName.startsWith(
+                        SCIMv2EnterpriseUser.SCHEMA_URI + ":" + SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE)
+                || attributeName.startsWith(
+                        SCIMv11EnterpriseUser.SCHEMA_URI + "." + SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE)
+                || attributeName.startsWith(
+                        SCIMv11EnterpriseUser.SCHEMA_URI + ":" + SCIM_ENTERPRISE_EMPLOYEE_MANAGER_VALUE))
+                        ? attributeName.replaceAll(".value", StringUtil.EMPTY)
+                        : attributeName;
     }
 
     private SCIMAttributeUtils() {
