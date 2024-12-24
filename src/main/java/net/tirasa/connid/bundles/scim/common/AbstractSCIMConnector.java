@@ -582,21 +582,20 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                 // only values to add and remove are supported
                 modifications.stream().
                         filter(ad -> SCIMAttributeUtils.SCIM_USER_GROUPS.equalsIgnoreCase(ad.getName())).
-                        findFirst().ifPresent(grpsAd -> fillGroupPatches(
+                        findFirst().ifPresent(grmod -> fillGroupPatches(
                         currentUser,
                         groupPatches,
-                        CollectionUtil.isEmpty(grpsAd.getValuesToAdd())
-                        ? CollectionUtil.isEmpty(grpsAd.getValuesToReplace()) 
-                                ? Collections.emptyList()
-                                : grpsAd.getValuesToReplace().stream().map(String.class::cast)
-                                        .collect(Collectors.toList())
-                        : CollectionUtil.isEmpty(grpsAd.getValuesToAdd())
-                                ? Collections.emptyList()
-                                : grpsAd.getValuesToAdd().stream().map(String.class::cast).collect(Collectors.toList()),
-                        CollectionUtil.isEmpty(grpsAd.getValuesToRemove())
-                                ? Collections.emptyList()
-                                : grpsAd.getValuesToRemove().stream().map(String.class::cast)
-                                        .collect(Collectors.toList())));
+                        CollectionUtil.isEmpty(grmod.getValuesToAdd())
+                        ? CollectionUtil.isEmpty(grmod.getValuesToReplace())
+                        ? Collections.emptyList()
+                        : grmod.getValuesToReplace().stream().map(String.class::cast)
+                                .collect(Collectors.toList())
+                        : CollectionUtil.isEmpty(grmod.getValuesToAdd())
+                        ? Collections.emptyList()
+                        : grmod.getValuesToAdd().stream().map(String.class::cast).collect(Collectors.toList()),
+                        CollectionUtil.isEmpty(grmod.getValuesToRemove())
+                        ? Collections.emptyList()
+                        : grmod.getValuesToRemove().stream().map(String.class::cast).collect(Collectors.toList())));
             } else {
                 LOG.warn("Group update method must be set to PATCH while updating through UPDATE_DELTA");
             }
