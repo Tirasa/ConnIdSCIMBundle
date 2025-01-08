@@ -54,7 +54,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String updateGroupMethod = "PUT";
 
     private boolean explicitGroupAddOnCreate = false;
-    
+
     private boolean replaceMembersOnUpdate = false;
 
     private String accept = MediaType.APPLICATION_JSON;
@@ -93,8 +93,10 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String proxyServerPassword;
 
     private boolean followHttpRedirects = false;
-    
+
     private boolean requestAttributesOnSearch = true;
+
+    private boolean useColonOnExtensionAttributes = true;
 
     @ConfigurationProperty(order = 1,
             displayMessageKey = "baseAddress.display",
@@ -390,6 +392,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.requestAttributesOnSearch = requestAttributesOnSearch;
     }
 
+    @ConfigurationProperty(displayMessageKey = "useColonOnExtensionAttributes.display",
+            helpMessageKey = "useColonOnExtensionAttributes.help",
+            order = 28)
+    public boolean getUseColonOnExtensionAttributes() {
+        return useColonOnExtensionAttributes;
+    }
+
+    public void setUseColonOnExtensionAttributes(final boolean useColonOnExtensionAttributes) {
+        this.useColonOnExtensionAttributes = useColonOnExtensionAttributes;
+    }
+
     @Override
     public void validate() {
         if (StringUtil.isBlank(baseAddress)) {
@@ -438,9 +451,9 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         } catch (Exception e) {
             failValidation("Unsupported SCIM provider: " + scimProvider);
         }
-        if (StringUtil.isNotBlank(proxyServerHost) && (
-                StringUtil.isBlank(proxyServerType)
-                || proxyServerPort == null)) {
+        if (StringUtil.isNotBlank(proxyServerHost)
+                && (StringUtil.isBlank(proxyServerType) || proxyServerPort == null)) {
+
             failValidation("Proxy server type and port cannot be null or empty if host is specified.");
         }
         if (StringUtil.isNotBlank(proxyServerType)) {

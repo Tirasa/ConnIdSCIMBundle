@@ -311,7 +311,8 @@ public class SCIMv11ConnectorTests {
             for (Map.Entry<String, List<Object>> entry : user.getReturnedCustomAttributes().entrySet()) {
                 userAttrs.add(AttributeBuilder.build(entry.getKey(), entry.getValue()));
             }
-            user.fillSCIMCustomAttributes(userAttrs, CONF.getCustomAttributesJSON());
+            user.fillSCIMCustomAttributes(userAttrs, CONF.getCustomAttributesJSON(),
+                    CONF.getUseColonOnExtensionAttributes());
         }
 
         SCIMv11User updated = client.updateUser(user);

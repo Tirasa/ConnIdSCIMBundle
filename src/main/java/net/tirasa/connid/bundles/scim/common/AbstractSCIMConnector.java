@@ -347,14 +347,17 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
 
                 // custom attributes
                 if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
-                    user.fillSCIMCustomAttributes(createAttributes, configuration.getCustomAttributesJSON());
+                    user.fillSCIMCustomAttributes(
+                            createAttributes,
+                            configuration.getCustomAttributesJSON(),
+                            configuration.getUseColonOnExtensionAttributes());
                 }
                 // enterprise user
                 createAttributes.stream().
                         filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI)).
                         findFirst().ifPresent(ca -> {
                             user.getSchemas().add(SCIMv2EnterpriseUser.SCHEMA_URI);
-                            user.fillEnterpriseUser(createAttributes);
+                            user.fillEnterpriseUser(createAttributes, configuration.getUseColonOnExtensionAttributes());
                         });
 
                 client.createUser(user);
@@ -436,13 +439,16 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
 
             // custom attributes
             if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
-                user.fillSCIMCustomAttributes(replaceAttributes, configuration.getCustomAttributesJSON());
+                user.fillSCIMCustomAttributes(
+                        replaceAttributes,
+                        configuration.getCustomAttributesJSON(),
+                        configuration.getUseColonOnExtensionAttributes());
             }
             // enterprise user
             replaceAttributes.stream().filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI)).findFirst()
                     .ifPresent(ca -> {
                         user.getSchemas().add(SCIMv2EnterpriseUser.SCHEMA_URI);
-                        user.fillEnterpriseUser(replaceAttributes);
+                        user.fillEnterpriseUser(replaceAttributes, configuration.getUseColonOnExtensionAttributes());
                     });
 
             try {
