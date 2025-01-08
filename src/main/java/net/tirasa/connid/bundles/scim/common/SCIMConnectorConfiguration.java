@@ -96,6 +96,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     
     private boolean requestAttributesOnSearch = true;
 
+    private boolean useColonOnExtensionAttributes = true;
+
     @ConfigurationProperty(order = 1,
             displayMessageKey = "baseAddress.display",
             helpMessageKey = "baseAddress.help",
@@ -388,6 +390,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     public void setRequestAttributesOnSearch(final boolean requestAttributesOnSearch) {
         this.requestAttributesOnSearch = requestAttributesOnSearch;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "useColonOnExtensionAttributes.display",
+            helpMessageKey = "useColonOnExtensionAttributes.help",
+            order = 28)
+    public boolean getUseColonOnExtensionAttributes() {
+        return useColonOnExtensionAttributes;
+    }
+
+    public void setUseColonOnExtensionAttributes(final boolean useColonOnExtensionAttributes) {
+        this.useColonOnExtensionAttributes = useColonOnExtensionAttributes;
     }
 
     @Override

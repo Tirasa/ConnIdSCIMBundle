@@ -85,10 +85,12 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
             return this;
         }
 
-        public List<Attribute> toAttributes() {
-            return CollectionUtil.newList(AttributeBuilder.build(SCHEMA_URI + ".manager.value", this.value),
-                    AttributeBuilder.build(SCHEMA_URI + ".manager.ref", this.ref),
-                    AttributeBuilder.build(SCHEMA_URI + ".manager.displayName", this.displayName));
+        public List<Attribute> toAttributes(final boolean useColon) {
+            return CollectionUtil.newList(
+                    AttributeBuilder.build(SCHEMA_URI + (useColon ? ":" : ".") + "manager.value", this.value),
+                    AttributeBuilder.build(SCHEMA_URI + (useColon ? ":" : ".") + "manager.ref", this.ref),
+                    AttributeBuilder.build(SCHEMA_URI + (useColon ? ":" : ".") + "manager.displayName",
+                            this.displayName));
         }
 
         @Override
@@ -174,7 +176,8 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
     }
 
     @Override
-    public Set<Attribute> toAttributes(final String id) throws IllegalArgumentException, IllegalAccessException {
+    public Set<Attribute> toAttributes(final String schemaUri, final boolean useColon)
+            throws IllegalArgumentException, IllegalAccessException {
         Set<Attribute> attrs = new HashSet<>();
 
         for (Field field : SCIMUtils.getAllFieldsList(getClass()).stream().
@@ -182,10 +185,12 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
                 collect(Collectors.toList())) {
 
             if (SCIMv2EnterpriseUserManager.class.equals(field.getType()) && manager != null) {
-                attrs.addAll(manager.toAttributes());
+                attrs.addAll(manager.toAttributes(useColon));
             } else if (!field.isAnnotationPresent(JsonIgnore.class)) {
                 field.setAccessible(true);
-                attrs.add(AttributeBuilder.build(id + "." + field.getName(), field.get(this)));
+                // simple attribute can have the colon as separator
+                attrs.add(
+                        AttributeBuilder.build(schemaUri + (useColon ? ":" : ".") + field.getName(), field.get(this)));
             }
         }
 

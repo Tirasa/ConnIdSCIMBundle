@@ -467,7 +467,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                             (attr instanceof SCIMv2Attribute
                                     ? SCIMv2Attribute.class.cast(attr).getExtensionSchema()
                                     : SCIMv11Attribute.class.cast(attr).getSchema())
-                            + "." + attr.getName(),
+                            + (config.getUseColonOnExtensionAttributes() ? ":" : ".") + attr.getName(),
                             values);
                 }
             }
@@ -592,7 +592,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         Map<String, String> params = new HashMap<>();
         if (!attributesToGet.isEmpty() && config.getRequestAttributesOnSearch()) {
             params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                    SCIMv2Attribute.class));
+                    config.getUseColonOnExtensionAttributes(), SCIMv2Attribute.class));
         }
         WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient).getResources();
@@ -609,7 +609,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         params.put("filter", filterQuery);
         if (!attributesToGet.isEmpty() && config.getRequestAttributesOnSearch()) {
             params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
-                    SCIMv2Attribute.class));
+                    config.getUseColonOnExtensionAttributes(), SCIMv2Attribute.class));
         }
         WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient).getResources();
@@ -631,8 +631,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         params.put("startIndex", String.valueOf(startIndex));
         Optional.ofNullable(count).ifPresent(c -> params.put("count", String.valueOf(c)));
         if (!attributesToGet.isEmpty() && config.getRequestAttributesOnSearch()) {
-            params.put("attributes", SCIMUtils.cleanAttributesToGet(
-                    attributesToGet, config.getCustomAttributesJSON(), SCIMv2Attribute.class));
+            params.put("attributes", SCIMUtils.cleanAttributesToGet(attributesToGet, config.getCustomAttributesJSON(),
+                    config.getUseColonOnExtensionAttributes(), SCIMv2Attribute.class));
         }
         WebClient webClient = getWebclient("Users", params);
         return doGetAllUsers(webClient);
@@ -658,6 +658,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             params.put("attributes",
                     SCIMUtils.cleanAttributesToGet(attributesToGet,
                             config.getCustomAttributesJSON(),
+                            config.getUseColonOnExtensionAttributes(),
                             SCIMv2Attribute.class));
         }
         WebClient webClient = getWebclient("Users", params);

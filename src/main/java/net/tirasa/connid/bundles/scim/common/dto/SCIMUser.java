@@ -34,7 +34,7 @@ public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUse
 
     void setDisplayName(String displayName);
     
-    void fillSCIMCustomAttributes(Set<Attribute> createAttributes, String customAttributesJSON);
+    void fillSCIMCustomAttributes(Set<Attribute> createAttributes, String customAttributesJSON, boolean useColon);
 
     Map<String, List<Object>> getReturnedCustomAttributes();
 
@@ -42,7 +42,7 @@ public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUse
 
     EUT getEnterpriseUser();
 
-    void fillEnterpriseUser(Set<Attribute> attributes);
+    void fillEnterpriseUser(Set<Attribute> attributes, boolean useColon);
 
     void setEnterpriseUser(EUT enterpriseUser);
 

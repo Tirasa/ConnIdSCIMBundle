@@ -81,13 +81,14 @@ public class SCIMv2User extends AbstractSCIMUser<
      */
     @Override
     @JsonIgnore
-    public void fillSCIMCustomAttributes(final Set<Attribute> attributes, final String customAttributesJSON) {
+    public void fillSCIMCustomAttributes(final Set<Attribute> attributes, final String customAttributesJSON,
+            final boolean useColon) {
         SCIMUtils.extractSCIMSchemas(customAttributesJSON, SCIMv2Attribute.class).ifPresent(customAttributesObj -> {
             for (Attribute attribute : attributes) {
                 if (!CollectionUtil.isEmpty(attribute.getValue())) {
                     for (SCIMv2Attribute customAttribute : customAttributesObj.getAttributes()) {
                         String externalAttributeName = SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema()
-                                .concat(".")
+                                .concat(useColon ? ":" : ".")
                                 .concat(customAttribute.getName());
                         if (externalAttributeName.equals(attribute.getName())) {
                             scimCustomAttributes.put(customAttribute, attribute.getValue());
@@ -110,12 +111,13 @@ public class SCIMv2User extends AbstractSCIMUser<
     }
 
     @Override
-    public void fillEnterpriseUser(final Set<Attribute> attributes) {
+    public void fillEnterpriseUser(final Set<Attribute> attributes, final boolean useColon) {
         this.enterpriseUser = new SCIMv2EnterpriseUser();
         attributes.stream().filter(a -> a.getName().startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)).forEach(
                 a -> {
                     SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager manager = enterpriseUser.getManager();
-                    switch (a.getName().replace(SCIMv2EnterpriseUser.SCHEMA_URI + ".", StringUtil.EMPTY)) {
+                    switch (a.getName()
+                            .replace(SCIMv2EnterpriseUser.SCHEMA_URI + (useColon ? ":" : "."), StringUtil.EMPTY)) {
                         case "employeeNumber":
                             enterpriseUser.setEmployeeNumber(AttributeUtil.getAsStringValue(a));
                             break;

@@ -29,6 +29,7 @@ public interface SCIMEnterpriseUser<T extends Serializable> extends Serializable
 
     void setManager(T manager);
 
-    Set<Attribute> toAttributes(String id) throws IllegalArgumentException, IllegalAccessException;
+    Set<Attribute> toAttributes(String schemaUri, boolean useColon)
+            throws IllegalArgumentException, IllegalAccessException;
 
 }

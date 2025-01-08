@@ -80,16 +80,18 @@ public final class SCIMUtils {
     public static <T extends SCIMBaseAttribute<T>> String cleanAttributesToGet(
             final Set<String> attributesToGet,
             final String customAttributesJSON,
+            final boolean useColon,
             final Class<T> attrType) {
 
-        return cleanAttributesToGet(attributesToGet, customAttributesJSON, attrType, true);
+        return cleanAttributesToGet(attributesToGet, customAttributesJSON, attrType, true, useColon);
     }
 
     public static <T extends SCIMBaseAttribute<T>> String cleanAttributesToGet(
             final Set<String> attributesToGet,
             final String customAttributesJSON,
             final Class<T> attrType,
-            final boolean addCustomAttrsToQueryParams) {
+            final boolean addCustomAttrsToQueryParams,
+            final boolean useColon) {
 
         if (attributesToGet.isEmpty()) {
             return SCIMAttributeUtils.defaultAttributesToGet();
@@ -98,79 +100,79 @@ public final class SCIMUtils {
         SCIMSchema<T> customAttributesObj = StringUtil.isBlank(customAttributesJSON)
                 ? null
                 : extractSCIMSchemas(customAttributesJSON, attrType).orElse(null);
-        String result = "";
+        StringBuilder result = new StringBuilder(StringUtil.EMPTY);
         for (String attributeToGet : attributesToGet) {
             if (attributeToGet.contains("__")
                     || attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_META + ".")
                     || attributeToGet.toLowerCase().contains("password")) {
                 // nothing to do
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_NAME + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_NAME.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_NAME).append(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_ADDRESSES + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_ADDRESSES.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_ADDRESSES).append(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_PHONE_NUMBERS).append(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_IMS + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_IMS.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_IMS).append(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_EMAILS + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_EMAILS.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_EMAILS).append(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_ROLES + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_ROLES.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_ROLES).append(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_GROUPS + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_GROUPS.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_GROUPS).append(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_PHOTOS + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_PHOTOS.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_PHOTOS).append(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_X509CERTIFICATES).append(",");
             } else if (attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + ".")) {
-                result += SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS.concat(",");
+                result.append(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS).append(",");
             } else if (attributeToGet.startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)) {
-                result += SCIMv2EnterpriseUser.SCHEMA_URI
-                        + (attributeToGet.replace(SCIMv2EnterpriseUser.SCHEMA_URI, StringUtil.EMPTY)
-                                .replaceFirst(".", ":").concat(","));
+                result.append(SCIMv2EnterpriseUser.SCHEMA_URI)
+                        .append(attributeToGet.replace(SCIMv2EnterpriseUser.SCHEMA_URI, StringUtil.EMPTY)).append(",");
             } else if (customAttributesObj == null) {
-                result += attributeToGet.concat(",");
-            } else if (!isCustomAttribute(customAttributesObj, attributeToGet)) {
-                result += attributeToGet.concat(",");
+                result.append(attributeToGet).append(",");
+            } else if (!isCustomAttribute(customAttributesObj, attributeToGet, useColon)) {
+                result.append(attributeToGet).append(",");
             }
         }
 
         if (customAttributesObj != null && addCustomAttrsToQueryParams) {
             for (T attribute : customAttributesObj.getAttributes()) {
-                String attributeName = attribute instanceof SCIMv2Attribute
-                        ? SCIMv2Attribute.class.cast(attribute).getExtensionSchema() + ":" + attribute.getName()
-                        : attribute.getName();
-                if (!result.contains(attributeName)) {
-                    result += attributeName.concat(",");
+                String attributeName = attribute instanceof SCIMv2Attribute 
+                        ? SCIMv2Attribute.class.cast(attribute).getExtensionSchema() + (useColon ? ":" : ".")
+                                + attribute.getName() : attribute.getName();
+                if (!result.toString().contains(attributeName)) {
+                    result.append(attributeName).append(",");
                 }
             }
         }
 
-        if (!result.contains(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + ",")) {
-            result += SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME.concat(",");
+        if (!result.toString().contains(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME + ",")) {
+            result.append(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME).append(",");
         }
-        if (!result.contains(SCIMAttributeUtils.ATTRIBUTE_ID + ",")) {
-            result += SCIMAttributeUtils.ATTRIBUTE_ID.concat(",");
+        if (!result.toString().contains(SCIMAttributeUtils.ATTRIBUTE_ID + ",")) {
+            result.append(SCIMAttributeUtils.ATTRIBUTE_ID).append(",");
         }
-        if (!result.contains(SCIMAttributeUtils.SCIM_USER_NAME + ",")) {
-            result += SCIMAttributeUtils.SCIM_USER_NAME.concat(",");
+        if (!result.toString().contains(SCIMAttributeUtils.SCIM_USER_NAME + ",")) {
+            result.append(SCIMAttributeUtils.SCIM_USER_NAME).append(",");
         }
 
-        return StringUtil.isBlank(result)
+        return StringUtil.isBlank(result.toString())
                 ? SCIMAttributeUtils.defaultAttributesToGet()
                 : result.substring(0, result.length() - 1);
     }
 
     private static <T extends SCIMBaseAttribute<T>> boolean isCustomAttribute(
             final SCIMSchema<T> customAttributes,
-            final String attribute) {
+            final String attribute,
+            final boolean useColon) {
         for (T customAttribute : customAttributes.getAttributes()) {
             String externalAttributeName = customAttribute instanceof SCIMv11Attribute
-                    ? SCIMv11Attribute.class.cast(customAttribute).getSchema()
-                            .concat(".")
+                    ? ((SCIMv11Attribute) customAttribute).getSchema()
+                            .concat(useColon ? ":" : ".")
                             .concat(customAttribute.getName())
-                    : SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema()
-                            .concat(".")
+                    : ((SCIMv2Attribute) customAttribute).getExtensionSchema()
+                            .concat(useColon ? ":" : ".")
                             .concat(customAttribute.getName());
             if (externalAttributeName.equals(attribute)) {
                 return true;

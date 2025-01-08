@@ -109,6 +109,7 @@ public class SCIMV11MockedTests {
         CONF.setBaseAddress("https://localhost");
         CONF.setUsername("username");
         CONF.setPassword(new GuardedString("password".toCharArray()));
+        CONF.setUseColonOnExtensionAttributes(false);
         CONF.setCustomAttributesJSON(
                 "{\"id\":\"urn:scim:schemas:core:1.0:User\",\"name\":\"User\",\"description\":\"Core User\","
                 + "\"schema\":\"urn:scim:schemas:core:1.0\",\"endpoint\":\"/Users\","
