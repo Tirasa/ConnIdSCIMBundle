@@ -70,7 +70,8 @@ public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11Enterpri
         }
 
         public List<Attribute> toAttributes() {
-            return Arrays.asList(AttributeBuilder.build(SCHEMA_URI + ":manager.managerId", this.managerId),
+            return Arrays.asList(
+                    AttributeBuilder.build(SCHEMA_URI + ":manager.managerId", this.managerId),
                     AttributeBuilder.build(SCHEMA_URI + ":manager.displayName", this.displayName));
         }
 
@@ -113,6 +114,7 @@ public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11Enterpri
     @Override
     public Set<Attribute> toAttributes(final String schemaUri, final boolean useColon)
             throws IllegalArgumentException, IllegalAccessException {
+
         Set<Attribute> attrs = new HashSet<>();
 
         for (Field field : SCIMUtils.getAllFieldsList(getClass()).stream().
@@ -124,8 +126,8 @@ public class SCIMv11EnterpriseUser implements SCIMEnterpriseUser<SCIMv11Enterpri
             } else if (!field.isAnnotationPresent(JsonIgnore.class)) {
                 field.setAccessible(true);
                 // simple attribute can have the colon as separator
-                attrs.add(
-                        AttributeBuilder.build(schemaUri + (useColon ? ":" : ".") + field.getName(), field.get(this)));
+                attrs.add(AttributeBuilder.build(
+                        schemaUri + (useColon ? ":" : ".") + field.getName(), field.get(this)));
             }
         }
 

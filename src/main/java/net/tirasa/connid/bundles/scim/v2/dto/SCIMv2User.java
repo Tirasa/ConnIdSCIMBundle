@@ -113,51 +113,49 @@ public class SCIMv2User extends AbstractSCIMUser<
     @Override
     public void fillEnterpriseUser(final Set<Attribute> attributes, final boolean useColon) {
         this.enterpriseUser = new SCIMv2EnterpriseUser();
-        attributes.stream().filter(a -> a.getName().startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)).forEach(
-                a -> {
-                    SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager manager = enterpriseUser.getManager();
-                    switch (a.getName()
-                            .replace(SCIMv2EnterpriseUser.SCHEMA_URI + (useColon ? ":" : "."), StringUtil.EMPTY)) {
-                        case "employeeNumber":
-                            enterpriseUser.setEmployeeNumber(AttributeUtil.getAsStringValue(a));
-                            break;
-                        case "costCenter":
-                            enterpriseUser.setCostCenter(AttributeUtil.getAsStringValue(a));
-                            break;
-                        case "organization":
-                            enterpriseUser.setOrganization(AttributeUtil.getAsStringValue(a));
-                            break;
-                        case "division":
-                            enterpriseUser.setDivision(AttributeUtil.getAsStringValue(a));
-                            break;
-                        case "department":
-                            enterpriseUser.setDepartment(AttributeUtil.getAsStringValue(a));
-                            break;
-                        case "manager.value":
-                            if (manager == null) {
-                                manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
-                                enterpriseUser.setManager(manager);
-                            }
-                            manager.setValue(AttributeUtil.getAsStringValue(a));
-                            break;
-                        case "manager.displayName":
-                            if (manager == null) {
-                                manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
-                                enterpriseUser.setManager(manager);
-                            }
-                            manager.setDisplayName(AttributeUtil.getAsStringValue(a));
-                            break;
-                        case "manager.ref":
-                            if (manager == null) {
-                                manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
-                                enterpriseUser.setManager(manager);
-                            }
-                            manager.setRef(AttributeUtil.getAsStringValue(a));
-                            break;
-                        default:
-                        // do nothing
+        attributes.stream().filter(a -> a.getName().startsWith(SCIMv2EnterpriseUser.SCHEMA_URI)).forEach(a -> {
+            SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager manager = enterpriseUser.getManager();
+            switch (a.getName().replace(SCIMv2EnterpriseUser.SCHEMA_URI + (useColon ? ":" : "."), StringUtil.EMPTY)) {
+                case "employeeNumber":
+                    enterpriseUser.setEmployeeNumber(AttributeUtil.getAsStringValue(a));
+                    break;
+                case "costCenter":
+                    enterpriseUser.setCostCenter(AttributeUtil.getAsStringValue(a));
+                    break;
+                case "organization":
+                    enterpriseUser.setOrganization(AttributeUtil.getAsStringValue(a));
+                    break;
+                case "division":
+                    enterpriseUser.setDivision(AttributeUtil.getAsStringValue(a));
+                    break;
+                case "department":
+                    enterpriseUser.setDepartment(AttributeUtil.getAsStringValue(a));
+                    break;
+                case "manager.value":
+                    if (manager == null) {
+                        manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
+                        enterpriseUser.setManager(manager);
                     }
-                });
+                    manager.setValue(AttributeUtil.getAsStringValue(a));
+                    break;
+                case "manager.displayName":
+                    if (manager == null) {
+                        manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
+                        enterpriseUser.setManager(manager);
+                    }
+                    manager.setDisplayName(AttributeUtil.getAsStringValue(a));
+                    break;
+                case "manager.ref":
+                    if (manager == null) {
+                        manager = new SCIMv2EnterpriseUser.SCIMv2EnterpriseUserManager();
+                        enterpriseUser.setManager(manager);
+                    }
+                    manager.setRef(AttributeUtil.getAsStringValue(a));
+                    break;
+                default:
+                // do nothing
+            }
+        });
     }
 
     @JsonIgnore

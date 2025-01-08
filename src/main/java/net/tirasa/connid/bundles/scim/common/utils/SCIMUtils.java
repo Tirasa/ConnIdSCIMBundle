@@ -100,7 +100,7 @@ public final class SCIMUtils {
         SCIMSchema<T> customAttributesObj = StringUtil.isBlank(customAttributesJSON)
                 ? null
                 : extractSCIMSchemas(customAttributesJSON, attrType).orElse(null);
-        StringBuilder result = new StringBuilder(StringUtil.EMPTY);
+        StringBuilder result = new StringBuilder();
         for (String attributeToGet : attributesToGet) {
             if (attributeToGet.contains("__")
                     || attributeToGet.contains(SCIMAttributeUtils.SCIM_USER_META + ".")
@@ -138,9 +138,9 @@ public final class SCIMUtils {
 
         if (customAttributesObj != null && addCustomAttrsToQueryParams) {
             for (T attribute : customAttributesObj.getAttributes()) {
-                String attributeName = attribute instanceof SCIMv2Attribute 
+                String attributeName = attribute instanceof SCIMv2Attribute
                         ? SCIMv2Attribute.class.cast(attribute).getExtensionSchema() + (useColon ? ":" : ".")
-                                + attribute.getName() : attribute.getName();
+                        + attribute.getName() : attribute.getName();
                 if (!result.toString().contains(attributeName)) {
                     result.append(attributeName).append(",");
                 }
@@ -157,7 +157,7 @@ public final class SCIMUtils {
             result.append(SCIMAttributeUtils.SCIM_USER_NAME).append(",");
         }
 
-        return StringUtil.isBlank(result.toString())
+        return result.length() == 0
                 ? SCIMAttributeUtils.defaultAttributesToGet()
                 : result.substring(0, result.length() - 1);
     }

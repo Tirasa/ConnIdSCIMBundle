@@ -54,7 +54,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String updateGroupMethod = "PUT";
 
     private boolean explicitGroupAddOnCreate = false;
-    
+
     private boolean replaceMembersOnUpdate = false;
 
     private String accept = MediaType.APPLICATION_JSON;
@@ -93,7 +93,7 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private String proxyServerPassword;
 
     private boolean followHttpRedirects = false;
-    
+
     private boolean requestAttributesOnSearch = true;
 
     private boolean useColonOnExtensionAttributes = true;
@@ -451,9 +451,9 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         } catch (Exception e) {
             failValidation("Unsupported SCIM provider: " + scimProvider);
         }
-        if (StringUtil.isNotBlank(proxyServerHost) && (
-                StringUtil.isBlank(proxyServerType)
-                || proxyServerPort == null)) {
+        if (StringUtil.isNotBlank(proxyServerHost)
+                && (StringUtil.isBlank(proxyServerType) || proxyServerPort == null)) {
+
             failValidation("Proxy server type and port cannot be null or empty if host is specified.");
         }
         if (StringUtil.isNotBlank(proxyServerType)) {

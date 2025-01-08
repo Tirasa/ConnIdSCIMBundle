@@ -927,8 +927,10 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                 // manage enterprise user
                 if (SCIMEnterpriseUser.class.isAssignableFrom(field.getType()) && getEnterpriseUser() != null) {
                     field.setAccessible(true);
-                    addAttribute(getEnterpriseUser().toAttributes(SCIMv2EnterpriseUser.SCHEMA_URI,
-                                    conf.getUseColonOnExtensionAttributes()), attrs,
+                    addAttribute(getEnterpriseUser().toAttributes(
+                            SCIMv2EnterpriseUser.SCHEMA_URI,
+                            conf.getUseColonOnExtensionAttributes()),
+                            attrs,
                             field.getType());
                 } else if (!field.isAnnotationPresent(JsonIgnore.class) && !SCIMUtils.isEmptyObject(field.get(this))) {
                     Object objInstance = field.get(this);

@@ -87,10 +87,12 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
 
         public List<Attribute> toAttributes(final boolean useColon) {
             return CollectionUtil.newList(
-                    AttributeBuilder.build(SCHEMA_URI + (useColon ? ":" : ".") + "manager.value", this.value),
-                    AttributeBuilder.build(SCHEMA_URI + (useColon ? ":" : ".") + "manager.ref", this.ref),
-                    AttributeBuilder.build(SCHEMA_URI + (useColon ? ":" : ".") + "manager.displayName",
-                            this.displayName));
+                    AttributeBuilder.build(
+                            SCHEMA_URI + (useColon ? ":" : ".") + "manager.value", this.value),
+                    AttributeBuilder.build(
+                            SCHEMA_URI + (useColon ? ":" : ".") + "manager.ref", this.ref),
+                    AttributeBuilder.build(
+                            SCHEMA_URI + (useColon ? ":" : ".") + "manager.displayName", this.displayName));
         }
 
         @Override
@@ -178,6 +180,7 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
     @Override
     public Set<Attribute> toAttributes(final String schemaUri, final boolean useColon)
             throws IllegalArgumentException, IllegalAccessException {
+
         Set<Attribute> attrs = new HashSet<>();
 
         for (Field field : SCIMUtils.getAllFieldsList(getClass()).stream().
@@ -189,8 +192,8 @@ public class SCIMv2EnterpriseUser implements SCIMEnterpriseUser<SCIMv2Enterprise
             } else if (!field.isAnnotationPresent(JsonIgnore.class)) {
                 field.setAccessible(true);
                 // simple attribute can have the colon as separator
-                attrs.add(
-                        AttributeBuilder.build(schemaUri + (useColon ? ":" : ".") + field.getName(), field.get(this)));
+                attrs.add(AttributeBuilder.build(
+                        schemaUri + (useColon ? ":" : ".") + field.getName(), field.get(this)));
             }
         }
 

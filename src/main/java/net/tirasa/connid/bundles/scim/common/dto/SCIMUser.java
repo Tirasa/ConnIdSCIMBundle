@@ -33,7 +33,7 @@ public interface SCIMUser<MT extends SCIMBaseMeta, EUT extends SCIMEnterpriseUse
     String getDisplayName();
 
     void setDisplayName(String displayName);
-    
+
     void fillSCIMCustomAttributes(Set<Attribute> createAttributes, String customAttributesJSON, boolean useColon);
 
     Map<String, List<Object>> getReturnedCustomAttributes();

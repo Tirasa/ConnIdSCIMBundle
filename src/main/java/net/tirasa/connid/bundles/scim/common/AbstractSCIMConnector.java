@@ -347,7 +347,9 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
 
                 // custom attributes
                 if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
-                    user.fillSCIMCustomAttributes(createAttributes, configuration.getCustomAttributesJSON(),
+                    user.fillSCIMCustomAttributes(
+                            createAttributes,
+                            configuration.getCustomAttributesJSON(),
                             configuration.getUseColonOnExtensionAttributes());
                 }
                 // enterprise user
@@ -437,7 +439,9 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
 
             // custom attributes
             if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
-                user.fillSCIMCustomAttributes(replaceAttributes, configuration.getCustomAttributesJSON(),
+                user.fillSCIMCustomAttributes(
+                        replaceAttributes,
+                        configuration.getCustomAttributesJSON(),
                         configuration.getUseColonOnExtensionAttributes());
             }
             // enterprise user
