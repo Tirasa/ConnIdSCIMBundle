@@ -18,6 +18,7 @@ package net.tirasa.connid.bundles.scim.v2.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -68,6 +69,11 @@ public class SCIMv2PatchImpl implements SCIMv2Patch {
     @Override
     public void addOperation(final SCIMv2PatchOperation operation) {
         this.operations.add(operation);
+    }
+
+    @Override
+    public void addOperations(final List<SCIMv2PatchOperation> operations) {
+        this.operations.addAll(operations);
     }
 
     @Override
