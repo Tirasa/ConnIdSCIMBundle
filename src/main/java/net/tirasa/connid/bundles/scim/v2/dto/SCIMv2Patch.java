@@ -15,6 +15,7 @@
  */
 package net.tirasa.connid.bundles.scim.v2.dto;
 
+import java.util.List;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBasePatch;
 
@@ -23,5 +24,7 @@ public interface SCIMv2Patch extends SCIMBasePatch {
     Set<SCIMv2PatchOperation> getOperations();
 
     void addOperation(SCIMv2PatchOperation operation);
+    
+    void addOperations(List<SCIMv2PatchOperation> operations);
 
 }

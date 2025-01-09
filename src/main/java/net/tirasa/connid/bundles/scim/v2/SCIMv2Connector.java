@@ -187,7 +187,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             } else if (!attrDelta.getName().contains(SCIMAttributeUtils.SCIM_USER_ADDRESSES)
                     && !attrDelta.is(SCIMAttributeUtils.SCIM_USER_GROUPS)) {
 
-                patch.addOperation(buildPatchOperation(attrDelta, null));
+                patch.addOperations(buildPatchOperations(attrDelta, null));
             }
         }
         // manage addresses patches
@@ -195,7 +195,8 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
 
         // custom attributes
         if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
-            buildCustomAttributesPatchOperations(modifications).forEach(patch::addOperation);
+            buildCustomAttributesPatchOperations(modifications,
+                    configuration.getUseColonOnExtensionAttributes()).forEach(patch::addOperation);
         }
         // manage groups
         if (manageGroups) {
@@ -220,7 +221,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                         .value(attrDelta.getValuesToReplace().get(0))
                         .build());
             } else if (!attrDelta.getName().contains(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)) {
-                patch.addOperation(buildPatchOperation(attrDelta, null));
+                patch.addOperations(buildPatchOperations(attrDelta, null));
             }
         }
 
@@ -280,51 +281,61 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         return patch;
     }
 
-    protected List<SCIMv2PatchOperation> buildCustomAttributesPatchOperations(final Set<AttributeDelta> modifications) {
+    protected List<SCIMv2PatchOperation> buildCustomAttributesPatchOperations(final Set<AttributeDelta> modifications,
+            final boolean useColon) {
         List<SCIMv2PatchOperation> operations = new ArrayList<>();
         SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class).ifPresent(
                 scimSchema -> {
                     for (SCIMv2Attribute customAttribute : scimSchema.getAttributes()) {
                         String extAttrName = SCIMv2Attribute.class.cast(customAttribute).getExtensionSchema().
-                                concat(".").concat(customAttribute.getName());
+                                concat(useColon ? ":" : ".").concat(customAttribute.getName());
                         // only single valued attributes are supported
-                        modifications.stream().filter(mod -> mod.getName().equals(extAttrName))
-                                .findFirst().ifPresent(ad -> buildPatchOperation(ad, customAttribute));
+                        modifications.stream().filter(mod -> mod.getName().equals(extAttrName)).findFirst()
+                                .ifPresent(ad -> operations.addAll(buildPatchOperations(ad, customAttribute)));
                     }
                 });
         return operations;
     }
 
     @Override
-    protected SCIMv2PatchOperation buildPatchOperation(
+    protected List<SCIMv2PatchOperation> buildPatchOperations(
             final AttributeDelta currentDelta,
             final SCIMBaseAttribute<?> attributeDefinition) {
 
-        SCIMv2PatchOperation patchOperation = new SCIMv2PatchOperation();
-        patchOperation.setPath(SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()));
+        List<SCIMv2PatchOperation> operations = new ArrayList<>();
+        
         if (CollectionUtil.isEmpty(currentDelta.getValuesToReplace())) {
             if (!CollectionUtil.isEmpty(currentDelta.getValuesToAdd())) {
-                patchOperation.setOp(SCIMAttributeUtils.SCIM_ADD);
-                patchOperation.setValue(
+                SCIMv2PatchOperation addPatchOperation = new SCIMv2PatchOperation();
+                addPatchOperation.setPath(SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()));
+                addPatchOperation.setOp(SCIMAttributeUtils.SCIM_ADD);
+                addPatchOperation.setValue(
                         buildPatchValue(currentDelta.getName(), currentDelta.getValuesToAdd(), attributeDefinition));
+                operations.add(addPatchOperation);
             }
-            if (CollectionUtil.isEmpty(currentDelta.getValuesToAdd())
-                    && !CollectionUtil.isEmpty(currentDelta.getValuesToRemove())) {
-                patchOperation.setOp(SCIMAttributeUtils.SCIM_REMOVE);
+            // also add values to remove in a new operation, if any
+            if (!CollectionUtil.isEmpty(currentDelta.getValuesToRemove())) {
+                SCIMv2PatchOperation removePatchOperation = new SCIMv2PatchOperation();
+                removePatchOperation.setOp(SCIMAttributeUtils.SCIM_REMOVE);
                 // while removing specific attribute values we must use a filter like emails[value eq \"user
                 // .secondary@example.com\"], if multiple values are present must filter in OR like
                 // emails[value eq \"user.secondary@example.com\" or value eq \"user.tertiary@example.com\"]
-                patchOperation.setPath(
-                        buildFilteredPath(currentDelta.getName(), currentDelta.getValuesToRemove(), "or", "eq"));
-                patchOperation.setValue(
+                removePatchOperation.setPath(
+                        buildFilteredPath(SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()),
+                                currentDelta.getValuesToRemove(), "or", "eq"));
+                removePatchOperation.setValue(
                         buildPatchValue(currentDelta.getName(), currentDelta.getValuesToRemove(), attributeDefinition));
+                operations.add(removePatchOperation);
             }
         } else {
-            patchOperation.setOperation(SCIMAttributeUtils.SCIM_REPLACE);
-            patchOperation.setValue(
+            SCIMv2PatchOperation replacePatchOperation = new SCIMv2PatchOperation();
+            replacePatchOperation.setPath(SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()));
+            replacePatchOperation.setOperation(SCIMAttributeUtils.SCIM_REPLACE);
+            replacePatchOperation.setValue(
                     buildPatchValue(currentDelta.getName(), currentDelta.getValuesToReplace(), attributeDefinition));
+            operations.add(replacePatchOperation);
         }
-        return patchOperation;
+        return operations;
     }
 
     @Override
