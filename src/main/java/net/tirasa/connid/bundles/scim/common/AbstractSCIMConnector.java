@@ -765,8 +765,8 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
 
     protected abstract P buildGroupPatch(Set<AttributeDelta> modifications);
 
-    protected abstract List<PO> buildPatchOperations(AttributeDelta currentDelta,
-            SCIMBaseAttribute<?> attributeDefinition);
+    protected abstract List<PO> buildPatchOperations(
+            AttributeDelta currentDelta, SCIMBaseAttribute<?> attributeDefinition);
 
     protected abstract List<PO> buildGroupPatchOperations(Set<AttributeDelta> modifications);
 

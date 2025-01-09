@@ -195,8 +195,10 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
 
         // custom attributes
         if (StringUtil.isNotBlank(configuration.getCustomAttributesJSON())) {
-            buildCustomAttributesPatchOperations(modifications,
-                    configuration.getUseColonOnExtensionAttributes()).forEach(patch::addOperation);
+            buildCustomAttributesPatchOperations(
+                    modifications,
+                    configuration.getUseColonOnExtensionAttributes()).
+                    forEach(patch::addOperation);
         }
         // manage groups
         if (manageGroups) {
@@ -281,8 +283,10 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         return patch;
     }
 
-    protected List<SCIMv2PatchOperation> buildCustomAttributesPatchOperations(final Set<AttributeDelta> modifications,
+    protected List<SCIMv2PatchOperation> buildCustomAttributesPatchOperations(
+            final Set<AttributeDelta> modifications,
             final boolean useColon) {
+
         List<SCIMv2PatchOperation> operations = new ArrayList<>();
         SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class).ifPresent(
                 scimSchema -> {
@@ -335,6 +339,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                     buildPatchValue(currentDelta.getName(), currentDelta.getValuesToReplace(), attributeDefinition));
             operations.add(replacePatchOperation);
         }
+
         return operations;
     }
 

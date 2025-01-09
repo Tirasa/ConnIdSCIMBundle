@@ -145,8 +145,10 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
     }
 
     @Override
-    protected List<SCIMPatchOperation> buildPatchOperations(final AttributeDelta currentDelta,
+    protected List<SCIMPatchOperation> buildPatchOperations(
+            final AttributeDelta currentDelta,
             final SCIMBaseAttribute<?> attributeDefinition) {
+
         throw new ConnectorException("Update delta is not supported in version 1.1");
     }
 
