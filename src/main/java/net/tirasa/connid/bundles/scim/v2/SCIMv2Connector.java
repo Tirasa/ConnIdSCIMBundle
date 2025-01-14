@@ -75,7 +75,8 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
 
         if (schema == null) {
             schema = SCIMAttributeUtils.<SCIMv2Attribute>buildSchema(configuration.getCustomAttributesJSON(),
-                    configuration.getManageComplexEntitlements(), SCIMv2Attribute.class);
+                    configuration.getManageComplexEntitlements(), configuration.getUseColonOnExtensionAttributes(),
+                    SCIMv2Attribute.class);
         }
         return schema;
     }
