@@ -121,6 +121,7 @@ public final class SCIMAttributeUtils {
     public static <T extends SCIMBaseAttribute<T>> Schema buildSchema(
             final String customAttributes,
             final Boolean manageComplexEntitlements,
+            final boolean useColon,
             final Class<T> attrType) {
 
         SchemaBuilder builder = new SchemaBuilder(AbstractSCIMConnector.class);
@@ -265,9 +266,9 @@ public final class SCIMAttributeUtils {
                 AttributeInfoBuilder attributeInfoBuilder = AttributeInfoBuilder.define(
                         attribute instanceof SCIMv11Attribute
                                 ? SCIMv11Attribute.class.cast(attribute).getSchema()
-                                        .concat(".").concat(attribute.getName())
+                                        .concat(useColon ? ":" : ".").concat(attribute.getName())
                                 : SCIMv2Attribute.class.cast(attribute).getExtensionSchema()
-                                        .concat(".").concat(attribute.getName()));
+                                        .concat(useColon ? ":" : ".").concat(attribute.getName()));
                 attributeInfoBuilder.setMultiValued(attribute.getMultiValued()).setRequired(attribute.getRequired())
                         .setUpdateable(attribute instanceof SCIMv11Attribute
                                 ? !SCIMv11Attribute.class.cast(attribute).getReadOnly()
