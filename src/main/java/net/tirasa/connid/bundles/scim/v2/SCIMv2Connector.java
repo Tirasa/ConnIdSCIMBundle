@@ -111,7 +111,9 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             case WSO2:
                 builder.operations(CollectionUtil.newSet(new SCIMv2PatchOperation.Builder()
                         .op(op)
-                        .path(SCIMProvider.SALESFORCE == provider ? SCIMAttributeUtils.SCIM_GROUP_MEMBERS : null)
+                        .path(SCIMProvider.SALESFORCE == provider || SCIMAttributeUtils.SCIM_REMOVE.equals(op)
+                                ? SCIMAttributeUtils.SCIM_GROUP_MEMBERS 
+                                : null)
                         .value(CollectionUtil.newMap(
                                 SCIMAttributeUtils.SCIM_GROUP_MEMBERS,
                                 users.stream().map(user -> buildPatchValue(user)).collect(Collectors.toList())))
