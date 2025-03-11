@@ -459,12 +459,16 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                     List<Object> values = new ArrayList<>();
 
                     // manage multiple types
-                    values.add(Type.integer.name().equals(attr.getType())
-                            ? foundWithSchemaAsKey.get(0).get(attr.getName()).intValue()
-                            : Type.BOOLEAN.name().toLowerCase().equals(attr.getType())
-                            ? foundWithSchemaAsKey.get(0).get(attr.getName()).booleanValue()
-                            : foundWithSchemaAsKey.get(0).get(attr.getName()).textValue());
-
+                    JsonNode jsonNode = foundWithSchemaAsKey.get(0).get(attr.getName());
+                    if (jsonNode.isArray()) {
+                        values.addAll(extractValuesFromJsonNode(attr, jsonNode));
+                    } else {
+                        values.add(Type.integer.name().equals(attr.getType())
+                                ? jsonNode.intValue()
+                                : Type.BOOLEAN.name().toLowerCase().equals(attr.getType())
+                                ? jsonNode.booleanValue()
+                                : jsonNode.textValue());
+                    }
                     user.getReturnedCustomAttributes().put(
                             (attr instanceof SCIMv2Attribute
                                     ? SCIMv2Attribute.class.cast(attr).getExtensionSchema()
@@ -474,6 +478,20 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                 }
             }
         });
+    }
+
+    protected <T extends SCIMBaseAttribute<T>> List<Object> extractValuesFromJsonNode(
+            final T attr, 
+            final JsonNode arrayNode) {
+        List<Object> values = new ArrayList<>();
+        for (JsonNode element : arrayNode) {
+            values.add(Type.integer.name().equals(attr.getType())
+                    ? element.intValue()
+                    : Type.BOOLEAN.name().toLowerCase().equals(attr.getType())
+                    ? element.booleanValue()
+                    : element.textValue());
+        }
+        return values;
     }
 
     protected void readCustomAttributes(final PagedResults<UT> resources, final JsonNode node) {
