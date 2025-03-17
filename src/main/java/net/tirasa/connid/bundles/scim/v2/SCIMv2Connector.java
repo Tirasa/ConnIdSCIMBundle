@@ -188,8 +188,9 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                         .value(SecurityUtil.decrypt((GuardedString) attrDelta.getValuesToReplace().get(0)))
                         .build());
             } else if (!attrDelta.getName().contains(SCIMAttributeUtils.SCIM_USER_ADDRESSES)
-                    && !attrDelta.is(SCIMAttributeUtils.SCIM_USER_GROUPS)) {
-
+                    && !attrDelta.is(SCIMAttributeUtils.SCIM_USER_GROUPS)
+                    // custom attributes are going to be managed further
+                    && !isCustomAttribute(attrDelta.getName(), configuration.getUseColonOnExtensionAttributes())) {
                 patch.addOperations(buildPatchOperations(attrDelta, null));
             }
         }
@@ -578,7 +579,14 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
         return manager;
     }
 
-    private BaseResourceReference buildPatchValue(final SCIMv2User user) {
+    protected boolean isCustomAttribute(final String attrName, final boolean useColon) {
+        return SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class).stream()
+                .anyMatch(scimSchema -> scimSchema.getAttributes().stream().anyMatch(
+                        customAttribute -> attrName.equalsIgnoreCase(customAttribute.getExtensionSchema()
+                                .concat((useColon ? ":" : ".").concat(customAttribute.getName())))));
+    }
+
+    protected BaseResourceReference buildPatchValue(final SCIMv2User user) {
         BaseResourceReference.Builder builder = new BaseResourceReference.Builder();
         switch (provider) {
             case WSO2:
