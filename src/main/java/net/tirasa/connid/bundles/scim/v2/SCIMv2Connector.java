@@ -239,7 +239,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                     if (!CollectionUtil.isEmpty(mod.getValuesToRemove())) {
                         memberOperations.add(new SCIMv2PatchOperation.Builder()
                                 .op(SCIMAttributeUtils.SCIM_REMOVE)
-                                .path(buildFilteredPath(mod.getName(), mod.getValuesToRemove(), "or", "eq"))
+                                .path(buildFilteredPath(mod.getName(), null, mod.getValuesToRemove(), "or", "eq"))
                                 .build());
                     }
                     // add ops
@@ -329,10 +329,11 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                 // .secondary@example.com\"], if multiple values are present must filter in OR like
                 // emails[value eq \"user.secondary@example.com\" or value eq \"user.tertiary@example.com\"]
                 removePatchOperation.setPath(
-                        buildFilteredPath(SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()),
-                                currentDelta.getValuesToRemove(), "or", "eq"));
-                removePatchOperation.setValue(
-                        buildPatchValue(currentDelta.getName(), currentDelta.getValuesToRemove(), attributeDefinition));
+                        SCIMAttributeUtils.isMultivalued(currentDelta.getName(), attributeDefinition)
+                        ? buildFilteredPath(SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()),
+                                SCIMAttributeUtils.getBaseAttributeType(currentDelta.getName()),
+                                currentDelta.getValuesToRemove(), "or", "eq")
+                        : SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()));
                 operations.add(removePatchOperation);
             }
         } else {
@@ -356,7 +357,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                     if (!CollectionUtil.isEmpty(mod.getValuesToRemove())) {
                         grpOperations.add(new SCIMv2PatchOperation.Builder()
                                 .op(SCIMAttributeUtils.SCIM_REMOVE)
-                                .path(buildFilteredPath(mod.getName(), mod.getValuesToRemove(), "or", "eq"))
+                                .path(buildFilteredPath(mod.getName(), null, mod.getValuesToRemove(), "or", "eq"))
                                 .build());
                     }
                     // add ops
@@ -414,7 +415,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                 .collect(Collectors.toMap(AttributeDelta::getName, AttributeDelta::getValuesToRemove))
                 .forEach((k, v) -> {
                     SCIMv2PatchOperation patchOperation = new SCIMv2PatchOperation();
-                    patchOperation.setPath(buildFilteredPath(k, v, "or", "eq"));
+                    patchOperation.setPath(buildFilteredPath(k, null, v, "or", "eq"));
                     patchOperation.setOp(SCIMAttributeUtils.SCIM_REMOVE);
                     patchOperations.add(patchOperation);
                 });
