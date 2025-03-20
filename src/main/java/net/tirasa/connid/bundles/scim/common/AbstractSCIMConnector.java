@@ -1038,13 +1038,20 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         return patchValue;
     }
 
-    protected String buildFilteredPath(final String name, final String type, final List<Object> values, final String op,
+    protected String buildFilteredPath(
+            final String name,
+            final String type,
+            final List<Object> values,
+            final String op,
             final String comparisonOp) {
+
         // emails[type eq \"work\" and value eq \"user.secondary@example.com\"]
         if (CollectionUtil.isEmpty(values)) {
             return StringUtil.EMPTY;
         }
+
         StringBuilder comparisonBuilder = new StringBuilder(name);
+
         if (StringUtil.isNotBlank(type)) {
             comparisonBuilder.append("[type ")
                     .append("eq")
@@ -1056,8 +1063,9 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         } else {
             comparisonBuilder.append("[value ");
         }
-       comparisonBuilder.append(comparisonOp).append(" ").append("\"")
-                .append(values.get(0)).append("\"");
+
+        comparisonBuilder.append(comparisonOp).append(" ").append("\"").append(values.get(0)).append("\"");
+
         values.subList(1, values.size()).forEach(
                 v -> comparisonBuilder.append(" ")
                         .append(op)

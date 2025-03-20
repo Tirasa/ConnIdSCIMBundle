@@ -330,9 +330,12 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                 // emails[value eq \"user.secondary@example.com\" or value eq \"user.tertiary@example.com\"]
                 removePatchOperation.setPath(
                         SCIMAttributeUtils.isMultivalued(currentDelta.getName(), attributeDefinition)
-                        ? buildFilteredPath(SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()),
+                        ? buildFilteredPath(
+                                SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()),
                                 SCIMAttributeUtils.getBaseAttributeType(currentDelta.getName()),
-                                currentDelta.getValuesToRemove(), "or", "eq")
+                                currentDelta.getValuesToRemove(),
+                                "or",
+                                "eq")
                         : SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()));
                 operations.add(removePatchOperation);
             }
