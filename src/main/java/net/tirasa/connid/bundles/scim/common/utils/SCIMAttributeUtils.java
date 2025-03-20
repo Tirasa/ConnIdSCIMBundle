@@ -421,17 +421,17 @@ public final class SCIMAttributeUtils {
     }
 
     public static boolean isMultivalued(final String attributeName, final SCIMBaseAttribute<?> attributeDefinition) {
-    return attributeDefinition == null 
-            ? attributeName.startsWith(SCIM_USER_EMAILS)
-            || attributeName.startsWith(SCIM_USER_PHONE_NUMBERS)
-            || attributeName.startsWith(SCIM_USER_ADDRESSES)
-            || attributeName.startsWith(SCIM_USER_ROLES)
-            || attributeName.startsWith(SCIM_USER_ENTITLEMENTS)
-            || attributeName.startsWith(SCIM_USER_CERTIFICATES)
-            || attributeName.startsWith(SCIM_USER_X509CERTIFICATES)
-            || attributeName.startsWith(SCIM_USER_PHOTOS)
-            || attributeName.startsWith(SCIM_USER_IMS)
-            : attributeDefinition.getMultiValued();
+        return attributeDefinition == null
+                ? attributeName.startsWith(SCIM_USER_EMAILS)
+                || attributeName.startsWith(SCIM_USER_PHONE_NUMBERS)
+                || attributeName.startsWith(SCIM_USER_ADDRESSES)
+                || attributeName.startsWith(SCIM_USER_ROLES)
+                || attributeName.startsWith(SCIM_USER_ENTITLEMENTS)
+                || attributeName.startsWith(SCIM_USER_CERTIFICATES)
+                || attributeName.startsWith(SCIM_USER_X509CERTIFICATES)
+                || attributeName.startsWith(SCIM_USER_PHOTOS)
+                || attributeName.startsWith(SCIM_USER_IMS)
+                : attributeDefinition.getMultiValued();
     }
 
     private SCIMAttributeUtils() {
