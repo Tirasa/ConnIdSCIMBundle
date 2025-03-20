@@ -1038,19 +1038,44 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         return patchValue;
     }
 
-    protected String buildFilteredPath(final String name, final List<Object> values, final String op,
+    protected String buildFilteredPath(
+            final String name,
+            final String type,
+            final List<Object> values,
+            final String op,
             final String comparisonOp) {
-        // emails[value eq \"user.secondary@example.com\"]
+
+        // emails[type eq \"work\" and value eq \"user.secondary@example.com\"]
         if (CollectionUtil.isEmpty(values)) {
             return StringUtil.EMPTY;
         }
-        StringBuilder builder = new StringBuilder(name).append("[value ").append(comparisonOp).append(" ").append("\"")
-                .append(values.get(0)).append("\"");
-        values.subList(1, values.size()).forEach(
-                v -> builder.append(" ").append(op).append(" value ").append(comparisonOp).append(" ").append("\"")
-                        .append(values.get(0)).append("\""));
 
-        return builder.append("]").toString();
+        StringBuilder comparisonBuilder = new StringBuilder(name);
+
+        if (StringUtil.isNotBlank(type)) {
+            comparisonBuilder.append("[type ")
+                    .append("eq")
+                    .append(" ")
+                    .append("\"")
+                    .append(type)
+                    .append("\"")
+                    .append(" and value ");
+        } else {
+            comparisonBuilder.append("[value ");
+        }
+
+        comparisonBuilder.append(comparisonOp).append(" ").append("\"").append(values.get(0)).append("\"");
+
+        values.subList(1, values.size()).forEach(
+                v -> comparisonBuilder.append(" ")
+                        .append(op)
+                        .append(" value ")
+                        .append(comparisonOp)
+                        .append(" ")
+                        .append("\"")
+                        .append(v).append("\""));
+
+        return comparisonBuilder.append("]").toString();
     }
 
     protected abstract void manageEntitlements(UT user, List<String> values);
