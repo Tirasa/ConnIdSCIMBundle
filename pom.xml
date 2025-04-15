@@ -23,7 +23,7 @@
   <parent>
     <groupId>net.tirasa.connid</groupId>
     <artifactId>connid</artifactId>
-    <version>1.5.2.0</version>
+    <version>1.5.2.1</version>
   </parent>
     
   <groupId>net.tirasa.connid.bundles</groupId>
@@ -62,26 +62,13 @@
     <url>https://github.com/Tirasa/ConnIdSCIMBundle/actions</url>
   </ciManagement>
 
-  <mailingLists>
-    <mailingList>
-      <name>connid-dev</name>
-      <post>connid-dev@googlegroups.com</post>
-      <archive>http://groups.google.com/group/connid-dev</archive>
-    </mailingList>
-    <mailingList>
-      <name>connid-users</name>
-      <post>connid-users@googlegroups.com</post>
-      <archive>http://groups.google.com/group/connid-users</archive>
-    </mailingList>
-  </mailingLists>
-
   <properties>
-    <connid.version>1.5.2.0</connid.version>
+    <connid.version>1.5.2.1</connid.version>
 
     <jackson.version>2.18.3</jackson.version>
     <cxf.version>3.6.6</cxf.version>
-    <java.version>11</java.version>
 
+    <targetJdk>11</targetJdk>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -180,7 +167,7 @@
         <version>3.14.0</version>
         <inherited>false</inherited>
         <configuration>
-          <release>${java.version}</release>
+          <release>${targetJdk}</release>
           <useIncrementalCompilation>false</useIncrementalCompilation>
           <showWarnings>true</showWarnings>
           <showDeprecation>true</showDeprecation>
@@ -212,45 +199,11 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.5.0</version>
-        <executions>
-          <execution>
-            <id>default-cli</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>${targetJdk}</version>
-                </requireJavaVersion>
-                <requireMavenVersion>
-                  <version>3.9.5</version>
-                </requireMavenVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
         <groupId>org.gaul</groupId>
         <artifactId>modernizer-maven-plugin</artifactId>
-        <version>3.1.0</version>
         <configuration>
           <javaVersion>${targetJdk}</javaVersion>
         </configuration>
-        <executions>
-          <execution>
-            <id>modernizer-check</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>modernizer</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       
       <plugin>

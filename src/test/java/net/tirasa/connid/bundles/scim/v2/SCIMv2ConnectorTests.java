@@ -1162,15 +1162,15 @@ public class SCIMv2ConnectorTests {
                             .findFirst();
             // first group checks
             assertTrue(groupRef1.isPresent());
-            assertEquals(createdGroup1.getDisplayName(), groupRef1.get().getDisplay());
-            assertTrue(groupRef1.get().getRef().contains("Groups/" + createdGroup1.getId()));
+            assertEquals(createdGroup1.getDisplayName(), groupRef1.orElseThrow().getDisplay());
+            assertTrue(groupRef1.orElseThrow().getRef().contains("Groups/" + createdGroup1.getId()));
             // second group checks
             Optional<BaseResourceReference> groupRef2 =
                     createdUser.getGroups().stream().filter(g -> createdGroup2.getId().equals(g.getValue()))
                             .findFirst();
             assertTrue(groupRef2.isPresent());
-            assertEquals(createdGroup2.getDisplayName(), groupRef2.get().getDisplay());
-            assertTrue(groupRef2.get().getRef().contains("/Groups/" + createdGroup2.getId()));
+            assertEquals(createdGroup2.getDisplayName(), groupRef2.orElseThrow().getDisplay());
+            assertTrue(groupRef2.orElseThrow().getRef().contains("/Groups/" + createdGroup2.getId()));
             // check entitlements
             assertTrue(createdUser.getEntitlements().stream().allMatch(e -> "00e09000000iZP5AAM".equals(e.getValue())));
             // read user through connector APIs

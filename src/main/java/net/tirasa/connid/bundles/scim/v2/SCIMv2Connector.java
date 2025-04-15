@@ -112,7 +112,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                 builder.operations(CollectionUtil.newSet(new SCIMv2PatchOperation.Builder()
                         .op(op)
                         .path(SCIMProvider.SALESFORCE == provider || SCIMAttributeUtils.SCIM_REMOVE.equals(op)
-                                ? SCIMAttributeUtils.SCIM_GROUP_MEMBERS 
+                                ? SCIMAttributeUtils.SCIM_GROUP_MEMBERS
                                 : null)
                         .value(CollectionUtil.newMap(
                                 SCIMAttributeUtils.SCIM_GROUP_MEMBERS,
@@ -311,7 +311,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             final SCIMBaseAttribute<?> attributeDefinition) {
 
         List<SCIMv2PatchOperation> operations = new ArrayList<>();
-        
+
         if (CollectionUtil.isEmpty(currentDelta.getValuesToReplace())) {
             if (!CollectionUtil.isEmpty(currentDelta.getValuesToAdd())) {
                 SCIMv2PatchOperation addPatchOperation = new SCIMv2PatchOperation();
@@ -500,12 +500,14 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             patchOperation.setOp(SCIMAttributeUtils.SCIM_ADD);
             patchOperation.setValue(newAddress.fillFrom(currentOtherAddress));
             patchOperations.add(patchOperation);
-        } else if (currentOtherAddress.isPresent()) {
-            SCIMv2PatchOperation patchOperation = new SCIMv2PatchOperation();
-            patchOperation.setPath(SCIMAttributeUtils.SCIM_USER_ADDRESSES);
-            patchOperation.setOp(SCIMAttributeUtils.SCIM_ADD);
-            patchOperation.setValue(currentOtherAddress.get());
-            patchOperations.add(patchOperation);
+        } else {
+            currentOtherAddress.ifPresent(coa -> {
+                SCIMv2PatchOperation patchOperation = new SCIMv2PatchOperation();
+                patchOperation.setPath(SCIMAttributeUtils.SCIM_USER_ADDRESSES);
+                patchOperation.setOp(SCIMAttributeUtils.SCIM_ADD);
+                patchOperation.setValue(coa);
+                patchOperations.add(patchOperation);
+            });
         }
     }
 
@@ -586,8 +588,8 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     protected boolean isCustomAttribute(final String attrName, final boolean useColon) {
         return SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class).stream()
                 .anyMatch(scimSchema -> scimSchema.getAttributes().stream().anyMatch(
-                        customAttribute -> attrName.equalsIgnoreCase(customAttribute.getExtensionSchema()
-                                .concat((useColon ? ":" : ".").concat(customAttribute.getName())))));
+                customAttribute -> attrName.equalsIgnoreCase(customAttribute.getExtensionSchema()
+                        .concat((useColon ? ":" : ".").concat(customAttribute.getName())))));
     }
 
     protected BaseResourceReference buildPatchValue(final SCIMv2User user) {
