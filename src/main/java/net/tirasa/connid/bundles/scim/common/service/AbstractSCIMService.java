@@ -130,6 +130,9 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             return config.getBearerToken();
         }
 
+        if (StringUtil.isEmpty(config.getAccessTokenBaseAddress())) {
+            SCIMUtils.handleGeneralError("Invalid bearer token and no access token base address configured");
+        }
         WebClient webClient = WebClient.create(config.getAccessTokenBaseAddress()).
                 type(config.getAccessTokenContentType()).accept(config.getAccessTokenAccept());
 
@@ -165,8 +168,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         JsonNode result = null;
         try {
             Response response = executeAndRetry(WebClient::get, webClient, 0);
-            String responseAsString = response.readEntity(String.class);
-            checkServiceErrors(response);
+            String responseAsString = checkServiceErrors(response);
             result = SCIMUtils.MAPPER.readTree(responseAsString);
             if (result == null) {
                 LOG.ok("Empty result from GET request");
@@ -207,9 +209,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             }
             LOG.ok("CREATE payload is {0}: ", payload);
             Response response = executeAndRetry(wc -> wc.post(payload), webClient, 0);
-            checkServiceErrors(response);
+            String responseAsString = checkServiceErrors(response);
             String value = SCIMAttributeUtils.ATTRIBUTE_ID;
-            String responseAsString = response.readEntity(String.class);
             JsonNode responseObj = SCIMUtils.MAPPER.readTree(responseAsString);
             if (responseObj.hasNonNull(value)) {
                 user.setId(responseObj.get(value).textValue());
@@ -261,8 +262,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                 response = executeAndRetry(wc -> wc.put(payload), webClient, 0);
             }
 
-            checkServiceErrors(response);
-            result = SCIMUtils.MAPPER.readTree(response.readEntity(String.class));
+            String responseAsString = checkServiceErrors(response);
+            result = SCIMUtils.MAPPER.readTree(responseAsString);
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
             LOG.error(ex, "Error while updating entity");
@@ -291,12 +292,12 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             LOG.ok("UPDATE PATCH payload is {0}: ", payload);
 
             Response response = executeAndRetry(wc -> webClient.invoke("PATCH", payload), webClient, 0);
-            checkServiceErrors(response);
+            String responseAsString = checkServiceErrors(response);
 
             // some providers, like AWS, return no result, thus a new read is needed
             result = Status.NO_CONTENT.getStatusCode() == response.getStatus()
                     ? doGet(webClient)
-                    : SCIMUtils.MAPPER.readTree(response.readEntity(String.class));
+                    : SCIMUtils.MAPPER.readTree(responseAsString);
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
             LOG.error(ex, "Error while updating entity");
@@ -339,13 +340,22 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         }
     }
 
-    protected void checkServiceErrors(final Response response) {
+    protected String checkServiceErrors(final Response response) {
         if (response == null) {
             SCIMUtils.handleGeneralError("While executing request - no response");
         }
 
+        String responseAsString = response.readEntity(String.class);
         if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
             throw new NoSuchEntityException("No SCIM entity found");
+        }
+
+        if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+            throw new NoSuchEntityException("Unauthorized");
+        }
+
+        if (response.getStatus() == Status.FORBIDDEN.getStatusCode()) {
+            throw new NoSuchEntityException("Forbidden");
         }
 
         if (response.getStatusInfo().getFamily() != Status.Family.SUCCESSFUL) {
@@ -353,6 +363,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
                     "While executing SCIM request: status is " + response.getStatus() + " and reponse "
                             + response.readEntity(String.class));
         }
+        return responseAsString;
     }
 
     protected void checkServiceResultErrors(final JsonNode node, final Response response) {
@@ -832,9 +843,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
             Response response = executeAndRetry(wc -> wc.post(payload), webClient, 0);
 
-            checkServiceErrors(response);
+            String responseAsString = checkServiceErrors(response);
             String value = SCIMAttributeUtils.ATTRIBUTE_ID;
-            String responseAsString = response.readEntity(String.class);
             JsonNode responseObj = SCIMUtils.MAPPER.readTree(responseAsString);
             if (responseObj.hasNonNull(value)) {
                 group.setId(responseObj.get(value).textValue());
@@ -896,8 +906,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
             response = executeAndRetry(wc -> wc.put(payload), webClient, 0);
 
-            checkServiceErrors(response);
-            String responseEntity = response.readEntity(String.class);
+            String responseEntity = checkServiceErrors(response);
             // some servers like Salesforce return empty response on group update with PUT, thus  a re-read is needed
             result = StringUtil.isNotBlank(responseEntity) ? SCIMUtils.MAPPER.readTree(responseEntity)
                     : doGet(getWebclient("Groups", null).path(group.getId()));
