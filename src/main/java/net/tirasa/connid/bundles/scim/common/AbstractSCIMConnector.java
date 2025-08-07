@@ -302,18 +302,17 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
         if (ObjectClass.ACCOUNT.equals(objectClass)) {
             UT user = buildNewUserEntity(
                     SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class));
+
             String username = accessor.findString(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
             if (username == null) {
                 username = accessor.findString(Name.NAME);
             }
-
-            GuardedString password = accessor.findGuardedString(OperationalAttributes.PASSWORD_NAME);
-            Attribute status = accessor.find(OperationalAttributes.ENABLE_NAME);
+            user.setUserName(username);
 
             try {
-                user.setUserName(username);
                 Optional.ofNullable(accessor.findString(SCIMAttributeUtils.USER_ATTRIBUTE_EXTERNAL_ID))
                         .ifPresent(user::setExternalId);
+
                 // manage groups
                 List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
                 LOG.info("Adding groups {0} to user {1}", groups, username);
@@ -330,15 +329,16 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                     manageEntitlements(user, entitlements);
                 }
 
+                GuardedString password = accessor.findGuardedString(OperationalAttributes.PASSWORD_NAME);
                 if (password == null) {
                     LOG.warn("Missing password attribute");
                 } else {
                     user.setPassword(SecurityUtil.decrypt(password));
                 }
 
-                if (status == null || status.getValue() == null || status.getValue().isEmpty()) {
-                    LOG.warn("{0} attribute value not correct or not found, won't handle User status",
-                            OperationalAttributes.ENABLE_NAME);
+                Attribute status = accessor.find(OperationalAttributes.ENABLE_NAME);
+                if (status == null || CollectionUtil.isEmpty(status.getValue())) {
+                    LOG.warn("No {0} attribute provided, won't handle User status", OperationalAttributes.ENABLE_NAME);
                 } else {
                     user.setActive(Boolean.valueOf(status.getValue().get(0).toString()));
                 }
@@ -352,6 +352,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                             configuration.getCustomAttributesJSON(),
                             configuration.getUseColonOnExtensionAttributes());
                 }
+
                 // enterprise user
                 createAttributes.stream().
                         filter(ca -> ca.getName().contains(SCIMv2EnterpriseUser.SCHEMA_URI)).
@@ -361,7 +362,8 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                         });
 
                 client.createUser(user);
-                // update also groups, if needed
+
+// update also groups, if needed
                 if (!scimGroups.isEmpty() && configuration.getExplicitGroupAddOnCreate()) {
                     LOG.info("Updating groups {0} explicitly adding user {1}", groups, user.getId());
 
@@ -420,19 +422,20 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
 
         Uid returnUid = uid;
         if (ObjectClass.ACCOUNT.equals(objectClass)) {
-            Attribute status = accessor.find(OperationalAttributes.ENABLE_NAME);
-            String username = accessor.findString(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
-            if (username == null) {
-                username = accessor.findString(Name.NAME);
-            }
 
             UT user = buildNewUserEntity(
                     SCIMUtils.extractSCIMSchemas(configuration.getCustomAttributesJSON(), SCIMv2Attribute.class));
             user.setId(uid.getUidValue());
+
+            String username = accessor.findString(SCIMAttributeUtils.USER_ATTRIBUTE_USERNAME);
+            if (username == null) {
+                username = accessor.findString(Name.NAME);
+            }
             user.setUserName(username);
-            if (status == null || status.getValue() == null || status.getValue().isEmpty()) {
-                LOG.warn("{0} attribute value not correct, can't handle User  status update",
-                        OperationalAttributes.ENABLE_NAME);
+
+            Attribute status = accessor.find(OperationalAttributes.ENABLE_NAME);
+            if (status == null || CollectionUtil.isEmpty(status.getValue())) {
+                LOG.warn("No {0} attribute provided, won't handle User status", OperationalAttributes.ENABLE_NAME);
             } else {
                 user.setActive(Boolean.valueOf(status.getValue().get(0).toString()));
             }
