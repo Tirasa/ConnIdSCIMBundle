@@ -97,6 +97,10 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private boolean requestAttributesOnSearch = true;
 
     private boolean useColonOnExtensionAttributes = true;
+    
+    private String apiKeyHeaderName;
+    
+    private GuardedString apiKey;
 
     @ConfigurationProperty(order = 1,
             displayMessageKey = "baseAddress.display",
@@ -403,6 +407,27 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.useColonOnExtensionAttributes = useColonOnExtensionAttributes;
     }
 
+    @ConfigurationProperty(displayMessageKey = "apiKeyHeaderName.display",
+            helpMessageKey = "apiKeyHeaderName.help",
+            order = 29)
+    public String getApiKeyHeaderName() {
+        return apiKeyHeaderName;
+    }
+
+    public void setApiKeyHeaderName(final String apiKeyHeaderName) {
+        this.apiKeyHeaderName = apiKeyHeaderName;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "apiKey.display", helpMessageKey = "apiKey.help", order = 30,
+            confidential = true)
+    public GuardedString getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(final GuardedString apiKey) {
+        this.apiKey = apiKey;
+    }
+
     @Override
     public void validate() {
         if (StringUtil.isBlank(baseAddress)) {
@@ -468,6 +493,11 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         }
         if (StringUtil.isNotBlank(proxyServerPassword) && StringUtil.isBlank(proxyServerUser)) {
             failValidation("Proxy server user cannot be null or empty if password is specified.");
+        }
+
+        if ((StringUtil.isNotBlank(apiKeyHeaderName) && apiKey == null) || (StringUtil.isBlank(apiKeyHeaderName)
+                && apiKey != null)) {
+            failValidation("If provided both api key and api key header name must be set.");
         }
     }
 
