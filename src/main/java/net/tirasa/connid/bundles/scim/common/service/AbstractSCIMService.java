@@ -118,6 +118,11 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             conduit.setClient(policy);
         }
 
+        // include additional api key header if requested by configuration
+        if (StringUtil.isNotBlank(config.getAuthHttpHeaderName())) {
+            webClient.header(config.getAuthHttpHeaderName(), SecurityUtil.decrypt(config.getAuthHttpHeaderValue()));
+        }
+        
         webClient.type(config.getContentType()).accept(config.getAccept()).path(path);
 
         Optional.ofNullable(params).ifPresent(p -> p.forEach((k, v) -> webClient.query(k, v)));
@@ -492,7 +497,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     }
 
     protected <T extends SCIMBaseAttribute<T>> List<Object> extractValuesFromJsonNode(
-            final T attr, 
+            final T attr,
             final JsonNode arrayNode) {
         List<Object> values = new ArrayList<>();
         for (JsonNode element : arrayNode) {

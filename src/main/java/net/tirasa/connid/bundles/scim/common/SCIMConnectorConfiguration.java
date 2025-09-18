@@ -97,6 +97,10 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     private boolean requestAttributesOnSearch = true;
 
     private boolean useColonOnExtensionAttributes = true;
+    
+    private String authHttpHeaderName;
+    
+    private GuardedString authHttpHeaderValue;
 
     @ConfigurationProperty(order = 1,
             displayMessageKey = "baseAddress.display",
@@ -403,6 +407,29 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.useColonOnExtensionAttributes = useColonOnExtensionAttributes;
     }
 
+    @ConfigurationProperty(displayMessageKey = "authHttpHeaderName.display",
+            helpMessageKey = "authHttpHeaderName.help",
+            order = 29)
+    public String getAuthHttpHeaderName() {
+        return authHttpHeaderName;
+    }
+
+    public void setAuthHttpHeaderName(final String authHttpHeaderName) {
+        this.authHttpHeaderName = authHttpHeaderName;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "authHttpHeaderValue.display",
+            helpMessageKey = "authHttpHeaderValue.help",
+            order = 30,
+            confidential = true)
+    public GuardedString getAuthHttpHeaderValue() {
+        return authHttpHeaderValue;
+    }
+
+    public void setAuthHttpHeaderValue(final GuardedString authHttpHeaderValue) {
+        this.authHttpHeaderValue = authHttpHeaderValue;
+    }
+
     @Override
     public void validate() {
         if (StringUtil.isBlank(baseAddress)) {
@@ -468,6 +495,11 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         }
         if (StringUtil.isNotBlank(proxyServerPassword) && StringUtil.isBlank(proxyServerUser)) {
             failValidation("Proxy server user cannot be null or empty if password is specified.");
+        }
+
+        if ((StringUtil.isNotBlank(authHttpHeaderName) && authHttpHeaderValue == null) || (
+                StringUtil.isBlank(authHttpHeaderName) && authHttpHeaderValue != null)) {
+            failValidation("If provided both auth http header value and auth http header name must be set.");
         }
     }
 

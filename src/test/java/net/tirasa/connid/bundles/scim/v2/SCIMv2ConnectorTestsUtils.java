@@ -135,6 +135,12 @@ public final class SCIMv2ConnectorTestsUtils {
                 case "auth.genericComplexType":
                     connectorConfiguration.setGenericComplexType(entry.getValue());
                     break;
+                case "auth.authHttpHeaderName":
+                    connectorConfiguration.setAuthHttpHeaderName(entry.getValue());
+                    break;
+                case "auth.authHttpHeaderValue":
+                    connectorConfiguration.setAuthHttpHeaderValue(new GuardedString(entry.getValue().toCharArray()));
+                    break;
                 default:
                     LOG.info("Occurrence of an non defined parameter");
                     break;
