@@ -98,9 +98,9 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private boolean useColonOnExtensionAttributes = true;
     
-    private String apiKeyHeaderName;
+    private String authHttpHeaderName;
     
-    private GuardedString apiKey;
+    private GuardedString authHttpHeaderValue;
 
     @ConfigurationProperty(order = 1,
             displayMessageKey = "baseAddress.display",
@@ -407,25 +407,27 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
         this.useColonOnExtensionAttributes = useColonOnExtensionAttributes;
     }
 
-    @ConfigurationProperty(displayMessageKey = "apiKeyHeaderName.display",
-            helpMessageKey = "apiKeyHeaderName.help",
+    @ConfigurationProperty(displayMessageKey = "authHttpHeaderName.display",
+            helpMessageKey = "authHttpHeaderName.help",
             order = 29)
-    public String getApiKeyHeaderName() {
-        return apiKeyHeaderName;
+    public String getAuthHttpHeaderName() {
+        return authHttpHeaderName;
     }
 
-    public void setApiKeyHeaderName(final String apiKeyHeaderName) {
-        this.apiKeyHeaderName = apiKeyHeaderName;
+    public void setAuthHttpHeaderName(final String authHttpHeaderName) {
+        this.authHttpHeaderName = authHttpHeaderName;
     }
 
-    @ConfigurationProperty(displayMessageKey = "apiKey.display", helpMessageKey = "apiKey.help", order = 30,
+    @ConfigurationProperty(displayMessageKey = "authHttpHeaderValue.display",
+            helpMessageKey = "authHttpHeaderValue.help",
+            order = 30,
             confidential = true)
-    public GuardedString getApiKey() {
-        return apiKey;
+    public GuardedString getAuthHttpHeaderValue() {
+        return authHttpHeaderValue;
     }
 
-    public void setApiKey(final GuardedString apiKey) {
-        this.apiKey = apiKey;
+    public void setAuthHttpHeaderValue(final GuardedString authHttpHeaderValue) {
+        this.authHttpHeaderValue = authHttpHeaderValue;
     }
 
     @Override
@@ -495,9 +497,9 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             failValidation("Proxy server user cannot be null or empty if password is specified.");
         }
 
-        if ((StringUtil.isNotBlank(apiKeyHeaderName) && apiKey == null) || (StringUtil.isBlank(apiKeyHeaderName)
-                && apiKey != null)) {
-            failValidation("If provided both api key and api key header name must be set.");
+        if ((StringUtil.isNotBlank(authHttpHeaderName) && authHttpHeaderValue == null) || (
+                StringUtil.isBlank(authHttpHeaderName) && authHttpHeaderValue != null)) {
+            failValidation("If provided both auth http header value and auth http header name must be set.");
         }
     }
 

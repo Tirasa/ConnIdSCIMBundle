@@ -119,8 +119,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         }
 
         // include additional api key header if requested by configuration
-        if (StringUtil.isNotBlank(config.getApiKeyHeaderName())) {
-            webClient.header(config.getApiKeyHeaderName(), SecurityUtil.decrypt(config.getApiKey()));
+        if (StringUtil.isNotBlank(config.getAuthHttpHeaderName())) {
+            webClient.header(config.getAuthHttpHeaderName(), SecurityUtil.decrypt(config.getAuthHttpHeaderValue()));
         }
         
         webClient.type(config.getContentType()).accept(config.getAccept()).path(path);
