@@ -102,6 +102,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
     
     private GuardedString authHttpHeaderValue;
 
+    private boolean enableParamsURLEncoding = false;
+
     @ConfigurationProperty(order = 1,
             displayMessageKey = "baseAddress.display",
             helpMessageKey = "baseAddress.help",
@@ -428,6 +430,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     public void setAuthHttpHeaderValue(final GuardedString authHttpHeaderValue) {
         this.authHttpHeaderValue = authHttpHeaderValue;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "enableParamsURLEncoding.display",
+            helpMessageKey = "enableParamsURLEncoding.help",
+            order = 31)
+    public boolean getEnableParamsURLEncoding() {
+        return enableParamsURLEncoding;
+    }
+
+    public void setEnableParamsURLEncoding(final boolean enableParamsURLEncoding) {
+        this.enableParamsURLEncoding = enableParamsURLEncoding;
     }
 
     @Override

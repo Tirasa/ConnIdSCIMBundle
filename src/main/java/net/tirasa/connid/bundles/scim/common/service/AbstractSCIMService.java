@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -521,7 +523,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
      */
     @Override
     public void deleteUser(final String userId) {
-        doDeleteUser(userId, getWebclient("Users", null).path(userId));
+        doDeleteUser(userId, getWebclient("Users", null).path(config.getEnableParamsURLEncoding()
+                ? URLEncoder.encode(userId, StandardCharsets.UTF_8) : userId));
     }
 
     /**
@@ -567,7 +570,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
     protected UT doUpdateUser(final String userId, final P userPatch, final Class<UT> userType) {
         UT updated = null;
-        JsonNode node = doUpdatePatch(userPatch, Collections.emptySet(), getWebclient("Users", null).path(userId));
+        JsonNode node = doUpdatePatch(userPatch, Collections.emptySet(), getWebclient("Users", null).path(
+                config.getEnableParamsURLEncoding() ? URLEncoder.encode(userId, StandardCharsets.UTF_8) : userId));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update patch on service");
         }
@@ -593,8 +597,10 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         UT updated = null;
         JsonNode node =
                 config.getUpdateUserMethod().equalsIgnoreCase("PATCH") && !replaceAttributes.isEmpty() ? doUpdatePatch(
-                replaceAttributes, getWebclient("Users", null).path(user.getId()))
-                : doUpdate(user, getWebclient("Users", null).path(user.getId()));
+                replaceAttributes, getWebclient("Users", null).path(config.getEnableParamsURLEncoding()
+                                ? URLEncoder.encode(user.getId(), StandardCharsets.UTF_8) : user.getId()))
+                : doUpdate(user, getWebclient("Users", null).path(config.getEnableParamsURLEncoding()
+                        ? URLEncoder.encode(user.getId(), StandardCharsets.UTF_8) : user.getId()));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update on service");
         }
@@ -810,7 +816,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
     @Override
     public void deleteGroup(final String groupId) {
-        doDeleteGroup(groupId, getWebclient("Groups", null).path(groupId));
+        doDeleteGroup(groupId, getWebclient("Groups", null).path(config.getEnableParamsURLEncoding()
+                ? URLEncoder.encode(groupId, StandardCharsets.UTF_8) : groupId));
     }
 
     @Override
@@ -878,8 +885,10 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         JsonNode node =
                 config.getUpdateGroupMethod().equalsIgnoreCase("PATCH") && patch != null
                 ? doUpdatePatch(patch, replaceAttributes,
-                        getWebclient("Groups", null).path(group.getId()))
-                : doUpdate(group, getWebclient("Groups", null).path(group.getId()));
+                        getWebclient("Groups", null).path(config.getEnableParamsURLEncoding()
+                                ? URLEncoder.encode(group.getId(), StandardCharsets.UTF_8) : group.getId()))
+                : doUpdate(group, getWebclient("Groups", null).path(config.getEnableParamsURLEncoding()
+                        ? URLEncoder.encode(group.getId(), StandardCharsets.UTF_8) : group.getId()));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update group on service");
         }
@@ -914,7 +923,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             String responseEntity = checkServiceErrors(response);
             // some servers like Salesforce return empty response on group update with PUT, thus  a re-read is needed
             result = StringUtil.isNotBlank(responseEntity) ? SCIMUtils.MAPPER.readTree(responseEntity)
-                    : doGet(getWebclient("Groups", null).path(group.getId()));
+                    : doGet(getWebclient("Groups", null).path(config.getEnableParamsURLEncoding()
+                            ? URLEncoder.encode(group.getId(), StandardCharsets.UTF_8) : group.getId()));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
             LOG.error(ex, "Unable to update entity");

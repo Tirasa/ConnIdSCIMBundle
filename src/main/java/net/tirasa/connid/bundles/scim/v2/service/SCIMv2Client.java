@@ -17,6 +17,8 @@ package net.tirasa.connid.bundles.scim.v2.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
@@ -46,7 +48,8 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
      */
     @Override
     public SCIMv2User getUser(final String userId) {
-        return doGetUser(getWebclient("Users", null).path(userId), SCIMv2User.class, SCIMv2Attribute.class);
+        return doGetUser(getWebclient("Users", null).path(config.getEnableParamsURLEncoding()
+                ? URLEncoder.encode(userId, StandardCharsets.UTF_8) : userId), SCIMv2User.class, SCIMv2Attribute.class);
     }
 
     /**
@@ -79,13 +82,15 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
 
     @Override
     public SCIMv2Group getGroup(final String groupId) {
-        return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv2Group.class);
+        return doGetGroup(getWebclient("Groups", null).path(config.getEnableParamsURLEncoding()
+                ? URLEncoder.encode(groupId, StandardCharsets.UTF_8) : groupId), SCIMv2Group.class);
     }
 
     @Override
     public SCIMv2EntitlementResource getEntitlement(final String entitlementId) {
-        return doGetEntitlement(
-                getWebclient("Entitlements", null).path(entitlementId), SCIMv2EntitlementResource.class);
+        return doGetEntitlement(getWebclient("Entitlements", null).path(config.getEnableParamsURLEncoding()
+                ? URLEncoder.encode(entitlementId, StandardCharsets.UTF_8)
+                : entitlementId), SCIMv2EntitlementResource.class);
     }
 
     @Override
@@ -105,7 +110,8 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
 
     @Override
     public void deleteGroup(final String groupId) {
-        doDeleteGroup(groupId, getWebclient("Groups", null).path(groupId));
+        doDeleteGroup(groupId, getWebclient("Groups", null).path(config.getEnableParamsURLEncoding()
+                ? URLEncoder.encode(groupId, StandardCharsets.UTF_8) : groupId));
     }
 
     @Override
