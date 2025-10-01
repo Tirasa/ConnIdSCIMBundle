@@ -147,7 +147,7 @@ public final class SCIMv2ConnectorTestsUtils {
             }
         }
         // enable url encoding only for test purposes
-        connectorConfiguration.setEnableParamsURLEncoding(true);
+        connectorConfiguration.setEnableURLPathEncoding(true);
         return connectorConfiguration;
     }
 

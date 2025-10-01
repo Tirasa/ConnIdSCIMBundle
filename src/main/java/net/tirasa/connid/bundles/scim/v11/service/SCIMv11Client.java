@@ -17,8 +17,6 @@ package net.tirasa.connid.bundles.scim.v11.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -50,8 +48,8 @@ public class SCIMv11Client extends AbstractSCIMService<
      */
     @Override
     public SCIMv11User getUser(final String userId) {
-        WebClient webClient = getWebclient("Users", null).path(config.getEnableParamsURLEncoding()
-                ? URLEncoder.encode(userId, StandardCharsets.UTF_8) : userId);
+        WebClient webClient =
+                getWebclient("Users", null).path(SCIMUtils.getPath(userId, config.getEnableURLPathEncoding()));
         return doGetUser(webClient, SCIMv11User.class, SCIMv11Attribute.class);
     }
 
@@ -87,8 +85,9 @@ public class SCIMv11Client extends AbstractSCIMService<
 
     @Override
     public SCIMv11Group getGroup(final String groupId) {
-        return doGetGroup(getWebclient("Groups", null).path(config.getEnableParamsURLEncoding()
-                ? URLEncoder.encode(groupId, StandardCharsets.UTF_8) : groupId), SCIMv11Group.class);
+        return doGetGroup(
+                getWebclient("Groups", null).path(SCIMUtils.getPath(groupId, config.getEnableURLPathEncoding())),
+                        SCIMv11Group.class);
     }
 
     @Override

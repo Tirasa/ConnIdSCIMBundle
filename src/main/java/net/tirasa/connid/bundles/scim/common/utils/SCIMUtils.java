@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -222,6 +224,10 @@ public final class SCIMUtils {
         return groupMemberBuilder.build();
     }
 
+    public static String getPath(final String id, final boolean encode) {
+        return encode ? URLEncoder.encode(id, StandardCharsets.UTF_8) : id;
+    }
+    
     private SCIMUtils() {
         // private constructor for static utility class
     }
