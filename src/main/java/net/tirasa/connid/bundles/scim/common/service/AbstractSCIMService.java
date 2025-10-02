@@ -81,7 +81,6 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     protected WebClient getWebclient(final String path, final Map<String, String> params) {
         WebClient webClient;
         if (checkBearerToken()) {
-
             webClient = WebClient.create(config.getBaseAddress()).
                     header(HttpHeaders.AUTHORIZATION, "Bearer " + getBearerToken(false));
         } else {
@@ -122,7 +121,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         if (StringUtil.isNotBlank(config.getAuthHttpHeaderName())) {
             webClient.header(config.getAuthHttpHeaderName(), SecurityUtil.decrypt(config.getAuthHttpHeaderValue()));
         }
-        
+
         webClient.type(config.getContentType()).accept(config.getAccept()).path(path);
 
         Optional.ofNullable(params).ifPresent(p -> p.forEach((k, v) -> webClient.query(k, v)));
@@ -366,7 +365,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         if (response.getStatusInfo().getFamily() != Status.Family.SUCCESSFUL) {
             SCIMUtils.handleGeneralError(
                     "While executing SCIM request: status is " + response.getStatus() + " and reponse "
-                            + responseAsString);
+                    + responseAsString);
         }
         return responseAsString;
     }
@@ -521,8 +520,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
      */
     @Override
     public void deleteUser(final String userId) {
-        doDeleteUser(userId,
-                getWebclient("Users", null).path(SCIMUtils.getPath(userId, config.getEnableURLPathEncoding())));
+        doDeleteUser(userId, getWebclient("Users", null).path(SCIMUtils.getPath(userId, config)));
     }
 
     /**
@@ -569,7 +567,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     protected UT doUpdateUser(final String userId, final P userPatch, final Class<UT> userType) {
         UT updated = null;
         JsonNode node = doUpdatePatch(userPatch, Collections.emptySet(),
-                getWebclient("Users", null).path(SCIMUtils.getPath(userId, config.getEnableURLPathEncoding())));
+                getWebclient("Users", null).path(SCIMUtils.getPath(userId, config)));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update patch on service");
         }
@@ -595,10 +593,10 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         UT updated = null;
         JsonNode node =
                 config.getUpdateUserMethod().equalsIgnoreCase("PATCH") && !replaceAttributes.isEmpty()
-                        ? doUpdatePatch(replaceAttributes, getWebclient("Users", null).path(
-                        SCIMUtils.getPath(user.getId(), config.getEnableURLPathEncoding())))
-                        : doUpdate(user, getWebclient("Users", null).path(
-                                SCIMUtils.getPath(user.getId(), config.getEnableURLPathEncoding())));
+                ? doUpdatePatch(replaceAttributes, getWebclient("Users", null).path(
+                        SCIMUtils.getPath(user.getId(), config)))
+                : doUpdate(user, getWebclient("Users", null).path(
+                        SCIMUtils.getPath(user.getId(), config)));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update on service");
         }
@@ -815,7 +813,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     @Override
     public void deleteGroup(final String groupId) {
         doDeleteGroup(groupId,
-                getWebclient("Groups", null).path(SCIMUtils.getPath(groupId, config.getEnableURLPathEncoding())));
+                getWebclient("Groups", null).path(SCIMUtils.getPath(groupId, config)));
     }
 
     @Override
@@ -882,9 +880,9 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         GT updated = null;
         JsonNode node = config.getUpdateGroupMethod().equalsIgnoreCase("PATCH") && patch != null
                 ? doUpdatePatch(patch, replaceAttributes,
-                getWebclient("Groups", null).path(SCIMUtils.getPath(group.getId(), config.getEnableURLPathEncoding())))
+                        getWebclient("Groups", null).path(SCIMUtils.getPath(group.getId(), config)))
                 : doUpdate(group, getWebclient("Groups", null).path(
-                        SCIMUtils.getPath(group.getId(), config.getEnableURLPathEncoding())));
+                        SCIMUtils.getPath(group.getId(), config)));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update group on service");
         }
@@ -920,7 +918,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
             // some servers like Salesforce return empty response on group update with PUT, thus  a re-read is needed
             result = StringUtil.isNotBlank(responseEntity) ? SCIMUtils.MAPPER.readTree(responseEntity)
                     : doGet(getWebclient("Groups", null).path(
-                            SCIMUtils.getPath(group.getId(), config.getEnableURLPathEncoding())));
+                            SCIMUtils.getPath(group.getId(), config)));
             checkServiceResultErrors(result, response);
         } catch (IOException ex) {
             LOG.error(ex, "Unable to update entity");

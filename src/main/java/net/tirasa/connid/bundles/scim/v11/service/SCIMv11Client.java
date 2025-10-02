@@ -48,8 +48,7 @@ public class SCIMv11Client extends AbstractSCIMService<
      */
     @Override
     public SCIMv11User getUser(final String userId) {
-        WebClient webClient =
-                getWebclient("Users", null).path(SCIMUtils.getPath(userId, config.getEnableURLPathEncoding()));
+        WebClient webClient = getWebclient("Users", null).path(SCIMUtils.getPath(userId, config));
         return doGetUser(webClient, SCIMv11User.class, SCIMv11Attribute.class);
     }
 
@@ -86,8 +85,8 @@ public class SCIMv11Client extends AbstractSCIMService<
     @Override
     public SCIMv11Group getGroup(final String groupId) {
         return doGetGroup(
-                getWebclient("Groups", null).path(SCIMUtils.getPath(groupId, config.getEnableURLPathEncoding())),
-                        SCIMv11Group.class);
+                getWebclient("Groups", null).path(SCIMUtils.getPath(groupId, config)),
+                SCIMv11Group.class);
     }
 
     @Override
