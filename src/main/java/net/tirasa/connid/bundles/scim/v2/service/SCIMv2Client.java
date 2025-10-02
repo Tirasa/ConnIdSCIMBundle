@@ -46,7 +46,9 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
      */
     @Override
     public SCIMv2User getUser(final String userId) {
-        return doGetUser(getWebclient("Users", null).path(userId), SCIMv2User.class, SCIMv2Attribute.class);
+        return doGetUser(
+                getWebclient("Users", null).path(SCIMUtils.getPath(userId, config)),
+                SCIMv2User.class, SCIMv2Attribute.class);
     }
 
     /**
@@ -79,13 +81,15 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
 
     @Override
     public SCIMv2Group getGroup(final String groupId) {
-        return doGetGroup(getWebclient("Groups", null).path(groupId), SCIMv2Group.class);
+        return doGetGroup(
+                getWebclient("Groups", null).path(SCIMUtils.getPath(groupId, config)),
+                SCIMv2Group.class);
     }
 
     @Override
     public SCIMv2EntitlementResource getEntitlement(final String entitlementId) {
-        return doGetEntitlement(
-                getWebclient("Entitlements", null).path(entitlementId), SCIMv2EntitlementResource.class);
+        return doGetEntitlement(getWebclient("Entitlements", null).path(
+                SCIMUtils.getPath(entitlementId, config)), SCIMv2EntitlementResource.class);
     }
 
     @Override
@@ -105,7 +109,7 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
 
     @Override
     public void deleteGroup(final String groupId) {
-        doDeleteGroup(groupId, getWebclient("Groups", null).path(groupId));
+        doDeleteGroup(groupId, getWebclient("Groups", null).path(SCIMUtils.getPath(groupId, config)));
     }
 
     @Override

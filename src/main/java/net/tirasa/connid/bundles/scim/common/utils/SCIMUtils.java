@@ -20,11 +20,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.SCIMProvider;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
@@ -43,7 +46,7 @@ public final class SCIMUtils {
 
     public static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+            .setDefaultPropertyInclusion(JsonInclude.Include.NON_EMPTY);
 
     public static List<Field> getAllFieldsList(final Class<?> cls) {
         List<Field> allFields = new ArrayList<>();
@@ -220,6 +223,10 @@ public final class SCIMUtils {
                 groupMemberBuilder.value(user.getId());
         }
         return groupMemberBuilder.build();
+    }
+
+    public static String getPath(final String id, final SCIMConnectorConfiguration config) {
+        return config.getEnableURLPathEncoding() ? URLEncoder.encode(id, StandardCharsets.UTF_8) : id;
     }
 
     private SCIMUtils() {
