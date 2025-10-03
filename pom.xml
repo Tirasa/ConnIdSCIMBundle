@@ -63,7 +63,7 @@
   </ciManagement>
 
   <properties>
-    <connid.version>1.5.2.1</connid.version>
+    <connid.version>1.6.1.0</connid.version>
 
     <jackson.version>2.20.0</jackson.version>
     <cxf.version>3.6.8</cxf.version>
