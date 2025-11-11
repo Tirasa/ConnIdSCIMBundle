@@ -223,6 +223,7 @@ public class SCIMv2ConnectorTests {
                 SCIMv2ConnectorTestsUtils.VALUE_PHONE_NUMBER));
         userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_OTHER_PRIMARY, false));
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE, true));
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_ROLES + ".default.value", "mytestrole"));
         userAttrs.add(password);
 
         if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
@@ -331,6 +332,7 @@ public class SCIMv2ConnectorTests {
             userAttrs.add(AttributeBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ENTITLEMENTS_DEFAULT_VALUE,
                     PROPS.getProperty("auth.defaultEntitlement")));
         }
+        userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_ROLES + ".default.value", "mytestrole"));
 
         // custom attributes
         addCustomAttributes(userAttrs);
@@ -481,6 +483,8 @@ public class SCIMv2ConnectorTests {
                 SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE));
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.SCIM_USER_SCHEMAS));
         assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes, SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE));
+        assertTrue(SCIMv2ConnectorTestsUtils.hasAttribute(toAttributes,
+                SCIMAttributeUtils.SCIM_USER_ROLES + ".default.value", "mytestrole"));
         if (PROPS.containsKey("auth.defaultEntitlement") && StringUtil.isNotBlank(
                 PROPS.getProperty("auth.defaultEntitlement"))) {
             assertTrue(SCIMv2ConnectorTestsUtils.containsAttribute(toAttributes,
@@ -1044,8 +1048,8 @@ public class SCIMv2ConnectorTests {
 
         SearchResult result = FACADE.search(ObjectClass.ACCOUNT, null, handler,
                 new OperationOptionsBuilder().setAttributesToGet("name", "emails.work.value", "name.familyName",
-                        "displayName", "active", "entitlements.default.value", "entitlements",
-                        "urn:mem:params:scim:schemas:extension:LuckyNumberExtension:luckyNumber",
+                        "displayName", "active", "entitlements.default.value", "roles.default.value", "roles",
+                        "entitlements", "urn:mem:params:scim:schemas:extension:LuckyNumberExtension:luckyNumber",
                         SCIMv2EnterpriseUser.SCHEMA_URI + ":employeeNumber",
                         SCIMv2EnterpriseUser.SCHEMA_URI + ":manager.value").build());
         assertNotNull(result);

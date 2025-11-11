@@ -43,7 +43,7 @@ public class SCIMv11User extends AbstractSCIMUser<
     }
 
     @Override
-    protected void handleRoles(final Object value) {
+    protected void handleRole(final String type, final Object value) {
         handleSCIMDefaultObject(
                 String.class.cast(value),
                 this.roles,
@@ -59,7 +59,7 @@ public class SCIMv11User extends AbstractSCIMUser<
     }
 
     @Override
-    protected void handleDefaultEntitlement(final Object value) {
+    protected void handleEntitlement(final String type, final Object value) {
         handleBaseResourceReference(
                 String.class.cast(value),
                 this.entitlements,

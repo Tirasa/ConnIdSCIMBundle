@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.SCIMProvider;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
@@ -227,6 +229,14 @@ public final class SCIMUtils {
 
     public static String getPath(final String id, final SCIMConnectorConfiguration config) {
         return config.getEnableURLPathEncoding() ? URLEncoder.encode(id, StandardCharsets.UTF_8) : id;
+    }
+
+    public static String getTypeFromAttributeName(final String attributeName) {
+        if (StringUtil.isBlank(attributeName)) {
+            return null;
+        }
+        Matcher matcher = Pattern.compile("^[^.]+\\.([^.]+)\\.[^.]+$").matcher(attributeName);
+        return matcher.find() ? matcher.group(1) : null;
     }
 
     private SCIMUtils() {

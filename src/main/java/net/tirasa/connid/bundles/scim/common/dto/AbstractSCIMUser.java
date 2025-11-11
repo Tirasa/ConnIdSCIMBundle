@@ -815,14 +815,6 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                 handleSCIMUserAddressObject(AddressCanonicalType.other, s -> s.setOperation(String.class.cast(value)));
                 break;
 
-            case "roles.default.value":
-                handleRoles(value);
-                break;
-
-            case "entitlements.default.value":
-                handleDefaultEntitlement(value);
-                break;
-
             case "x509Certificates.default.value":
                 handlex509Certificates(value);
                 break;
@@ -832,15 +824,21 @@ public abstract class AbstractSCIMUser<SAT extends SCIMBaseAttribute<SAT>, CT ex
                 break;
 
             default:
+                // manage all other custom roles abd entitlements
+                if (name.startsWith(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + ".")) {
+                    handleEntitlement(SCIMUtils.getTypeFromAttributeName(name), value);
+                } else if (name.startsWith(SCIMAttributeUtils.SCIM_USER_ROLES + ".")) {
+                    handleRole(SCIMUtils.getTypeFromAttributeName(name), value);
+                }
                 break;
         }
     }
 
-    protected abstract void handleRoles(Object value);
+    protected abstract void handleRole(String type, Object value);
 
     protected abstract void handlex509Certificates(Object value);
 
-    protected abstract void handleDefaultEntitlement(Object value);
+    protected abstract void handleEntitlement(String type, Object value);
 
     @JsonIgnore
     protected <T extends Serializable> void handleSCIMComplexObject(final T type,

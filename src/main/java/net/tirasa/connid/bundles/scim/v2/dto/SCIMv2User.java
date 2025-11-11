@@ -49,11 +49,11 @@ public class SCIMv2User extends AbstractSCIMUser<
     }
 
     @Override
-    protected void handleRoles(final Object value) {
+    protected void handleRole(final String type, final Object value) {
         handleSCIMComplexObject(
-                SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT,
+                type,
                 this.roles,
-                s -> s.setValue(String.class.cast(value)));
+                s -> s.setValue((String) value));
     }
 
     @Override
@@ -65,10 +65,10 @@ public class SCIMv2User extends AbstractSCIMUser<
     }
 
     @Override
-    protected void handleDefaultEntitlement(final Object value) {
+    protected void handleEntitlement(final String type, final Object value) {
         handleSCIMv2Entitlement(this.entitlements, s -> {
             s.setValue(String.class.cast(value));
-            s.setType(SCIMAttributeUtils.SCIM_SCHEMA_TYPE_DEFAULT);
+            s.setType(type);
         });
     }
 

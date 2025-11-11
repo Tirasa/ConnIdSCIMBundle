@@ -15,6 +15,7 @@
  */
 package net.tirasa.connid.bundles.scim.v2;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
@@ -156,10 +157,11 @@ public final class SCIMv2ConnectorTestsUtils {
         return true;
     }
 
-    public static boolean hasAttribute(final Set<Attribute> attrs, final String name) {
+    public static boolean hasAttribute(final Set<Attribute> attrs, final String name, final Object... values) {
         for (Attribute attr : attrs) {
             if (attr.getName().equals(name)) {
-                return true;
+                return values.length == 0 || (attr.getValue() != null && !attr.getValue().isEmpty() && attr.getValue()
+                        .containsAll(List.of(values)));
             }
         }
         return false;
