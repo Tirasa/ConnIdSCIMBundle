@@ -364,8 +364,8 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
         if (response.getStatusInfo().getFamily() != Status.Family.SUCCESSFUL) {
             SCIMUtils.handleGeneralError(
-                    "While executing SCIM request: status is " + response.getStatus() + " and reponse "
-                    + responseAsString);
+                    "While executing SCIM request: status is " + response.getStatus() + " and response "
+                            + responseAsString);
         }
         return responseAsString;
     }

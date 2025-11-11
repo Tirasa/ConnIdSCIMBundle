@@ -161,6 +161,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected SCIMv2Patch buildUserPatch(
             final Set<AttributeDelta> modifications,
             final SCIMv2User currentUser,
@@ -191,7 +192,24 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                     && !attrDelta.is(SCIMAttributeUtils.SCIM_USER_GROUPS)
                     // custom attributes are going to be managed further
                     && !isCustomAttribute(attrDelta.getName(), configuration.getUseColonOnExtensionAttributes())) {
-                patch.addOperations(buildPatchOperations(attrDelta, null));
+
+                if (CollectionUtil.isEmpty(attrDelta.getValuesToReplace())) {
+                    patch.addOperations(buildPatchOperations(attrDelta, null));
+                } else {
+                    // build the patch operation
+                    SCIMv2PatchOperation replacePatchOperation =
+                            buildReplacePatchOperation(attrDelta.getName(), attrDelta.getValuesToReplace(), null);
+                    // check if the attribute has already been added as a patch operation or not, if so aggregate 
+                    // values in a single patch operation
+                    patch.getOperations()
+                            .stream()
+                            .filter(op -> op.getValue() instanceof List && replacePatchOperation.getPath()
+                                    .equalsIgnoreCase(op.getPath()))
+                            .findFirst()
+                            .ifPresentOrElse(op -> ((List<Object>) op.getValue()).addAll(
+                                            (List<Object>) replacePatchOperation.getValue()),
+                                    () -> patch.addOperation(replacePatchOperation));
+                }
             }
         }
         // manage addresses patches
@@ -340,12 +358,8 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                 operations.add(removePatchOperation);
             }
         } else {
-            SCIMv2PatchOperation replacePatchOperation = new SCIMv2PatchOperation();
-            replacePatchOperation.setPath(SCIMAttributeUtils.getBaseAttributeName(currentDelta.getName()));
-            replacePatchOperation.setOperation(SCIMAttributeUtils.SCIM_REPLACE);
-            replacePatchOperation.setValue(
-                    buildPatchValue(currentDelta.getName(), currentDelta.getValuesToReplace(), attributeDefinition));
-            operations.add(replacePatchOperation);
+            operations.add(buildReplacePatchOperation(currentDelta.getName(), currentDelta.getValuesToReplace(),
+                    attributeDefinition));
         }
 
         return operations;
@@ -571,7 +585,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     protected void manageEntitlements(final SCIMv2User user, final List<String> values) {
         List<SCIMv2EntitlementResource> scimEntitlementRefs = values == null
                 ? Collections.emptyList()
-                : values.stream().map(client::getEntitlement).filter(g -> g != null).collect(Collectors.toList());
+                : values.stream().map(client::getEntitlement).filter(Objects::nonNull).collect(Collectors.toList());
         scimEntitlementRefs.forEach(e -> user.getEntitlements().add(new SCIMv2Entitlement.Builder().value(e.getId())
                 .ref(configuration.getBaseAddress() + "Entitlements/" + e.getId()).display(e.getDisplayName())
                 .primary(true).type(e.getType()).build()));
@@ -609,5 +623,17 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                 builder.value(user.getId());
         }
         return builder.build();
+    }
+
+    protected SCIMv2PatchOperation buildReplacePatchOperation(
+            final String attrName,
+            final List<Object> valuesToReplace,
+            final SCIMBaseAttribute<?> attributeDefinition) {
+        SCIMv2PatchOperation replacePatchOperation = new SCIMv2PatchOperation();
+        replacePatchOperation.setPath(SCIMAttributeUtils.getBaseAttributeName(attrName));
+        replacePatchOperation.setOperation(SCIMAttributeUtils.SCIM_REPLACE);
+        replacePatchOperation.setValue(
+                buildPatchValue(attrName, valuesToReplace, attributeDefinition));
+        return replacePatchOperation;
     }
 }

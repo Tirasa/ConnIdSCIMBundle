@@ -997,15 +997,6 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                 }).collect(Collectors.toList());
                 break;
 
-            case "roles.default.value":
-                patchValue = values.stream().filter(Objects::nonNull).map(v -> {
-                    SCIMGenericComplex<String> value = new SCIMGenericComplex<>();
-                    value.setValue(v.toString());
-                    value.setType("default");
-                    return value;
-                }).collect(Collectors.toList());
-                break;
-
             case "entitlements.default.value":
                 patchValue = values.stream().filter(Objects::nonNull).map(v -> {
                     SCIMGenericComplex<String> value = new SCIMGenericComplex<>();
@@ -1031,10 +1022,23 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                 break;
 
             default:
-                // this is mainly useful to manage custom attributes
-                patchValue = CollectionUtil.isEmpty(values) ? null
-                        : attributeDefinition != null && attributeDefinition.getMultiValued() ? values
-                        : values.get(0).toString();
+                // manage and entitlements roles
+                if (name.startsWith(SCIMAttributeUtils.SCIM_USER_ROLES + ".") 
+                        || name.startsWith(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + ".")) {
+                    patchValue = values.stream().filter(Objects::nonNull).map(v -> {
+                        SCIMGenericComplex<String> value = new SCIMGenericComplex<>();
+                        value.setValue(v.toString());
+                        value.setType(SCIMUtils.getTypeFromAttributeName(name));
+                        return value;
+                    }).collect(Collectors.toList());
+                } else {
+                    // this is mainly useful to manage custom attributes
+                    patchValue = CollectionUtil.isEmpty(values)
+                            ? null
+                            : attributeDefinition != null && attributeDefinition.getMultiValued()
+                                    ? values
+                                    : values.get(0).toString();
+                }
                 break;
         }
 
