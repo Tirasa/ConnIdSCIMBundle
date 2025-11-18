@@ -66,7 +66,7 @@
     <connid.version>1.5.2.1</connid.version>
 
     <jackson.version>2.20.1</jackson.version>
-    <cxf.version>3.6.8</cxf.version>
+    <cxf.version>3.6.9</cxf.version>
 
     <targetJdk>11</targetJdk>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -135,8 +135,8 @@
     <!-- TEST -->        
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <version>1.21.3</version>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
+      <version>2.0.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
