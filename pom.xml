@@ -65,7 +65,7 @@
   <properties>
     <connid.version>1.5.2.1</connid.version>
 
-    <jackson.version>2.21.2</jackson.version>
+    <jackson.version>2.21.3</jackson.version>
     <cxf.version>3.6.9</cxf.version>
 
     <targetJdk>11</targetJdk>
