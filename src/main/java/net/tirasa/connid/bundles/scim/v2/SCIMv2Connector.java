@@ -111,21 +111,31 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             case WSO2:
                 builder.operations(CollectionUtil.newSet(new SCIMv2PatchOperation.Builder()
                         .op(op)
-                        .path(SCIMProvider.SALESFORCE == provider || SCIMAttributeUtils.SCIM_REMOVE.equals(op)
-                                ? SCIMAttributeUtils.SCIM_GROUP_MEMBERS
-                                : null)
+                        // for SCIM providers that support such functionality, it is better to append "[value eq
+                        // userId]" to retrieve the user to be removed; this is enabled by enableMemberRemovalByPath 
+                        // configuration parameter
+                        .path(SCIMProvider.SALESFORCE == provider || SCIMAttributeUtils.SCIM_REMOVE.equals(op) 
+                                ? SCIMAttributeUtils.SCIM_GROUP_MEMBERS + (SCIMAttributeUtils.SCIM_REMOVE.equals(op)
+                                        && configuration.getEnableMemberRemovalByPath() && users.size() == 1
+                                        ? "[value eq \"" + users.get(0).getId() + "\"]"
+                                        : StringUtil.EMPTY) : null)
                         .value(CollectionUtil.newMap(
                                 SCIMAttributeUtils.SCIM_GROUP_MEMBERS,
-                                users.stream().map(user -> buildPatchValue(user)).collect(Collectors.toList())))
+                                users.stream().map(this::buildPatchValue).collect(Collectors.toList())))
                         .build()));
                 break;
 
             default:
                 builder.operations(CollectionUtil.newSet(new SCIMv2PatchOperation.Builder()
                         .op(op)
-                        .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)
-                        // sometimes it is needed to append "[value eq \"" + user.getId() + "\"]" to retrieve the user
-                        .value(users.stream().map(user -> buildPatchValue(user)).collect(Collectors.toList()))
+                        // for SCIM providers that support such functionality, it is better to append "[value eq
+                        // userId]" to retrieve the user to be removed; this is enabled by enableMemberRemovalByPath
+                        // configuration parameter
+                        .path(SCIMAttributeUtils.SCIM_GROUP_MEMBERS + (SCIMAttributeUtils.SCIM_REMOVE.equals(op)
+                                && configuration.getEnableMemberRemovalByPath() && users.size() == 1
+                                ? "[value eq \"" + users.get(0).getId() + "\"]"
+                                : StringUtil.EMPTY))
+                        .value(users.stream().map(this::buildPatchValue).collect(Collectors.toList()))
                         .build()));
         }
         return builder.build();
@@ -199,7 +209,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                     // build the patch operation
                     SCIMv2PatchOperation replacePatchOperation =
                             buildReplacePatchOperation(attrDelta.getName(), attrDelta.getValuesToReplace(), null);
-                    // check if the attribute has already been added as a patch operation or not, if so aggregate 
+                    // check if the attribute has already been added as a patch operation or not, if so aggregate
                     // values in a single patch operation
                     patch.getOperations()
                             .stream()
