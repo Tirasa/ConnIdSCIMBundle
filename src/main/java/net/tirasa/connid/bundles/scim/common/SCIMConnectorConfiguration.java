@@ -104,6 +104,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     private boolean enableURLPathEncoding = false;
 
+    private boolean enableMemberRemovalByPath = true;
+
     @ConfigurationProperty(order = 1,
             displayMessageKey = "baseAddress.display",
             helpMessageKey = "baseAddress.help",
@@ -441,6 +443,17 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
 
     public void setEnableURLPathEncoding(final boolean enableURLPathEncoding) {
         this.enableURLPathEncoding = enableURLPathEncoding;
+    }
+
+    @ConfigurationProperty(displayMessageKey = "enableMemberRemovalByPath.display",
+            helpMessageKey = "enableMemberRemovalByPath.help",
+            order = 32)
+    public boolean getEnableMemberRemovalByPath() {
+        return enableMemberRemovalByPath;
+    }
+
+    public void setEnableMemberRemovalByPath(final boolean enableMemberRemovalByPath) {
+        this.enableMemberRemovalByPath = enableMemberRemovalByPath;
     }
 
     @Override
