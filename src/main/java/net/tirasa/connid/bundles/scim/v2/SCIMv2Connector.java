@@ -119,9 +119,10 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                                         && configuration.getEnableMemberRemovalByPath() && users.size() == 1
                                         ? "[value eq \"" + users.get(0).getId() + "\"]"
                                         : StringUtil.EMPTY) : null)
-                        .value(CollectionUtil.newMap(
-                                SCIMAttributeUtils.SCIM_GROUP_MEMBERS,
-                                users.stream().map(this::buildPatchValue).collect(Collectors.toList())))
+                        .value(SCIMAttributeUtils.SCIM_REMOVE.equals(op)
+                                ? null
+                                : CollectionUtil.newMap(SCIMAttributeUtils.SCIM_GROUP_MEMBERS,
+                                        users.stream().map(this::buildPatchValue).collect(Collectors.toList())))
                         .build()));
                 break;
 
@@ -135,7 +136,9 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
                                 && configuration.getEnableMemberRemovalByPath() && users.size() == 1
                                 ? "[value eq \"" + users.get(0).getId() + "\"]"
                                 : StringUtil.EMPTY))
-                        .value(users.stream().map(this::buildPatchValue).collect(Collectors.toList()))
+                        .value(SCIMAttributeUtils.SCIM_REMOVE.equals(op)
+                                ? null
+                                : users.stream().map(this::buildPatchValue).collect(Collectors.toList()))
                         .build()));
         }
         return builder.build();
