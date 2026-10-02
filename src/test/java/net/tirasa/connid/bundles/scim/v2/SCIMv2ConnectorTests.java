@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
@@ -207,7 +208,10 @@ public class SCIMv2ConnectorTests {
         return CONN.getClient();
     }
 
-    private static Uid createUser(final UUID uid, final String... groups) {
+    private static Uid createUser(
+            final UUID uid,
+            final Consumer<Set<Attribute>> customAttributesPopulator,
+            final String... groups) {
         Attribute password = AttributeBuilder.buildPassword(
                 new GuardedString(SCIMv2ConnectorTestsUtils.VALUE_PASSWORD.toCharArray()));
         String name = SCIMv2ConnectorTestsUtils.VALUE_USERNAME + uid.toString().substring(0, 10) + "@email.com";
@@ -233,7 +237,7 @@ public class SCIMv2ConnectorTests {
         }
 
         // custom attributes
-        addCustomAttributes(userAttrs);
+        customAttributesPopulator.accept(userAttrs);
 
         // enterprise v2 user info
         userAttrs.add(
@@ -335,7 +339,7 @@ public class SCIMv2ConnectorTests {
         userAttrs.add(AttributeBuilder.build(SCIMAttributeUtils.SCIM_USER_ROLES + ".default.value", "mytestrole"));
 
         // custom attributes
-        addCustomAttributes(userAttrs);
+        addDefaultCustomAttributes(userAttrs);
 
         // custom schemas
         CUSTOM_OTHER_SCHEMAS.add(SCIMv2EnterpriseUser.SCHEMA_URI);
@@ -918,7 +922,7 @@ public class SCIMv2ConnectorTests {
         assertTrue(groups.getResources().isEmpty());
     }
 
-    private static void addCustomAttributes(final Set<Attribute> userAttrs) {
+    private static void addDefaultCustomAttributes(final Set<Attribute> userAttrs) {
         if (testCustomAttributes()) {
             for (int i = 0; i < CUSTOM_ATTRIBUTES_VALUES.size(); i++) {
                 userAttrs.add(AttributeBuilder.build(CUSTOM_ATTRIBUTES_KEYS.get(i), CUSTOM_ATTRIBUTES_VALUES.get(i)));
@@ -1099,11 +1103,11 @@ public class SCIMv2ConnectorTests {
     @Test
     public void pagedSearchUser() {
         // create some sample users for pagination
-        createUser(UUID.randomUUID());
-        createUser(UUID.randomUUID());
-        createUser(UUID.randomUUID());
-        createUser(UUID.randomUUID());
-        createUser(UUID.randomUUID());
+        createUser(UUID.randomUUID(), userAttrs -> addDefaultCustomAttributes(userAttrs));
+        createUser(UUID.randomUUID(), userAttrs -> addDefaultCustomAttributes(userAttrs));
+        createUser(UUID.randomUUID(), userAttrs -> addDefaultCustomAttributes(userAttrs));
+        createUser(UUID.randomUUID(), userAttrs -> addDefaultCustomAttributes(userAttrs));
+        createUser(UUID.randomUUID(), userAttrs -> addDefaultCustomAttributes(userAttrs));
 
         final List<ConnectorObject> results = new ArrayList<>();
         final ResultsHandler handler = results::add;
@@ -1132,6 +1136,61 @@ public class SCIMv2ConnectorTests {
     }
 
     @Test
+    void issueSCIM47() {
+        SCIMv2Client client = newClient();
+
+        Uid user01 = createUser(UUID.randomUUID(), userAttrs -> {
+            userAttrs.add(
+                    AttributeBuilder.build("urn:mem:params:scim:schemas:extension:LuckyNumberExtension:luckyNumber",
+                            "8"));
+        });
+        Uid user02 = createUser(UUID.randomUUID(), userAttrs -> {
+            userAttrs.add(
+                    AttributeBuilder.build("urn:mem:params:scim:schemas:extension:LuckyNumberExtension:luckyNumber",
+                            "9"));
+        });
+        Uid user03 = createUser(UUID.randomUUID(), userAttrs -> {
+            userAttrs.add(
+                    AttributeBuilder.build("urn:mem:params:scim:schemas:extension:LuckyNumberExtension:luckyNumber",
+                            "10"));
+
+        });
+
+        final List<ConnectorObject> results = new ArrayList<>();
+        final ResultsHandler handler = results::add;
+        
+        final OperationOptionsBuilder oob = new OperationOptionsBuilder();
+        oob.setAttributesToGet("userName", "urn:mem:params:scim:schemas:extension:LuckyNumberExtension:luckyNumber");
+        oob.setPageSize(5);
+        oob.setSortKeys(new SortKey("userName", false));
+
+        FACADE.search(ObjectClass.ACCOUNT, null, handler, oob.build());
+
+        // users must have different luckyNumber
+        assertTrue(results.stream()
+                .anyMatch(connObj -> connObj.getAttributeByName(
+                                "urn:mem:params:scim:schemas:extension:LuckyNumberExtension:luckyNumber")
+                        .getValue()
+                        .get(0)
+                        .toString()
+                        .equals("8")));
+        assertTrue(results.stream()
+                .anyMatch(connObj -> connObj.getAttributeByName(
+                                "urn:mem:params:scim:schemas:extension:LuckyNumberExtension:luckyNumber")
+                        .getValue()
+                        .get(0)
+                        .toString()
+                        .equals("9")));
+        assertTrue(results.stream()
+                .anyMatch(connObj -> connObj.getAttributeByName(
+                                "urn:mem:params:scim:schemas:extension:LuckyNumberExtension:luckyNumber")
+                        .getValue()
+                        .get(0)
+                        .toString()
+                        .equals("10")));
+    }
+    
+    @Test
     public void crudUser() {
         SCIMv2Client client = newClient();
 
@@ -1153,7 +1212,8 @@ public class SCIMv2ConnectorTests {
             SCIMv2Group createdGroup3 = readGroup(group3.getUidValue(), client);
             assertEquals(createdGroup3.getId(), group3.getUidValue());
 
-            Uid createdUid = createUser(uid, group1.getUidValue(), group2.getUidValue());
+            Uid createdUid = createUser(uid, userAttrs -> addDefaultCustomAttributes(userAttrs), group1.getUidValue(),
+                    group2.getUidValue());
             testUser = createdUid.getUidValue();
 
             SCIMv2User createdUser = readUser(testUser, client);
@@ -1316,9 +1376,9 @@ public class SCIMv2ConnectorTests {
         SCIMv2Client client = newClient();
 
         try {
-            Uid user01 = createUser(UUID.randomUUID());
-            Uid user02 = createUser(UUID.randomUUID());
-            Uid user03 = createUser(UUID.randomUUID());
+            Uid user01 = createUser(UUID.randomUUID(), userAttrs -> addDefaultCustomAttributes(userAttrs));
+            Uid user02 = createUser(UUID.randomUUID(), userAttrs -> addDefaultCustomAttributes(userAttrs));
+            Uid user03 = createUser(UUID.randomUUID(), userAttrs -> addDefaultCustomAttributes(userAttrs));
             // create group
             Uid group1 = createGroup(UUID.randomUUID(), StringUtil.EMPTY);
 

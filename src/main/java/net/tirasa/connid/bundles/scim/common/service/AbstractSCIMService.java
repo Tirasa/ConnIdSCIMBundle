@@ -18,6 +18,7 @@ package net.tirasa.connid.bundles.scim.common.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -511,7 +512,10 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
     protected void readCustomAttributes(final PagedResults<UT> resources, final JsonNode node) {
         for (UT resource : resources.getResources()) {
-            readCustomAttributes(resource, node, SCIMv2Attribute.class);
+            readCustomAttributes(resource, node instanceof ArrayNode ? node.valueStream()
+                    .filter(userNode -> resource.getId().equals(userNode.path("id").asText()))
+                    .findFirst()
+                    .orElseGet(MissingNode::getInstance) : node, SCIMv2Attribute.class);
         }
     }
 
