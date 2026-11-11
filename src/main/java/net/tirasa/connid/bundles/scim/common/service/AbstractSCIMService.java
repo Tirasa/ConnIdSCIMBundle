@@ -141,11 +141,20 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         WebClient webClient = WebClient.create(config.getAccessTokenBaseAddress()).
                 type(config.getAccessTokenContentType()).accept(config.getAccessTokenAccept());
 
-        StringBuilder requestBuilder =
-                new StringBuilder("&client_id=").append(config.getClientId())
-                        .append("&client_secret=").append(config.getClientSecret());
+        // without username and password this is the OAuth 2.0 client credentials grant (RFC 6749, section 4.4):
+        // grant_type is required (Keycloak, for one, refuses the request without it) and values are form-encoded
+        boolean passwordGrant = StringUtil.isNotBlank(config.getUsername()) && config.getPassword() != null;
+        StringBuilder requestBuilder = new StringBuilder();
+        if (passwordGrant) {
+            requestBuilder.append("&client_id=").append(config.getClientId())
+                    .append("&client_secret=").append(config.getClientSecret());
+        } else {
+            requestBuilder.append("grant_type=client_credentials")
+                    .append("&client_id=").append(formEncode(config.getClientId()))
+                    .append("&client_secret=").append(formEncode(config.getClientSecret()));
+        }
         // append also username and password if and only if they're not blank
-        if (StringUtil.isNotBlank(config.getUsername()) && config.getPassword() != null) {
+        if (passwordGrant) {
             requestBuilder.append("&username=").append(config.getUsername())
                     .append("&password=").append(SecurityUtil.decrypt(config.getPassword())).toString();
         }
@@ -165,6 +174,10 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
         }
 
         return token;
+    }
+
+    private static String formEncode(final String value) {
+        return java.net.URLEncoder.encode(value == null ? "" : value, java.nio.charset.StandardCharsets.UTF_8);
     }
 
     protected JsonNode doGet(final WebClient webClient) {
