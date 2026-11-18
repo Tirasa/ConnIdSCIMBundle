@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -366,10 +365,10 @@ public class SCIMv2ConnectorTests {
                         .substring(0, 10)));
         // values to remove and values to add
         userAttrs.add(AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_EMAIL_WORK_VALUE,
-                Collections.singletonList("updated_" + name), Collections.singletonList(name)));
+                List.of("updated_" + name), List.of(name)));
         userAttrs.add(AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_PHONE_HOME_VALUE,
-                Collections.singletonList("123456789"),
-                Collections.singletonList(SCIMv2ConnectorTestsUtils.VALUE_PHONE_NUMBER)));
+                List.of("123456789"),
+                List.of(SCIMv2ConnectorTestsUtils.VALUE_PHONE_NUMBER)));
         userAttrs.add(AttributeDeltaBuilder.build(SCIMAttributeUtils.USER_ATTRIBUTE_ACTIVE, false));
         userAttrs.add(AttributeDeltaBuilder.build(SCIMv2ConnectorTestsUtils.USER_ATTRIBUTE_ADDRESS_STREET_ADDRESS,
                 "my street"));
@@ -671,7 +670,7 @@ public class SCIMv2ConnectorTests {
         luckyNumberAttribute.setMultiValued(false);
         luckyNumberAttribute.setType("integer");
         luckyNumberAttribute.setReturned("default");
-        user.getSCIMCustomAttributes().putIfAbsent(luckyNumberAttribute, Collections.singletonList("7"));
+        user.getSCIMCustomAttributes().putIfAbsent(luckyNumberAttribute, List.of("7"));
 
         SCIMv2EnterpriseUser enterpriseUser = new SCIMv2EnterpriseUser();
         enterpriseUser.setEmployeeNumber("11111");
@@ -1042,11 +1041,11 @@ public class SCIMv2ConnectorTests {
     @Test
     public void search() {
         // create some sample users
-        SCIMv2User user1 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
-        SCIMv2User user2 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
-        SCIMv2User user3 = createUserServiceTest(UUID.randomUUID(), false, Collections.emptyList(), newClient());
-        SCIMv2User user4 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
-        SCIMv2User user5 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), newClient());
+        SCIMv2User user1 = createUserServiceTest(UUID.randomUUID(), true, List.of(), newClient());
+        SCIMv2User user2 = createUserServiceTest(UUID.randomUUID(), true, List.of(), newClient());
+        SCIMv2User user3 = createUserServiceTest(UUID.randomUUID(), false, List.of(), newClient());
+        SCIMv2User user4 = createUserServiceTest(UUID.randomUUID(), true, List.of(), newClient());
+        SCIMv2User user5 = createUserServiceTest(UUID.randomUUID(), true, List.of(), newClient());
 
         ToListResultsHandler handler = new ToListResultsHandler();
 
@@ -1250,7 +1249,7 @@ public class SCIMv2ConnectorTests {
             Uid updated = "PATCH".equalsIgnoreCase(CONF.getUpdateGroupMethod())
                     ? updateUser(createdUid, createdUser.getUserName(),
                             Arrays.asList(group1.getUidValue(), group3.getUidValue()),
-                            Collections.singletonList(group2.getUidValue()))
+                            List.of(group2.getUidValue()))
                     : updateUser(createdUid, createdUser.getUserName(), group1.getUidValue(), group3.getUidValue());
 
             SCIMv2User updatedUser = readUser(updated.getUidValue(), client);
@@ -1277,7 +1276,7 @@ public class SCIMv2ConnectorTests {
             // update user with PATCH
             Uid updatedWithDelta = updateDeltaUser(createdConnObj, createdUser.getUserName(),
                     Arrays.asList(group4.getUidValue(), group5.getUidValue()),
-                    Collections.singletonList(group1.getUidValue()));
+                    List.of(group1.getUidValue()));
 
             SCIMv2User updatedWithDeltaUser = readDeltaUser(updatedWithDelta.getUidValue(), client);
             LOG.info("Updated user with PATCH: {0}", updatedWithDeltaUser);
@@ -1397,9 +1396,9 @@ public class SCIMv2ConnectorTests {
             Uid updatedWithDelta = updateDeltaGroup(
                     group1,
                     updatedGroup.getDisplayName().replaceAll("updated__", "upd2_"),
-                    Collections.singletonList(user02.getUidValue()),
-                    Collections.singletonList(user01.getUidValue()),
-                    Collections.emptyList());
+                    List.of(user02.getUidValue()),
+                    List.of(user01.getUidValue()),
+                    List.of());
 
             SCIMv2Group updatedWithDeltaGroup = readDeltaGroup(updatedWithDelta.getUidValue(), client);
             assertNotNull(updatedWithDeltaGroup.getDisplayName());
@@ -1413,7 +1412,7 @@ public class SCIMv2ConnectorTests {
                     .noneMatch(g -> g.getValue().equalsIgnoreCase(user03.getUidValue())));
 
             // update again with members to replace
-            updateDeltaGroup(group1, null, Collections.emptyList(), Collections.emptyList(),
+            updateDeltaGroup(group1, null, List.of(), List.of(),
                     Arrays.asList(user01.getUidValue(), user03.getUidValue()));
 
             updatedWithDeltaGroup = readDeltaGroup(updatedWithDelta.getUidValue(), client);
@@ -1441,10 +1440,10 @@ public class SCIMv2ConnectorTests {
 
         String testUser;
         try {
-            SCIMv2User created1 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), client);
-            SCIMv2User created2 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), client);
-            SCIMv2User created3 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), client);
-            SCIMv2User created4 = createUserServiceTest(UUID.randomUUID(), true, Collections.emptyList(), client);
+            SCIMv2User created1 = createUserServiceTest(UUID.randomUUID(), true, List.of(), client);
+            SCIMv2User created2 = createUserServiceTest(UUID.randomUUID(), true, List.of(), client);
+            SCIMv2User created3 = createUserServiceTest(UUID.randomUUID(), true, List.of(), client);
+            SCIMv2User created4 = createUserServiceTest(UUID.randomUUID(), true, List.of(), client);
             testUser = created1.getId();
 
             readUserServiceTest(testUser, client);

@@ -17,7 +17,6 @@ package net.tirasa.connid.bundles.scim.common;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -316,7 +315,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                 // manage groups
                 List<String> groups = accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS);
                 LOG.info("Adding groups {0} to user {1}", groups, username);
-                List<GT> scimGroups = groups == null ? Collections.emptyList()
+                List<GT> scimGroups = groups == null ? List.of()
                         : groups.stream().map(client::getGroup).filter(g -> g != null).collect(Collectors.toList());
                 scimGroups.forEach(g -> user.getGroups().add(new BaseResourceReference.Builder().value(g.getId())
                         .ref(configuration.getBaseAddress() + "Groups/" + g.getId()).display(g.getDisplayName())
@@ -371,7 +370,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                         group.getMembers().add(SCIMUtils.buildGroupMember(user, provider));
                         if ("PATCH".equals(configuration.getUpdateGroupMethod())) {
                             client.updateGroup(group.getId(), buildMembersGroupPatch(
-                                    Collections.singletonList(user), SCIMAttributeUtils.SCIM_ADD));
+                                    List.of(user), SCIMAttributeUtils.SCIM_ADD));
                         } else {
                             client.updateGroup(group);
                         }
@@ -463,7 +462,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                     // calculate groupsToAdd and groupsToRemove
                     List<String> groups =
                             Optional.ofNullable(accessor.findStringList(SCIMAttributeUtils.SCIM_USER_GROUPS))
-                                    .orElse(Collections.emptyList());
+                                    .orElse(List.of());
                     List<String> currentGroups =
                             client.getUser(user.getId()).getGroups().stream().map(g -> g.getValue())
                                     .collect(Collectors.toList());
@@ -533,7 +532,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                         // replace all members of the group on update
                         List<String> members = Optional.ofNullable(
                                 accessor.findStringList(SCIMAttributeUtils.SCIM_GROUP_MEMBERS)).
-                                orElse(Collections.emptyList());
+                                orElse(List.of());
 
                         // do not execute update if no users, some providers like AWS could complain about this
                         if (!CollectionUtil.isEmpty(members)) {
@@ -592,19 +591,20 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                 modifications.stream().
                         filter(ad -> SCIMAttributeUtils.SCIM_USER_GROUPS.equalsIgnoreCase(ad.getName())).
                         findFirst().ifPresent(grmod -> fillGroupPatches(
-                        currentUser,
-                        groupPatches,
-                        CollectionUtil.isEmpty(grmod.getValuesToAdd())
-                        ? CollectionUtil.isEmpty(grmod.getValuesToReplace())
-                        ? Collections.emptyList()
-                        : grmod.getValuesToReplace().stream().map(String.class::cast)
-                                .collect(Collectors.toList())
-                        : CollectionUtil.isEmpty(grmod.getValuesToAdd())
-                        ? Collections.emptyList()
-                        : grmod.getValuesToAdd().stream().map(String.class::cast).collect(Collectors.toList()),
-                        CollectionUtil.isEmpty(grmod.getValuesToRemove())
-                        ? Collections.emptyList()
-                        : grmod.getValuesToRemove().stream().map(String.class::cast).collect(Collectors.toList())));
+                                currentUser,
+                                groupPatches,
+                                CollectionUtil.isEmpty(grmod.getValuesToAdd())
+                                ? CollectionUtil.isEmpty(grmod.getValuesToReplace())
+                                ? List.of()
+                                : grmod.getValuesToReplace().stream().map(String.class::cast)
+                                        .collect(Collectors.toList())
+                                : CollectionUtil.isEmpty(grmod.getValuesToAdd())
+                                ? List.of()
+                                : grmod.getValuesToAdd().stream().map(String.class::cast).collect(Collectors.toList()),
+                                CollectionUtil.isEmpty(grmod.getValuesToRemove())
+                                ? List.of()
+                                : grmod.getValuesToRemove().stream().map(String.class::cast).
+                                        collect(Collectors.toList())));
             } else {
                 LOG.warn("Group update method must be set to PATCH while updating through UPDATE_DELTA");
             }
@@ -668,9 +668,11 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
     }
 
     @Override
-    public FilterTranslator<Filter> createFilterTranslator(final ObjectClass objectClass,
+    public FilterTranslator<Filter> createFilterTranslator(
+            final ObjectClass objectClass,
             final OperationOptions options) {
-        return filter -> Collections.singletonList(filter);
+
+        return filter -> CollectionUtil.newList(filter);
     }
 
     @Override
@@ -1023,7 +1025,7 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
 
             default:
                 // manage and entitlements roles
-                if (name.startsWith(SCIMAttributeUtils.SCIM_USER_ROLES + ".") 
+                if (name.startsWith(SCIMAttributeUtils.SCIM_USER_ROLES + ".")
                         || name.startsWith(SCIMAttributeUtils.SCIM_USER_ENTITLEMENTS + ".")) {
                     patchValue = values.stream().filter(Objects::nonNull).map(v -> {
                         SCIMGenericComplex<String> value = new SCIMGenericComplex<>();
@@ -1036,8 +1038,8 @@ public abstract class AbstractSCIMConnector<UT extends SCIMUser<? extends SCIMBa
                     patchValue = CollectionUtil.isEmpty(values)
                             ? null
                             : attributeDefinition != null && attributeDefinition.getMultiValued()
-                                    ? values
-                                    : values.get(0).toString();
+                            ? values
+                            : values.get(0).toString();
                 }
                 break;
         }

@@ -17,7 +17,6 @@ package net.tirasa.connid.bundles.scim.v2.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.util.Collections;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.BaseResourceReference;
@@ -71,7 +70,7 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
 
     @Override
     public SCIMv2User updateUser(final SCIMv2User user) {
-        return doUpdateUser(user, Collections.emptySet(), SCIMv2User.class);
+        return doUpdateUser(user, Set.of(), SCIMv2User.class);
     }
 
     @Override
@@ -95,12 +94,12 @@ public class SCIMv2Client extends AbstractSCIMService<SCIMv2User, SCIMv2Group, S
     @Override
     public SCIMv2Group updateGroup(final String groupId, final SCIMv2Patch groupPatch) {
         return doUpdateGroup(
-                new SCIMv2Group.Builder().id(groupId).build(), Collections.emptySet(), groupPatch, SCIMv2Group.class);
+                new SCIMv2Group.Builder().id(groupId).build(), Set.of(), groupPatch, SCIMv2Group.class);
     }
 
     @Override
     public SCIMv2Group updateGroup(final SCIMv2Group group) {
-        return doUpdateGroup(group, Collections.emptySet(), null, SCIMv2Group.class);
+        return doUpdateGroup(group, Set.of(), null, SCIMv2Group.class);
     }
 
     public SCIMv2Group updateGroup(final SCIMv2Group group, final Set<Attribute> replaceAttributes) {

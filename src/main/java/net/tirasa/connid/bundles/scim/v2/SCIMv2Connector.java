@@ -16,7 +16,6 @@
 package net.tirasa.connid.bundles.scim.v2;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -152,9 +151,9 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             final List<String> groupsToRemove) {
 
         groupsToAdd.forEach(grp -> groupPatches.put(grp,
-                buildMembersGroupPatch(Collections.singletonList(user), SCIMAttributeUtils.SCIM_ADD)));
+                buildMembersGroupPatch(List.of(user), SCIMAttributeUtils.SCIM_ADD)));
         groupsToRemove.forEach(grp -> groupPatches.put(grp,
-                buildMembersGroupPatch(Collections.singletonList(user), SCIMAttributeUtils.SCIM_REMOVE)));
+                buildMembersGroupPatch(List.of(user), SCIMAttributeUtils.SCIM_REMOVE)));
     }
 
     @Override
@@ -167,7 +166,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
             group.getSchemas().clear();
             group.setMeta(null);
         }
-        return new SCIMv2PatchImpl.Builder().operations(Collections.singleton(
+        return new SCIMv2PatchImpl.Builder().operations(Set.of(
                 new SCIMv2PatchOperation.Builder()
                         .op(SCIMAttributeUtils.SCIM_REPLACE)
                         .value(group).build())).build();
@@ -597,7 +596,7 @@ public class SCIMv2Connector extends AbstractSCIMConnector<
     @Override
     protected void manageEntitlements(final SCIMv2User user, final List<String> values) {
         List<SCIMv2EntitlementResource> scimEntitlementRefs = values == null
-                ? Collections.emptyList()
+                ? List.of()
                 : values.stream().map(client::getEntitlement).filter(Objects::nonNull).collect(Collectors.toList());
         scimEntitlementRefs.forEach(e -> user.getEntitlements().add(new SCIMv2Entitlement.Builder().value(e.getId())
                 .ref(configuration.getBaseAddress() + "Entitlements/" + e.getId()).display(e.getDisplayName())

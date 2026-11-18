@@ -20,9 +20,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,9 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.common.dto.PagedResults;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMBaseAttribute;
@@ -570,7 +569,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
     protected UT doUpdateUser(final String userId, final P userPatch, final Class<UT> userType) {
         UT updated = null;
-        JsonNode node = doUpdatePatch(userPatch, Collections.emptySet(),
+        JsonNode node = doUpdatePatch(userPatch, Set.of(),
                 getWebclient("Users", null).path(SCIMUtils.getPath(userId, config)));
         if (node == null) {
             SCIMUtils.handleGeneralError("While running update patch on service");
@@ -770,7 +769,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
 
     @Override
     public List<GT> getAllGroups() {
-        WebClient webClient = getWebclient("Groups", Collections.emptyMap());
+        WebClient webClient = getWebclient("Groups", Map.of());
         return doGetAllGroups(webClient).getResources();
     }
 
@@ -872,7 +871,7 @@ public abstract class AbstractSCIMService<UT extends SCIMUser<
     }
 
     protected GT doUpdateGroup(final GT group, final P patch, final Class<GT> groupType) {
-        return doUpdateGroup(group, Collections.emptySet(), patch, groupType);
+        return doUpdateGroup(group, Set.of(), patch, groupType);
     }
 
     protected GT doUpdateGroup(final GT group, final Set<Attribute> replaceAttributes, final P patch,

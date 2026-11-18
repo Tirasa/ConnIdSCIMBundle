@@ -17,7 +17,6 @@ package net.tirasa.connid.bundles.scim.v11.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
@@ -67,7 +66,7 @@ public class SCIMv11Client extends AbstractSCIMService<
      */
     @Override
     public SCIMv11User updateUser(final SCIMv11User user) {
-        return doUpdateUser(user, Collections.emptySet(), SCIMv11User.class);
+        return doUpdateUser(user, Set.of(), SCIMv11User.class);
     }
 
     @Override
@@ -96,12 +95,12 @@ public class SCIMv11Client extends AbstractSCIMService<
 
     @Override
     public SCIMv11Group updateGroup(final SCIMv11Group group) {
-        return doUpdateGroup(group, Collections.emptySet(), null, SCIMv11Group.class);
+        return doUpdateGroup(group, Set.of(), null, SCIMv11Group.class);
     }
 
     @Override
     public SCIMv11Group updateGroup(final String groupId, final SCIMv11BasePatch groupPatch) {
-        return doUpdateGroup(new SCIMv11Group.Builder().id(groupId).build(), Collections.emptySet(), null,
+        return doUpdateGroup(new SCIMv11Group.Builder().id(groupId).build(), Set.of(), null,
                 SCIMv11Group.class);
     }
 

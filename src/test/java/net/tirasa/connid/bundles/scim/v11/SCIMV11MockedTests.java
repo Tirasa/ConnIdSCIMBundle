@@ -23,12 +23,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import jakarta.ws.rs.core.Response;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import javax.ws.rs.core.Response;
 import net.tirasa.connid.bundles.scim.common.AbstractSCIMConnector;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
 import net.tirasa.connid.bundles.scim.v11.service.SCIMv11Client;

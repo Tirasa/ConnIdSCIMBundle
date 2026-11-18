@@ -15,10 +15,11 @@
  */
 package net.tirasa.connid.bundles.scim.common;
 
+import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
-import javax.ws.rs.core.MediaType;
+import java.net.URI;
+import java.net.URISyntaxException;
 import net.tirasa.connid.bundles.scim.common.dto.SCIMSchema;
 import net.tirasa.connid.bundles.scim.common.utils.SCIMUtils;
 import org.apache.cxf.transports.http.configuration.ProxyServerType;
@@ -462,8 +463,8 @@ public class SCIMConnectorConfiguration extends AbstractConfiguration implements
             failValidation("Base address cannot be null or empty.");
         }
         try {
-            new URL(baseAddress);
-        } catch (MalformedURLException e) {
+            new URI(baseAddress).toURL();
+        } catch (URISyntaxException | MalformedURLException e) {
             LOG.error(e, "While validating baseAddress");
             failValidation("Base address must be a valid URL.");
         }

@@ -15,7 +15,6 @@
  */
 package net.tirasa.connid.bundles.scim.v11;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -110,9 +109,9 @@ public class SCIMv11Connector extends AbstractSCIMConnector<
 
         // on group add SCIM v1.1 omits the operation 
         groupsToAdd.forEach(grp -> groupPatches.put(grp,
-                buildMembersGroupPatch(Collections.singletonList(user), SCIMAttributeUtils.SCIM_ADD)));
+                buildMembersGroupPatch(List.of(user), SCIMAttributeUtils.SCIM_ADD)));
         groupsToRemove.forEach(grp -> groupPatches.put(grp,
-                buildMembersGroupPatch(Collections.singletonList(user), SCIMAttributeUtils.SCIM_REMOVE)));
+                buildMembersGroupPatch(List.of(user), SCIMAttributeUtils.SCIM_REMOVE)));
     }
 
     @Override

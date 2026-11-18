@@ -17,7 +17,6 @@ package net.tirasa.connid.bundles.scim.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import net.tirasa.connid.bundles.scim.common.SCIMConnectorConfiguration;
@@ -80,7 +79,7 @@ public class SCIMv2EntitlementResource extends AbstractSCIMBaseResource<SCIMv2Me
     @Override
     public Set<Attribute> toAttributes(final Class<?> type, final SCIMConnectorConfiguration configuration)
             throws IllegalArgumentException, IllegalAccessException {
-        return Collections.emptySet();
+        return Set.of();
     }
 
     @Override

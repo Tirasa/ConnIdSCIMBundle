@@ -23,12 +23,12 @@
   <parent>
     <groupId>net.tirasa.connid</groupId>
     <artifactId>connid</artifactId>
-    <version>1.5.2.1</version>
+    <version>1.7.0.0</version>
   </parent>
     
   <groupId>net.tirasa.connid.bundles</groupId>
   <artifactId>net.tirasa.connid.bundles.scim</artifactId>
-  <version>1.0.6-SNAPSHOT</version>     
+  <version>1.1.0-SNAPSHOT</version>     
 
   <name>ConnId Bundles: SCIM</name>
   
@@ -63,12 +63,12 @@
   </ciManagement>
 
   <properties>
-    <connid.version>1.5.2.1</connid.version>
+    <connid.version>1.7.0.0</connid.version>
 
     <jackson.version>2.23.0</jackson.version>
-    <cxf.version>3.6.13</cxf.version>
+    <cxf.version>4.2.4</cxf.version>
 
-    <targetJdk>11</targetJdk>
+    <targetJdk>21</targetJdk>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -178,24 +178,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.6.0</version>
         <configuration>
-          <configLocation>${basedir}/src/main/resources/checkstyle.xml</configLocation>
-          <sourceDirectories>
-            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-            <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
-          </sourceDirectories>
-          <skip>${skipTests}</skip>
+          <configLocation>https://raw.githubusercontent.com/Tirasa/ConnId/master/java/src/main/resources/checkstyle.xml</configLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
         </configuration>
-        <executions>
-          <execution>
-            <id>checkstyle-check</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
 
       <plugin>
